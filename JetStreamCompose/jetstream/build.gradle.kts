@@ -53,6 +53,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "SERVER_URL", "https://stage.nortv.xyz")
         }
     }
     buildFeatures {
@@ -107,6 +108,7 @@ dependencies {
     // Hilt
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.material3.android)
     ksp(libs.hilt.compiler)
 
     // Baseline profile installer
@@ -117,4 +119,8 @@ dependencies {
 
     // For baseline profile generation
     baselineProfile(project(":benchmark"))
+
+    implementation(libs.retrofit) // Retrofit core
+    implementation(libs.converter.gson) // JSON converter (or use Moshi if preferred)
+    implementation("co.touchlab:kermit:2.0.4")
 }

@@ -29,6 +29,7 @@ enum class Screens(
     val tabIcon: ImageVector? = null
 ) {
     Profile,
+    AuthScreen,
     Home(isTabItem = true),
     Categories(isTabItem = true),
     Movies(isTabItem = true),

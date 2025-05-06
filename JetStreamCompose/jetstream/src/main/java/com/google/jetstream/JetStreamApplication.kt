@@ -17,6 +17,8 @@
 package com.google.jetstream
 
 import android.app.Application
+import com.google.jetstream.data.repositories.CustomerRepository
+import com.google.jetstream.data.repositories.CustomerRepositoryImpl
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.MovieRepositoryImpl
 import dagger.Binds
@@ -36,4 +38,14 @@ abstract class MovieRepositoryModule {
     abstract fun bindMovieRepository(
         movieRepositoryImpl: MovieRepositoryImpl
     ): MovieRepository
+}
+
+@InstallIn(SingletonComponent::class)
+@Module
+abstract class CustomerRepositoryModule {
+
+    @Binds
+    abstract fun bindCustomerRepository(
+        customerRepositoryImpl: CustomerRepositoryImpl
+    ): CustomerRepository
 }

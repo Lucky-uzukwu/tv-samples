@@ -16,6 +16,7 @@
 
 package com.google.jetstream.presentation
 
+import AuthScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,7 +43,7 @@ fun App(
 
     NavHost(
         navController = navController,
-        startDestination = Screens.Dashboard(),
+        startDestination = Screens.AuthScreen(),
         builder = {
             composable(
                 route = Screens.CategoryMovieList(),
@@ -121,6 +122,13 @@ fun App(
                         if (navController.navigateUp()) {
                             isComingBackFromDifferentScreen = true
                         }
+                    }
+                )
+            }
+            composable(route = Screens.AuthScreen()) {
+                AuthScreen(
+                    onContinueClicked = {
+                        navController.navigate(Screens.Dashboard())
                     }
                 )
             }
