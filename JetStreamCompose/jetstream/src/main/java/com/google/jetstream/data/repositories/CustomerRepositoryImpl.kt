@@ -1,5 +1,6 @@
 package com.google.jetstream.data.repositories
 
+import com.google.jetstream.data.network.CustomerDataResponse
 import com.google.jetstream.data.network.CustomerService
 import com.google.jetstream.data.network.TokenForCustomerRequest
 import com.google.jetstream.data.network.TokenForCustomerResponse
@@ -25,5 +26,11 @@ class CustomerRepositoryImpl @Inject constructor(
             )
         )
 
+    }
+
+    override suspend fun getCustomer(identifier: String): Response<CustomerDataResponse> {
+        return customerService.getCustomer(
+            identifier = identifier
+        )
     }
 }

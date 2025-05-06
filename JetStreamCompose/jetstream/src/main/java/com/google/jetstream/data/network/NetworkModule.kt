@@ -36,4 +36,11 @@ class NetworkModule {
     fun customerService(retrofit: Retrofit): CustomerService {
         return retrofit.create(CustomerService::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun tokenService(retrofit: Retrofit): TokenService {
+        return retrofit.create(TokenService::class.java)
+    }
+
 }

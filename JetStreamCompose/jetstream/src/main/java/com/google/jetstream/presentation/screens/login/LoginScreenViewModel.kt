@@ -1,4 +1,4 @@
-package com.google.jetstream.presentation.screens.auth
+package com.google.jetstream.presentation.screens.login
 
 import androidx.lifecycle.ViewModel
 import co.touchlab.kermit.Logger
@@ -13,7 +13,7 @@ import retrofit2.Response
 import javax.inject.Inject
 
 
-data class AuthScreenUiState(
+data class LoginScreenUiState(
     val accessCode: String = "",
     val isLoading: Boolean = false,
     val customerData: CustomerDataResponse? = null,
@@ -22,17 +22,14 @@ data class AuthScreenUiState(
 
 
 @HiltViewModel
-class AuthScreenViewModel @Inject constructor(
+class LoginScreenViewModel @Inject constructor(
     private val customerRepository: CustomerRepository,
 ) : ViewModel() {
 
     // Expose screen UI state
-    private val _uiState = MutableStateFlow(AuthScreenUiState())
-    val uiState: StateFlow<AuthScreenUiState> = _uiState
+    private val _uiState = MutableStateFlow(LoginScreenUiState())
+    val uiState: StateFlow<LoginScreenUiState> = _uiState
 
-    fun updateAccessCode(newAccessCode: String) {
-        _uiState.update { it.copy(accessCode = newAccessCode) }
-    }
 
     suspend fun requestTokenForCustomer(
         deviceMacAddress: String,
@@ -64,26 +61,4 @@ class AuthScreenViewModel @Inject constructor(
 
         return response
     }
-
-    suspend fun getCustomer(identifier: String): Response<CustomerDataResponse> {
-        _uiState.update { it.copy(isLoading = true) }
-        val response = customerRepository.getCustomer(identifier = identifier)
-
-        if (response.isSuccessful) {
-            _uiState.update {
-                it.copy(
-                    customerData = response.body(),
-                    isLoading = false,
-                    accessCode = ""
-                )
-            }
-        } else {
-            // Handle error response
-            if (response.code() == 404) {
-                _uiState.update { it.copy(error = "Something went wrong. Ensure the access code is correctly inputed", isLoading = false) }
-            }
-        }
-        return response
-    }
-
 }

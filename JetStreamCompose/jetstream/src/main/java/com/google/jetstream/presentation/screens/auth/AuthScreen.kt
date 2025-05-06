@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +33,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,6 +45,7 @@ import androidx.tv.material3.Text
 import com.google.jetstream.R
 import com.google.jetstream.presentation.screens.auth.AuthScreenViewModel
 import com.google.jetstream.util.DeviceNetworkInfo
+import kotlinx.coroutines.runBlocking
 
 @Composable
 fun AuthScreen(
@@ -56,12 +59,19 @@ fun AuthScreen(
 
     val uiState by viewModel.uiState.collectAsState()
 
+    var accessCode = remember { mutableStateOf("") }
+    val maxLength = 6 // Maximum characters allowed
+
     LaunchedEffect(Unit) {
         viewModel.requestTokenForCustomer(
             deviceMacAddress = macAddress,
             clientIp = clientIp,
             deviceName = deviceName,
         )
+    }
+
+    fun getCustomer(accessCode: String) = runBlocking {
+        viewModel.getCustomer(accessCode)
     }
 
     if (uiState.isLoading) {
@@ -192,27 +202,60 @@ fun AuthScreen(
                                 Text("*", color = Color.Red.copy(alpha = 0.7f))
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Text(
-                                    text = "Login with existing code",
+                                    text = "Login with an existing code",
                                     color = Color.Gray.copy(alpha = 0.9f),
                                     fontSize = 14.sp,
                                 )
                             }
 
                             OutlinedTextField(
-                                value = uiState.accessCode,
-                                onValueChange = { },
+                                value = accessCode.value,
+                                onValueChange = { newValue ->
+                                    if (newValue.length <= maxLength) {
+                                        accessCode.value = newValue
+                                    }
+                                },
+                                textStyle = TextStyle(
+                                    color = Color.White, // White input text
+                                    fontSize = 16.sp
+                                ),
                                 placeholder = {
-                                    Text("e.g. 123456", color = Color.Red)
+                                    Text(
+                                        text = "e.g. 123456",
+                                        color = Color.White.copy(alpha = 0.7f) // Lighter placeholder
+                                    )
                                 },
                                 singleLine = true,
                                 shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier.fillMaxWidth(),
+//                                colors = TextFieldDefaults.colors(
+//                                    focusedBorderColor = if (uiState.accessCode.isNotEmpty()) Color(0xFFFFA726) else Color.White,
+//                                    unfocusedBorderColor = if (uiState.accessCode.isNotEmpty()) Color(0xFFFFA726) else Color.White.copy(alpha = 0.7f),
+//                                    focusedTextColor = Color.White,
+//                                    unfocusedTextColor = Color.White,
+//                                    cursorColor = Color.White,
+//                                    focusedPlaceholderColor = Color.White.copy(alpha = 0.7f),
+//                                    unfocusedPlaceholderColor = Color.White.copy(alpha = 0.7f)
+//                                ),
+
                             )
+                            if (uiState.error != null) {
+                                Text(
+                                    text = uiState.error!!,
+                                    color = Color.Red,
+                                    fontSize = 12.sp,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 2.dp)
+                                )
+                            }
 
                             Spacer(modifier = Modifier.height(12.dp))
 
                             Button(
-                                onClick = onContinueClicked,
+                                onClick = {
+                                    getCustomer(uiState.accessCode)
+                                },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(48.dp),

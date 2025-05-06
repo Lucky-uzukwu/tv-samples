@@ -11,6 +11,11 @@ interface CustomerService {
 
     @POST("api/customers")
     suspend fun requestTokenForCustomer(@Body request: TokenForCustomerRequest): Response<TokenForCustomerResponse>
+
+    @GET("api/customers/{identifier}")
+    suspend fun getCustomer(@Path("identifier") identifier: String): Response<CustomerDataResponse>
+
+
 }
 
 
@@ -22,4 +27,12 @@ data class TokenForCustomerRequest(
 
 data class TokenForCustomerResponse(
     val identifier: String,
+)
+
+data class CustomerDataResponse(
+    val id: String,
+    val identifier: String,
+    val name: String,
+    val email: String,
+    val profilePhotoPath: String?,
 )
