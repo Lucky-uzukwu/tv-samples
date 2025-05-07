@@ -12,7 +12,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 @Module
 @InstallIn(SingletonComponent::class)
 class NetworkModule {
-    private val BASE_URL = "https://stage.nortv.xyz"
+    private val BASE_URL = "https://stage.nortv.xyz/"
 
     @Provides
     @Singleton
@@ -36,11 +36,4 @@ class NetworkModule {
     fun customerService(retrofit: Retrofit): CustomerService {
         return retrofit.create(CustomerService::class.java)
     }
-
-    @Provides
-    @Singleton
-    fun tokenService(retrofit: Retrofit): TokenService {
-        return retrofit.create(TokenService::class.java)
-    }
-
 }

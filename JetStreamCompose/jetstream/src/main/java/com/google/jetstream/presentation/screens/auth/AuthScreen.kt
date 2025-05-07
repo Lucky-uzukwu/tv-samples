@@ -43,6 +43,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.jetstream.R
+import com.google.jetstream.presentation.screens.auth.AuthScreenUiEvent
 import com.google.jetstream.presentation.screens.auth.AuthScreenViewModel
 import com.google.jetstream.util.DeviceNetworkInfo
 import kotlinx.coroutines.runBlocking
@@ -50,7 +51,8 @@ import kotlinx.coroutines.runBlocking
 @Composable
 fun AuthScreen(
     viewModel: AuthScreenViewModel = hiltViewModel(),
-    onContinueClicked: () -> Unit,
+    onNavigateToLogin: () -> Unit,
+    onNavigateToRegister: () -> Unit
 ) {
     val context = LocalContext.current
     val macAddress = remember { DeviceNetworkInfo.getMacAddress(context) }
@@ -58,6 +60,7 @@ fun AuthScreen(
     val clientIp = remember { DeviceNetworkInfo.getIPAddress() }
 
     val uiState by viewModel.uiState.collectAsState()
+    val uiEvent by viewModel.uiEvent.collectAsState()
 
     var accessCode = remember { mutableStateOf("") }
     val maxLength = 6 // Maximum characters allowed
@@ -69,8 +72,21 @@ fun AuthScreen(
             deviceName = deviceName,
         )
     }
+    LaunchedEffect(uiEvent) {
+        if (uiEvent is AuthScreenUiEvent.NavigateToLogin) {
+            onNavigateToLogin()
+            viewModel.clearEvent()
+        }
+    }
 
-    fun getCustomer(accessCode: String) = runBlocking {
+    LaunchedEffect(uiEvent) {
+        if (uiEvent is AuthScreenUiEvent.NavigateToRegister) {
+            onNavigateToRegister()
+            viewModel.clearEvent()
+        }
+    }
+
+    fun authenticateCustomer(accessCode: String) = runBlocking {
         viewModel.getCustomer(accessCode)
     }
 
@@ -140,10 +156,10 @@ fun AuthScreen(
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
-                // TODO: Work on these to fix the background colors
-                colorFilter = ColorFilter.tint(Color.White, blendMode = BlendMode.ColorBurn)
-
-
+                colorFilter = ColorFilter.tint(
+                    Color.Black.copy(alpha = 0.5f),
+                    blendMode = BlendMode.Darken
+                )
             )
 
             // Main Content Overlay
@@ -180,7 +196,7 @@ fun AuthScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("Access Code", color = Color.White.copy(alpha = 0.7f))
                             Text(
-                                text = uiState.accessCode,
+                                text = uiState.generatedAccessCode,
                                 color = Color.White,
                                 fontSize = 32.sp,
                                 fontWeight = FontWeight.Bold
@@ -228,20 +244,11 @@ fun AuthScreen(
                                 singleLine = true,
                                 shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier.fillMaxWidth(),
-//                                colors = TextFieldDefaults.colors(
-//                                    focusedBorderColor = if (uiState.accessCode.isNotEmpty()) Color(0xFFFFA726) else Color.White,
-//                                    unfocusedBorderColor = if (uiState.accessCode.isNotEmpty()) Color(0xFFFFA726) else Color.White.copy(alpha = 0.7f),
-//                                    focusedTextColor = Color.White,
-//                                    unfocusedTextColor = Color.White,
-//                                    cursorColor = Color.White,
-//                                    focusedPlaceholderColor = Color.White.copy(alpha = 0.7f),
-//                                    unfocusedPlaceholderColor = Color.White.copy(alpha = 0.7f)
-//                                ),
 
                             )
-                            if (uiState.error != null) {
+                            if (uiState.accessCodeError != null) {
                                 Text(
-                                    text = uiState.error!!,
+                                    text = uiState.accessCodeError!!,
                                     color = Color.Red,
                                     fontSize = 12.sp,
                                     modifier = Modifier
@@ -254,7 +261,7 @@ fun AuthScreen(
 
                             Button(
                                 onClick = {
-                                    getCustomer(uiState.accessCode)
+                                    authenticateCustomer(accessCode.value)
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -313,7 +320,8 @@ fun AuthScreen(
 fun AuthScreenPreview() {
     MaterialTheme {
         AuthScreen(
-            onContinueClicked = {},
+            onNavigateToLogin = {},
+            onNavigateToRegister = {},
         )
     }
 }

@@ -21,8 +21,6 @@ import com.google.jetstream.data.repositories.CustomerRepository
 import com.google.jetstream.data.repositories.CustomerRepositoryImpl
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.MovieRepositoryImpl
-import com.google.jetstream.data.repositories.TokenRepository
-import com.google.jetstream.data.repositories.TokenRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -50,15 +48,5 @@ abstract class CustomerRepositoryModule {
     abstract fun bindCustomerRepository(
         customerRepositoryImpl: CustomerRepositoryImpl
     ): CustomerRepository
-}
-
-@InstallIn(SingletonComponent::class)
-@Module
-abstract class TokenRepositoryModule {
-
-    @Binds
-    abstract fun bindCustomerRepository(
-        tokenRepositoryImpl: TokenRepositoryImpl
-    ): TokenRepository
 }
 

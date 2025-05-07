@@ -30,6 +30,8 @@ enum class Screens(
 ) {
     Profile,
     AuthScreen,
+    Login,
+    Register,
     Home(isTabItem = true),
     Categories(isTabItem = true),
     Movies(isTabItem = true),

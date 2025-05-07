@@ -123,4 +123,6 @@ dependencies {
     implementation(libs.retrofit) // Retrofit core
     implementation(libs.converter.gson) // JSON converter (or use Moshi if preferred)
     implementation("co.touchlab:kermit:2.0.4")
+    implementation("androidx.compose.material3:material3")
+    implementation ("androidx.compose.material:material-icons-extended")
 }

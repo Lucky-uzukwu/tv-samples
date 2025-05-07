@@ -17,17 +17,21 @@
 package com.google.jetstream.presentation
 
 import AuthScreen
+import LoginScreen
+import RegisterScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.jetstream.presentation.screens.Screens
+import com.google.jetstream.presentation.screens.auth.AuthScreenViewModel
 import com.google.jetstream.presentation.screens.categories.CategoryMovieListScreen
 import com.google.jetstream.presentation.screens.dashboard.DashboardScreen
 import com.google.jetstream.presentation.screens.movies.MovieDetailsScreen
@@ -125,9 +129,38 @@ fun App(
                     }
                 )
             }
-            composable(route = Screens.AuthScreen()) {
+            composable(route = Screens.AuthScreen()) { backStackEntry ->
+                val viewModel: AuthScreenViewModel = hiltViewModel(backStackEntry)
                 AuthScreen(
-                    onContinueClicked = {
+                    viewModel = viewModel,
+                    onNavigateToLogin = {
+                        navController.navigate(Screens.Login())
+                    },
+                    onNavigateToRegister = {
+                        navController.navigate(Screens.Register())
+                    }
+                )
+            }
+            composable(route = Screens.Login()) { backStackEntry ->
+                val viewModel: AuthScreenViewModel =
+                    if (navController.previousBackStackEntry != null) hiltViewModel(
+                        navController.previousBackStackEntry!!
+                    ) else hiltViewModel()
+                LoginScreen(
+                    viewModel = viewModel,
+                    onSubmitSuccess = {
+                        navController.navigate(Screens.Dashboard())
+                    }
+                )
+            }
+            composable(route = Screens.Register()) { backStackEntry ->
+                val viewModel: AuthScreenViewModel =
+                    if (navController.previousBackStackEntry != null) hiltViewModel(
+                        navController.previousBackStackEntry!!
+                    ) else hiltViewModel()
+                RegisterScreen(
+                    viewModel = viewModel,
+                    onSubmitSuccess = {
                         navController.navigate(Screens.Dashboard())
                     }
                 )
