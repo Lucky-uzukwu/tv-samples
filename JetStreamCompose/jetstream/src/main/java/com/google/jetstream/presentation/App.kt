@@ -49,6 +49,42 @@ fun App(
         navController = navController,
         startDestination = Screens.AuthScreen(),
         builder = {
+            composable(route = Screens.AuthScreen()) {
+                val viewModel: AuthScreenViewModel = hiltViewModel()
+                AuthScreen(
+                    viewModel = viewModel,
+                    onNavigateToLogin = {
+                        navController.navigate(Screens.Login())
+                    },
+                    onNavigateToRegister = {
+                        navController.navigate(Screens.Register())
+                    }
+                )
+            }
+            composable(route = Screens.Login()) { backStackEntry ->
+                val viewModel: AuthScreenViewModel =
+                    if (navController.previousBackStackEntry != null) hiltViewModel(
+                        navController.previousBackStackEntry!!
+                    ) else hiltViewModel()
+                LoginScreen(
+                    viewModel = viewModel,
+                    onSubmitSuccess = {
+                        navController.navigate(Screens.Dashboard())
+                    }
+                )
+            }
+            composable(route = Screens.Register()) { backStackEntry ->
+                val viewModel: AuthScreenViewModel =
+                    if (navController.previousBackStackEntry != null) hiltViewModel(
+                        navController.previousBackStackEntry!!
+                    ) else hiltViewModel()
+                RegisterScreen(
+                    viewModel = viewModel,
+                    onSubmitSuccess = {
+                        navController.navigate(Screens.Dashboard())
+                    }
+                )
+            }
             composable(
                 route = Screens.CategoryMovieList(),
                 arguments = listOf(
@@ -126,42 +162,6 @@ fun App(
                         if (navController.navigateUp()) {
                             isComingBackFromDifferentScreen = true
                         }
-                    }
-                )
-            }
-            composable(route = Screens.AuthScreen()) { backStackEntry ->
-                val viewModel: AuthScreenViewModel = hiltViewModel(backStackEntry)
-                AuthScreen(
-                    viewModel = viewModel,
-                    onNavigateToLogin = {
-                        navController.navigate(Screens.Login())
-                    },
-                    onNavigateToRegister = {
-                        navController.navigate(Screens.Register())
-                    }
-                )
-            }
-            composable(route = Screens.Login()) { backStackEntry ->
-                val viewModel: AuthScreenViewModel =
-                    if (navController.previousBackStackEntry != null) hiltViewModel(
-                        navController.previousBackStackEntry!!
-                    ) else hiltViewModel()
-                LoginScreen(
-                    viewModel = viewModel,
-                    onSubmitSuccess = {
-                        navController.navigate(Screens.Dashboard())
-                    }
-                )
-            }
-            composable(route = Screens.Register()) { backStackEntry ->
-                val viewModel: AuthScreenViewModel =
-                    if (navController.previousBackStackEntry != null) hiltViewModel(
-                        navController.previousBackStackEntry!!
-                    ) else hiltViewModel()
-                RegisterScreen(
-                    viewModel = viewModel,
-                    onSubmitSuccess = {
-                        navController.navigate(Screens.Dashboard())
                     }
                 )
             }

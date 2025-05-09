@@ -11,14 +11,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -33,18 +29,21 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.jetstream.R
+import com.google.jetstream.presentation.screens.auth.AuthScreenNavHost
+import com.google.jetstream.presentation.screens.auth.components.AccessCodeTextInputAndContinueButton
 import com.google.jetstream.presentation.screens.auth.AuthScreenUiEvent
+import com.google.jetstream.presentation.screens.auth.AuthScreenUiState
 import com.google.jetstream.presentation.screens.auth.AuthScreenViewModel
+import com.google.jetstream.presentation.screens.auth.components.AccessCodeAndInfo
+import com.google.jetstream.presentation.screens.auth.components.PopularMoviesSection
 import com.google.jetstream.util.DeviceNetworkInfo
 import kotlinx.coroutines.runBlocking
 
@@ -63,7 +62,6 @@ fun AuthScreen(
     val uiEvent by viewModel.uiEvent.collectAsState()
 
     var accessCode = remember { mutableStateOf("") }
-    val maxLength = 6 // Maximum characters allowed
 
     LaunchedEffect(Unit) {
         viewModel.requestTokenForCustomer(
@@ -182,7 +180,7 @@ fun AuthScreen(
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Text(
                             text = "Unlimited Movies,\nTV Shows and More",
@@ -193,135 +191,34 @@ fun AuthScreen(
                             lineHeight = 30.sp
                         )
 
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Access Code", color = Color.White.copy(alpha = 0.7f))
-                            Text(
-                                text = uiState.generatedAccessCode,
-                                color = Color.White,
-                                fontSize = 32.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "Provide this code to your developer account.\nOnce activated, you'll set a password and login.",
-                                color = Color.White.copy(alpha = 0.7f),
-                                fontSize = 14.sp,
-                                textAlign = TextAlign.Center,
-                                lineHeight = 18.sp
-                            )
-                        }
+                        AccessCodeAndInfo(uiState)
 
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text("Access Code", color = Color.White.copy(alpha = 0.7f))
-                                Text("*", color = Color.Red.copy(alpha = 0.7f))
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Text(
-                                    text = "Login with an existing code",
-                                    color = Color.Gray.copy(alpha = 0.9f),
-                                    fontSize = 14.sp,
-                                )
-                            }
-
-                            OutlinedTextField(
-                                value = accessCode.value,
-                                onValueChange = { newValue ->
-                                    if (newValue.length <= maxLength) {
-                                        accessCode.value = newValue
-                                    }
-                                },
-                                textStyle = TextStyle(
-                                    color = Color.White, // White input text
-                                    fontSize = 16.sp
-                                ),
-                                placeholder = {
-                                    Text(
-                                        text = "e.g. 123456",
-                                        color = Color.White.copy(alpha = 0.7f) // Lighter placeholder
-                                    )
-                                },
-                                singleLine = true,
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.fillMaxWidth(),
-
-                            )
-                            if (uiState.accessCodeError != null) {
-                                Text(
-                                    text = uiState.accessCodeError!!,
-                                    color = Color.Red,
-                                    fontSize = 12.sp,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 2.dp)
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            Button(
-                                onClick = {
-                                    authenticateCustomer(accessCode.value)
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(48.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFFFA726)
-                                )
-                            ) {
-                                Text(
-                                    "Continue",
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = Color.White
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
+                        AccessCodeTextInputAndContinueButton(
+                            accessCode = accessCode,
+                            maxLength = 6,
+                            uiState = uiState,
+                            onContinueButtonClicked = { authenticateCustomer(accessCode.value) }
+                        )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
-                Text(
-                    text = "Popular Movies",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.Start)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState())
-                ) {
-                    repeat(5) {
-                        Box(
-                            modifier = Modifier
-                                .size(width = 120.dp, height = 80.dp)
-                                .background(Color.Gray, shape = RoundedCornerShape(8.dp))
-                        )
-                    }
-                }
+                PopularMoviesSection()
             }
         }
     }
-
+//    AuthScreenNavHost()
 }
+
 
 // Preview for testing the UI
 @Preview(showBackground = true)
 @Composable
 fun AuthScreenPreview() {
-    MaterialTheme {
-        AuthScreen(
-            onNavigateToLogin = {},
-            onNavigateToRegister = {},
-        )
-    }
+//    JetStreamTheme {
+    AuthScreen(
+        onNavigateToLogin = {},
+        onNavigateToRegister = {},
+    )
+//    }
 }

@@ -1,14 +1,20 @@
 package com.google.jetstream.presentation.screens.auth
 
+import android.annotation.SuppressLint
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import com.google.jetstream.data.network.CustomerDataResponse
 import com.google.jetstream.data.network.TokenForCustomerResponse
 import com.google.jetstream.data.repositories.CustomerRepository
+import com.google.jetstream.util.DeviceNetworkInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -79,7 +85,7 @@ class AuthScreenViewModel @Inject constructor(
         return response
     }
 
-    suspend fun getCustomer(identifier: String): Response<CustomerDataResponse> {
+    suspend fun getCustomer(identifier: String) {
         _uiState.update { it.copy(isLoading = true) }
         val response = customerRepository.getCustomer(identifier = identifier)
 
@@ -113,7 +119,6 @@ class AuthScreenViewModel @Inject constructor(
                 _uiEvent.value = AuthScreenUiEvent.NavigateToRegister
             }
         }
-        return response
     }
 
     suspend fun loginCustomer(
