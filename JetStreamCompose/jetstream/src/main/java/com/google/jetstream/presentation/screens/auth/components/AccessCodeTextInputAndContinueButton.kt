@@ -1,15 +1,18 @@
 package com.google.jetstream.presentation.screens.auth.components
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -26,8 +29,8 @@ import com.google.jetstream.presentation.screens.auth.AuthScreenUiState
 @Composable
 fun AccessCodeTextInputAndContinueButton(
     accessCode: MutableState<String>,
-    maxLength: Int = 6,
     uiState: AuthScreenUiState,
+    accessCodeError: String? = null,
     onContinueButtonClicked: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -53,7 +56,7 @@ fun AccessCodeTextInputAndContinueButton(
         OutlinedTextField(
             value = accessCode.value,
             onValueChange = { newValue ->
-                if (newValue.length <= maxLength) {
+                if (newValue.length <= 6) {
                     accessCode.value = newValue
                 }
             },
@@ -72,9 +75,9 @@ fun AccessCodeTextInputAndContinueButton(
             modifier = Modifier.fillMaxWidth(),
 
             )
-        if (uiState.accessCodeError != null) {
+        if (accessCodeError != null) {
             Text(
-                text = uiState.accessCodeError,
+                text = accessCodeError,
                 color = Color.Red,
                 fontSize = 12.sp,
                 modifier = Modifier
@@ -86,20 +89,40 @@ fun AccessCodeTextInputAndContinueButton(
         Spacer(modifier = Modifier.height(12.dp))
 
         Button(
-            onClick = onContinueButtonClicked,
+            onClick = {
+                if (!uiState.isGetCustomerLoading) {
+                    onContinueButtonClicked()
+                }
+            },
+            enabled = accessCode.value != "",
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFFFA726)
+                containerColor = Color(0xFFFFA726),
+                disabledContainerColor = Color.Gray.copy(alpha = 0.6f)
             )
         ) {
-            Text(
-                "continue",
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (uiState.isGetCustomerLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(10.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Text(
+                    text = "continue",
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))

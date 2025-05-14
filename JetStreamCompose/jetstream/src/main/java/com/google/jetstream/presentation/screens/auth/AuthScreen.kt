@@ -1,10 +1,8 @@
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,21 +33,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.tv.material3.Text
+import co.touchlab.kermit.Logger
 import com.google.jetstream.R
-import com.google.jetstream.presentation.screens.auth.AuthScreenNavHost
-import com.google.jetstream.presentation.screens.auth.components.AccessCodeTextInputAndContinueButton
 import com.google.jetstream.presentation.screens.auth.AuthScreenUiEvent
-import com.google.jetstream.presentation.screens.auth.AuthScreenUiState
 import com.google.jetstream.presentation.screens.auth.AuthScreenViewModel
-import com.google.jetstream.presentation.screens.auth.components.AccessCodeAndInfo
-import com.google.jetstream.presentation.screens.auth.components.PopularMoviesSection
+import com.google.jetstream.presentation.screens.auth.components.AccessCodeAndInfoText
+import com.google.jetstream.presentation.screens.auth.components.AccessCodeTextInputAndContinueButton
 import com.google.jetstream.util.DeviceNetworkInfo
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 
 @Composable
 fun AuthScreen(
-    viewModel: AuthScreenViewModel = hiltViewModel(),
+    authScreenViewModel: AuthScreenViewModel = hiltViewModel(),
     onNavigateToLogin: () -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
@@ -58,37 +55,44 @@ fun AuthScreen(
     val deviceName = remember { DeviceNetworkInfo.getDeviceName(context) }
     val clientIp = remember { DeviceNetworkInfo.getIPAddress() }
 
-    val uiState by viewModel.uiState.collectAsState()
-    val uiEvent by viewModel.uiEvent.collectAsState()
+    val uiState by authScreenViewModel.uiState.collectAsState()
+    val uiEvent by authScreenViewModel.uiEvent.collectAsState()
 
     var accessCode = remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        viewModel.requestTokenForCustomer(
+        authScreenViewModel.requestTokenForCustomer(
             deviceMacAddress = macAddress,
             clientIp = clientIp,
             deviceName = deviceName,
         )
     }
+
     LaunchedEffect(uiEvent) {
         if (uiEvent is AuthScreenUiEvent.NavigateToLogin) {
             onNavigateToLogin()
-            viewModel.clearEvent()
+            authScreenViewModel.clearEvent()
         }
     }
 
     LaunchedEffect(uiEvent) {
         if (uiEvent is AuthScreenUiEvent.NavigateToRegister) {
             onNavigateToRegister()
-            viewModel.clearEvent()
+            authScreenViewModel.clearEvent()
         }
     }
 
-    fun authenticateCustomer(accessCode: String) = runBlocking {
-        viewModel.getCustomer(accessCode)
+    fun authenticateCustomer(accessCode: String) {
+        authScreenViewModel.viewModelScope.launch {
+            try {
+                authScreenViewModel.getCustomer(accessCode)
+            } catch (e: Exception) {
+                Logger.e("Authentication failed: ${e.message}")
+            }
+        }
     }
 
-    if (uiState.isLoading) {
+    if (uiState.isRequestTokenForCustomerLoading) {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -117,30 +121,6 @@ fun AuthScreen(
                     color = Color(0xFFFFA736)
                 )
                 Spacer(modifier = Modifier.height(24.dp))
-                Text(
-                    text = "Popular Movies",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.Start)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState())
-                ) {
-                    repeat(5) {
-                        Box(
-                            modifier = Modifier
-                                .size(width = 120.dp, height = 80.dp)
-                                .background(Color.Gray, shape = RoundedCornerShape(8.dp))
-                        )
-                    }
-                }
             }
         }
     } else {
@@ -191,11 +171,13 @@ fun AuthScreen(
                             lineHeight = 30.sp
                         )
 
-                        AccessCodeAndInfo(uiState)
+                        AccessCodeAndInfoText(
+                            accessCode = uiState.generatedAccessCode
+                        )
 
                         AccessCodeTextInputAndContinueButton(
                             accessCode = accessCode,
-                            maxLength = 6,
+                            accessCodeError = uiState.accessCodeError,
                             uiState = uiState,
                             onContinueButtonClicked = { authenticateCustomer(accessCode.value) }
                         )
@@ -203,11 +185,9 @@ fun AuthScreen(
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
-                PopularMoviesSection()
             }
         }
     }
-//    AuthScreenNavHost()
 }
 
 

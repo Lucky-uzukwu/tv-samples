@@ -54,6 +54,13 @@ The baseline profile for this app is located at [`jetstream/src/main/baseline-pr
 
 For more details on how to generate & apply baseline profiles, check [this document](baseline-profiles.md).
 
+### How Global storage works
+Suggested Hybrid Approach: Often you’ll combine State Holders with persistent storage.
+For example, if dark mode is enabled in DataStore, your ThemeStateHolder can load that value on app start, store it in a reactive StateFlow,
+and expose it to the UI. When the user toggles dark mode, 
+the holder updates its StateFlow (for immediate UI change) and writes the new 
+preference to DataStore (for persistence).
+
 
 ## License
 ```

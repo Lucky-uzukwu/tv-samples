@@ -38,9 +38,7 @@ import com.google.jetstream.presentation.screens.movies.MovieDetailsScreen
 import com.google.jetstream.presentation.screens.videoPlayer.VideoPlayerScreen
 
 @Composable
-fun App(
-    onBackPressed: () -> Unit
-) {
+fun App(onBackPressed: () -> Unit) {
 
     val navController = rememberNavController()
     var isComingBackFromDifferentScreen by remember { mutableStateOf(false) }
@@ -50,9 +48,7 @@ fun App(
         startDestination = Screens.AuthScreen(),
         builder = {
             composable(route = Screens.AuthScreen()) {
-                val viewModel: AuthScreenViewModel = hiltViewModel()
                 AuthScreen(
-                    viewModel = viewModel,
                     onNavigateToLogin = {
                         navController.navigate(Screens.Login())
                     },
