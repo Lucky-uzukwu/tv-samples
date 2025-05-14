@@ -6,13 +6,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Text
-import com.google.jetstream.presentation.screens.auth.AuthScreenUiState
 
 @Composable
-fun AccessCodeAndInfo(uiState: AuthScreenUiState) {
+fun AccessCodeAndInfoText(
+    accessCode: String
+) {
     Text("Access Code", color = Color.White.copy(alpha = 0.7f))
     Text(
-        text = uiState.generatedAccessCode,
+        text = accessCode,
         color = Color.White,
         fontSize = 32.sp,
         fontWeight = FontWeight.Bold
