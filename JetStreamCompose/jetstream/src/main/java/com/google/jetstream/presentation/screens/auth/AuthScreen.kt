@@ -16,7 +16,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.currentComposer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -92,6 +91,16 @@ fun AuthScreen(
 
     LaunchedEffect(uiEvent) {
         if (uiEvent is AuthScreenUiEvent.NavigateToRegister) {
+            userStateHolder.updateUser(
+                User(
+                    id = uiState.customerData!!.id,
+                    accessCode = uiState.customerData!!.identifier,
+                    name = uiState.customerData!!.name,
+                    email = uiState.customerData!!.email,
+                    profilePhotoPath = uiState.customerData?.profilePhotoPath,
+                    profilePhotoUrl = uiState.customerData?.profilePhotoUrl,
+                )
+            )
             onNavigateToRegister()
             authScreenViewModel.clearEvent()
         }

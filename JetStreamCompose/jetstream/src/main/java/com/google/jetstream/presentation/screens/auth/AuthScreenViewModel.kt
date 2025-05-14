@@ -26,7 +26,6 @@ data class AuthScreenUiState(
 
 sealed class AuthScreenUiEvent {
     object NavigateToLogin : AuthScreenUiEvent()
-    object NavigateToDashboard : AuthScreenUiEvent()
     object NavigateToRegister : AuthScreenUiEvent()
 }
 
@@ -115,67 +114,6 @@ class AuthScreenViewModel @Inject constructor(
                 _uiEvent.value = AuthScreenUiEvent.NavigateToRegister
             }
         }
-    }
-
-    suspend fun registerCustomer(
-        password: String,
-        password_confirmation: String,
-        email: String,
-        name: String,
-    ) {
-        _uiState.update {
-            it.copy(
-                isGetCustomerLoading = true,
-                passwordError = null,
-                accessCodeError = null
-            )
-        }
-
-        val response = customerRepository.register(
-            password = password,
-            password_confirmation = password_confirmation,
-            email = email,
-            name = name,
-            identifier = _uiState.value.userInputedAccessCode
-        )
-
-        when (response.code()) {
-            400 -> _uiState.update {
-                it.copy(
-                    passwordError = "Something went wrong. Please check your password and try again",
-                    isGetCustomerLoading = false
-                )
-            }
-
-            200 -> {
-                _uiState.update {
-                    it.copy(
-                        customerData = CustomerDataResponse(
-                            id = response.body()?.name!!,
-                            identifier = response.body()?.identifier.toString(),
-                            name = response.body()?.name!!,
-                            email = response.body()?.email!!,
-                            profilePhotoUrl = if (response.body()?.profilePhotoUrl != null) response.body()?.profilePhotoUrl!! else "",
-                            profilePhotoPath =
-                                if (response.body()?.profilePhotoPath != null) response.body()?.profilePhotoPath!! else "",
-                        ),
-                        isGetCustomerLoading = false,
-                    )
-                }
-                _uiEvent.value = AuthScreenUiEvent.NavigateToDashboard
-            }
-
-            422 -> {
-                _uiState.update {
-                    it.copy(
-                        passwordError = "Password is already set, try and login",
-                        isGetCustomerLoading = false,
-                    )
-                }
-            }
-        }
-
-
     }
 
     fun clearEvent() {

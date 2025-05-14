@@ -51,7 +51,7 @@ fun App(
     val userState by userStateHolder.userState.collectAsState()
     Logger.i { "user token: ${userState.user?.token}" }
     val startDestination =
-        if (userState.user?.token !== null) Screens.Dashboard() else Screens.AuthScreen()
+        if (userState.user?.token !== null) Screens.AuthScreen() else Screens.AuthScreen()
 
     NavHost(
         navController = navController,
@@ -75,12 +75,7 @@ fun App(
                 )
             }
             composable(route = Screens.Register()) { backStackEntry ->
-                val viewModel: AuthScreenViewModel =
-                    if (navController.previousBackStackEntry != null) hiltViewModel(
-                        navController.previousBackStackEntry!!
-                    ) else hiltViewModel()
                 RegisterScreen(
-                    viewModel = viewModel,
                     onSubmitSuccess = {
                         navController.navigate(Screens.Dashboard())
                     }

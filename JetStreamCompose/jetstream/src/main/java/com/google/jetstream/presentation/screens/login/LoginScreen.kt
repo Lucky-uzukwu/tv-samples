@@ -44,9 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
-import co.touchlab.kermit.Logger
 import com.google.jetstream.R
-import com.google.jetstream.data.entities.User
 import com.google.jetstream.presentation.screens.login.LoginScreenUiEvent.NavigateToDashboard
 import com.google.jetstream.presentation.screens.login.LoginScreenViewModel
 import com.google.jetstream.state.UserStateHolder
