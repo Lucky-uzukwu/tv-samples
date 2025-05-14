@@ -16,6 +16,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.currentComposer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,15 +38,18 @@ import androidx.lifecycle.viewModelScope
 import androidx.tv.material3.Text
 import co.touchlab.kermit.Logger
 import com.google.jetstream.R
+import com.google.jetstream.data.entities.User
 import com.google.jetstream.presentation.screens.auth.AuthScreenUiEvent
 import com.google.jetstream.presentation.screens.auth.AuthScreenViewModel
 import com.google.jetstream.presentation.screens.auth.components.AccessCodeAndInfoText
 import com.google.jetstream.presentation.screens.auth.components.AccessCodeTextInputAndContinueButton
+import com.google.jetstream.state.UserStateHolder
 import com.google.jetstream.util.DeviceNetworkInfo
 import kotlinx.coroutines.launch
 
 @Composable
 fun AuthScreen(
+    userStateHolder: UserStateHolder = hiltViewModel(),
     authScreenViewModel: AuthScreenViewModel = hiltViewModel(),
     onNavigateToLogin: () -> Unit,
     onNavigateToRegister: () -> Unit
@@ -70,6 +74,17 @@ fun AuthScreen(
 
     LaunchedEffect(uiEvent) {
         if (uiEvent is AuthScreenUiEvent.NavigateToLogin) {
+            Logger.i(uiState.customerData!!.identifier)
+            userStateHolder.updateUser(
+                User(
+                    id = uiState.customerData!!.id,
+                    accessCode = uiState.customerData!!.identifier,
+                    name = uiState.customerData!!.name,
+                    email = uiState.customerData!!.email,
+                    profilePhotoPath = uiState.customerData?.profilePhotoPath,
+                    profilePhotoUrl = uiState.customerData?.profilePhotoUrl,
+                )
+            )
             onNavigateToLogin()
             authScreenViewModel.clearEvent()
         }

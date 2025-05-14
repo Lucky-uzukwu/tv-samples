@@ -21,6 +21,7 @@ import com.google.jetstream.data.entities.MovieDetails
 import com.google.jetstream.data.entities.MovieList
 import com.google.jetstream.data.entities.MovieReviewsAndRatings
 import com.google.jetstream.data.entities.ThumbnailType
+import com.google.jetstream.data.network.MovieService
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.data.util.StringConstants.Movie.Reviewer.DefaultCount
 import com.google.jetstream.data.util.StringConstants.Movie.Reviewer.DefaultRating
@@ -37,6 +38,7 @@ class MovieRepositoryImpl @Inject constructor(
     private val tvDataSource: TvDataSource,
     private val movieCastDataSource: MovieCastDataSource,
     private val movieCategoryDataSource: MovieCategoryDataSource,
+    private val movieService: MovieService
 ) : MovieRepository {
 
     override fun getFeaturedMovies() = flow {
@@ -154,5 +156,14 @@ class MovieRepositoryImpl @Inject constructor(
     override fun getFavouriteMovies(): Flow<MovieList> = flow {
         val list = movieDataSource.getFavoriteMovieList()
         emit(list)
+    }
+
+    override suspend fun getMoviesToShowInHeroSection(): Flow<MovieList> {
+        // TODO: Figure out how to get user auth token without passing it around
+        val response = movieService.getMovies(
+            authToken = "",
+            showInHeroSection = 1
+        )
+        return TODO("Provide the return value")
     }
 }

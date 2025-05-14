@@ -40,7 +40,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             JetStreamTheme {
                 Box(
-                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface)
                 ) {
                     CompositionLocalProvider(
                         LocalContentColor provides MaterialTheme.colorScheme.onSurface

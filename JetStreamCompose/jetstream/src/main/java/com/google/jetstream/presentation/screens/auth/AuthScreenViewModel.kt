@@ -1,20 +1,14 @@
 package com.google.jetstream.presentation.screens.auth
 
-import android.annotation.SuppressLint
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import com.google.jetstream.data.network.CustomerDataResponse
 import com.google.jetstream.data.network.TokenForCustomerResponse
 import com.google.jetstream.data.repositories.CustomerRepository
-import com.google.jetstream.util.DeviceNetworkInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -22,7 +16,8 @@ import javax.inject.Inject
 data class AuthScreenUiState(
     val generatedAccessCode: String = "",
     val userInputedAccessCode: String = "",
-    val isLoading: Boolean = false,
+    val isGetCustomerLoading: Boolean = false,
+    val isRequestTokenForCustomerLoading: Boolean = false,
     val customerData: CustomerDataResponse? = null,
     val token: String? = null,
     val accessCodeError: String? = null,
@@ -55,7 +50,7 @@ class AuthScreenViewModel @Inject constructor(
         deviceName: String,
     ): Response<TokenForCustomerResponse> {
 
-        _uiState.update { it.copy(isLoading = true) }
+        _uiState.update { it.copy(isRequestTokenForCustomerLoading = true) }
 
         val response = customerRepository.requestTokenForCustomer(
             deviceMacAddress = deviceMacAddress,
@@ -66,7 +61,7 @@ class AuthScreenViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     generatedAccessCode = response.body()?.identifier.toString(),
-                    isLoading = false
+                    isRequestTokenForCustomerLoading = false
                 )
             }
 
@@ -77,7 +72,7 @@ class AuthScreenViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     accessCodeError = "Error: ${response.code()}",
-                    isLoading = false
+                    isRequestTokenForCustomerLoading = false
                 )
             }
         }
@@ -86,14 +81,15 @@ class AuthScreenViewModel @Inject constructor(
     }
 
     suspend fun getCustomer(identifier: String) {
-        _uiState.update { it.copy(isLoading = true) }
+        _uiState.update { it.copy(isGetCustomerLoading = true) }
+
         val response = customerRepository.getCustomer(identifier = identifier)
 
         when (response.code()) {
             404 -> _uiState.update {
                 it.copy(
                     accessCodeError = "Something went wrong. Ensure the access code is correctly inputed",
-                    isLoading = false
+                    isGetCustomerLoading = false
                 )
             }
 
@@ -101,7 +97,7 @@ class AuthScreenViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         customerData = response.body(),
-                        isLoading = false,
+                        isGetCustomerLoading = false,
                         userInputedAccessCode = response.body()?.identifier!!
                     )
                 }
@@ -112,65 +108,11 @@ class AuthScreenViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         customerData = response.body(),
-                        isLoading = false,
+                        isGetCustomerLoading = false,
                         userInputedAccessCode = response.body()?.identifier!!
                     )
                 }
                 _uiEvent.value = AuthScreenUiEvent.NavigateToRegister
-            }
-        }
-    }
-
-    suspend fun loginCustomer(
-        identifier: String,
-        password: String,
-        deviceMacAddress: String,
-        clientIp: String,
-        deviceName: String
-    ) {
-        _uiState.update { it.copy(isLoading = true, passwordError = null, accessCodeError = null) }
-
-        val response = customerRepository.login(
-            deviceMacAddress = deviceMacAddress,
-            clientIp = clientIp,
-            deviceName = deviceName,
-            identifier = identifier,
-            password = password
-        )
-
-        when (response.code()) {
-            400 -> _uiState.update {
-                it.copy(
-                    passwordError = "Something went wrong. Please check your password and try again",
-                    isLoading = false
-                )
-            }
-
-            403 -> _uiState.update {
-                it.copy(
-                    passwordError = "Something went wrong. Please check your password and try again later",
-                    isLoading = false
-                )
-            }
-
-            201 -> {
-                _uiState.update {
-                    it.copy(
-                        token = response.body()?.token!!,
-                        isLoading = false,
-                    )
-                }
-                _uiEvent.value = AuthScreenUiEvent.NavigateToDashboard
-            }
-
-            422 -> {
-                //TODO:  navigate to register screen
-                _uiState.update {
-                    it.copy(
-                        accessCodeError = "Something went wrong. Please check your identifier and try again",
-                        isLoading = false,
-                    )
-                }
             }
         }
     }
@@ -181,7 +123,13 @@ class AuthScreenViewModel @Inject constructor(
         email: String,
         name: String,
     ) {
-        _uiState.update { it.copy(isLoading = true, passwordError = null, accessCodeError = null) }
+        _uiState.update {
+            it.copy(
+                isGetCustomerLoading = true,
+                passwordError = null,
+                accessCodeError = null
+            )
+        }
 
         val response = customerRepository.register(
             password = password,
@@ -195,7 +143,7 @@ class AuthScreenViewModel @Inject constructor(
             400 -> _uiState.update {
                 it.copy(
                     passwordError = "Something went wrong. Please check your password and try again",
-                    isLoading = false
+                    isGetCustomerLoading = false
                 )
             }
 
@@ -211,7 +159,7 @@ class AuthScreenViewModel @Inject constructor(
                             profilePhotoPath =
                                 if (response.body()?.profilePhotoPath != null) response.body()?.profilePhotoPath!! else "",
                         ),
-                        isLoading = false,
+                        isGetCustomerLoading = false,
                     )
                 }
                 _uiEvent.value = AuthScreenUiEvent.NavigateToDashboard
@@ -221,7 +169,7 @@ class AuthScreenViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         passwordError = "Password is already set, try and login",
-                        isLoading = false,
+                        isGetCustomerLoading = false,
                     )
                 }
             }

@@ -93,7 +93,7 @@ private fun Catalog(
     val shouldShowTopBar by remember {
         derivedStateOf {
             lazyListState.firstVisibleItemIndex == 0 &&
-                lazyListState.firstVisibleItemScrollOffset < 300
+                    lazyListState.firstVisibleItemScrollOffset < 300
         }
     }
 
@@ -125,17 +125,38 @@ private fun Catalog(
                  */
             )
         }
-        item(contentType = "MoviesRow") {
-            MoviesRow(
-                modifier = Modifier.padding(top = 16.dp),
-                movieList = trendingMovies,
-                title = StringConstants.Composable.HomeScreenTrendingTitle,
-                onMovieSelected = onMovieClick
+//        item(contentType = "MoviesRow") {
+//            MoviesRow(
+//                modifier = Modifier.padding(top = 16.dp),
+//                movieList = trendingMovies,
+//                title = StringConstants.Composable.HomeScreenTrendingTitle,
+//                onMovieSelected = onMovieClick
+//            )
+//        }
+        item(contentType = "Top10MoviesList") {
+            Top10MoviesList(
+                movieList = top10Movies,
+                sectionTitle = "Latest Movies",
+                onMovieClick = onMovieClick,
+                modifier = Modifier.onFocusChanged {
+                    immersiveListHasFocus = it.hasFocus
+                },
             )
         }
         item(contentType = "Top10MoviesList") {
             Top10MoviesList(
                 movieList = top10Movies,
+                sectionTitle = "Trending Movies",
+                onMovieClick = onMovieClick,
+                modifier = Modifier.onFocusChanged {
+                    immersiveListHasFocus = it.hasFocus
+                },
+            )
+        }
+        item(contentType = "Top10MoviesList") {
+            Top10MoviesList(
+                movieList = top10Movies,
+                sectionTitle = "Action Movies",
                 onMovieClick = onMovieClick,
                 modifier = Modifier.onFocusChanged {
                     immersiveListHasFocus = it.hasFocus

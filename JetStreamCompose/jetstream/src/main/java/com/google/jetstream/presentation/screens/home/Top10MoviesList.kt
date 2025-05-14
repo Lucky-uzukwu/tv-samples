@@ -60,18 +60,13 @@ import com.google.jetstream.presentation.utils.bringIntoViewIfChildrenAreFocused
 @Composable
 fun Top10MoviesList(
     movieList: MovieList,
+    sectionTitle: String? = stringResource(R.string.top_10_movies_title),
     modifier: Modifier = Modifier,
     gradientColor: Color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
     onMovieClick: (movie: Movie) -> Unit
 ) {
     var isListFocused by remember { mutableStateOf(false) }
     var selectedMovie by remember(movieList) { mutableStateOf(movieList.first()) }
-
-    val sectionTitle = if (isListFocused) {
-        null
-    } else {
-        stringResource(R.string.top_10_movies_title)
-    }
 
     ImmersiveList(
         selectedMovie = selectedMovie,
@@ -156,7 +151,7 @@ private fun Background(
             targetState = movie,
             label = "posterUriCrossfade",
 
-        ) {
+            ) {
             PosterImage(movie = it, modifier = Modifier.fillMaxSize())
         }
     }

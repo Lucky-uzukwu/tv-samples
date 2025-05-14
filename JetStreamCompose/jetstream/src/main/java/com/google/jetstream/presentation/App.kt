@@ -20,6 +20,7 @@ import AuthScreen
 import LoginScreen
 import RegisterScreen
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,22 +31,31 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import co.touchlab.kermit.Logger
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.screens.auth.AuthScreenViewModel
 import com.google.jetstream.presentation.screens.categories.CategoryMovieListScreen
 import com.google.jetstream.presentation.screens.dashboard.DashboardScreen
 import com.google.jetstream.presentation.screens.movies.MovieDetailsScreen
 import com.google.jetstream.presentation.screens.videoPlayer.VideoPlayerScreen
+import com.google.jetstream.state.UserStateHolder
 
 @Composable
-fun App(onBackPressed: () -> Unit) {
+fun App(
+    userStateHolder: UserStateHolder = hiltViewModel(),
+    onBackPressed: () -> Unit
+) {
 
     val navController = rememberNavController()
     var isComingBackFromDifferentScreen by remember { mutableStateOf(false) }
+    val userState by userStateHolder.userState.collectAsState()
+    Logger.i { "user token: ${userState.user?.token}" }
+    val startDestination =
+        if (userState.user?.token !== null) Screens.Dashboard() else Screens.AuthScreen()
 
     NavHost(
         navController = navController,
-        startDestination = Screens.AuthScreen(),
+        startDestination = startDestination,
         builder = {
             composable(route = Screens.AuthScreen()) {
                 AuthScreen(
@@ -58,12 +68,7 @@ fun App(onBackPressed: () -> Unit) {
                 )
             }
             composable(route = Screens.Login()) { backStackEntry ->
-                val viewModel: AuthScreenViewModel =
-                    if (navController.previousBackStackEntry != null) hiltViewModel(
-                        navController.previousBackStackEntry!!
-                    ) else hiltViewModel()
                 LoginScreen(
-                    viewModel = viewModel,
                     onSubmitSuccess = {
                         navController.navigate(Screens.Dashboard())
                     }

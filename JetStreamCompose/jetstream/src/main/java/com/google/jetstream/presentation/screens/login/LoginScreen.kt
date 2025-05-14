@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -41,15 +43,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import com.google.jetstream.R
-import com.google.jetstream.presentation.screens.auth.AuthScreenUiEvent
-import com.google.jetstream.presentation.screens.auth.AuthScreenViewModel
+import com.google.jetstream.data.entities.User
+import com.google.jetstream.presentation.screens.login.LoginScreenUiEvent.NavigateToDashboard
+import com.google.jetstream.presentation.screens.login.LoginScreenViewModel
+import com.google.jetstream.state.UserStateHolder
 import com.google.jetstream.util.DeviceNetworkInfo
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
-    viewModel: AuthScreenViewModel,
+    viewModel: LoginScreenViewModel = hiltViewModel(),
+    userStateHolder: UserStateHolder = hiltViewModel(),
     onSubmitSuccess: () -> Unit
 ) {
     val context = LocalContext.current
@@ -61,18 +68,28 @@ fun LoginScreen(
 
     val uiState by viewModel.uiState.collectAsState()
     val uiEvent by viewModel.uiEvent.collectAsState()
-    
-    var accessCode = remember { mutableStateOf(uiState.userInputedAccessCode) }
 
+    val userState by userStateHolder.userState.collectAsState()
+
+    val accessCode = remember { mutableStateOf("") }
+
+    LaunchedEffect(userState.user?.accessCode) {
+        accessCode.value = userState.user?.accessCode ?: ""
+    }
 
     LaunchedEffect(uiEvent) {
-        if (uiEvent is AuthScreenUiEvent.NavigateToDashboard) {
+        if (uiEvent is NavigateToDashboard) {
+            userStateHolder.updateUser(
+                userState.user!!.copy(
+                    token = uiState.token
+                )
+            )
             onSubmitSuccess()
             viewModel.clearEvent()
         }
     }
-    
-    fun loginCustomer() = runBlocking {
+
+    fun loginCustomer() = viewModel.viewModelScope.launch {
         viewModel.loginCustomer(
             identifier = accessCode.value,
             deviceMacAddress = deviceMacAddress,
@@ -240,7 +257,22 @@ fun LoginScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFBA133)),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Text("submit", color = Color.White, fontWeight = FontWeight.Bold)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                if (uiState.isLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(10.dp),
+                                        color = Color.White,
+                                        strokeWidth = 2.dp,
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                }
+                                Text("submit", color = Color.White, fontWeight = FontWeight.Bold)
+                            }
+
                         }
                     }
                 }

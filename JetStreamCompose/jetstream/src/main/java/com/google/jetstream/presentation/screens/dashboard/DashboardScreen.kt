@@ -16,6 +16,7 @@
 
 package com.google.jetstream.presentation.screens.dashboard
 
+import AuthScreen
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
@@ -48,6 +49,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -65,6 +67,7 @@ import com.google.jetstream.presentation.screens.movies.MoviesScreen
 import com.google.jetstream.presentation.screens.profile.ProfileScreen
 import com.google.jetstream.presentation.screens.search.SearchScreen
 import com.google.jetstream.presentation.screens.shows.ShowsScreen
+import com.google.jetstream.presentation.theme.JetStreamTheme
 import com.google.jetstream.presentation.utils.Padding
 
 val ParentPadding = PaddingValues(vertical = 16.dp, horizontal = 58.dp)
@@ -83,12 +86,12 @@ fun rememberChildPadding(direction: LayoutDirection = LocalLayoutDirection.curre
 
 @Composable
 fun DashboardScreen(
-    openCategoryMovieList: (categoryId: String) -> Unit,
-    openMovieDetailsScreen: (movieId: String) -> Unit,
-    openVideoPlayer: (Movie) -> Unit,
+    openCategoryMovieList: (categoryId: String) -> Unit = {},
+    openMovieDetailsScreen: (movieId: String) -> Unit = {},
+    openVideoPlayer: (Movie) -> Unit = {},
     isComingBackFromDifferentScreen: Boolean,
-    resetIsComingBackFromDifferentScreen: () -> Unit,
-    onBackPressed: () -> Unit
+    resetIsComingBackFromDifferentScreen: () -> Unit = {},
+    onBackPressed: () -> Unit = {}
 ) {
     val density = LocalDensity.current
     val focusManager = LocalFocusManager.current
@@ -280,3 +283,14 @@ private fun Body(
             )
         }
     }
+
+
+@Preview(showBackground = true)
+@Composable
+fun DashboardScreenPreview() {
+    JetStreamTheme {
+        DashboardScreen(
+            isComingBackFromDifferentScreen = false
+        )
+    }
+}

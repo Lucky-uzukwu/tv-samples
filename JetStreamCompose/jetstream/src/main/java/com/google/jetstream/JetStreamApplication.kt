@@ -17,15 +17,20 @@
 package com.google.jetstream
 
 import android.app.Application
+import android.content.Context
 import com.google.jetstream.data.repositories.CustomerRepository
 import com.google.jetstream.data.repositories.CustomerRepositoryImpl
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.MovieRepositoryImpl
+import com.google.jetstream.data.repositories.UserRepository
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.HiltAndroidApp
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 @HiltAndroidApp
 class JetStreamApplication : Application()
@@ -48,5 +53,18 @@ abstract class CustomerRepositoryModule {
     abstract fun bindCustomerRepository(
         customerRepositoryImpl: CustomerRepositoryImpl
     ): CustomerRepository
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object UserRepositoryModule {
+
+    @Provides
+    @Singleton
+    fun provideUserRepository(
+        @ApplicationContext context: Context
+    ): UserRepository {
+        return UserRepository(context)
+    }
 }
 
