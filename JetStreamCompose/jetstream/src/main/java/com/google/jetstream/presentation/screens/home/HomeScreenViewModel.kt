@@ -20,6 +20,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.jetstream.data.entities.MovieList
 import com.google.jetstream.data.entities.MovieListNew
+import com.google.jetstream.data.network.Catalog
+import com.google.jetstream.data.repositories.CatalogRepository
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,6 +36,7 @@ import javax.inject.Inject
 class HomeScreeViewModel @Inject constructor(
     movieRepository: MovieRepository,
     userRepository: UserRepository,
+    catalogRepository: CatalogRepository
 ) : ViewModel() {
 
     val uiState: StateFlow<HomeScreenUiState> = combine(
@@ -46,14 +49,19 @@ class HomeScreeViewModel @Inject constructor(
         if (token == null || token.isBlank()) {
             HomeScreenUiState.Error
         } else {
+            // TODO: Look into why first() is a good choice
             val featuredMovieListNew =
                 movieRepository.getMoviesToShowInHeroSection(token).first()
+
+            val catalogList = catalogRepository.getMovieCatalog(token).first()
+
             HomeScreenUiState.Ready(
                 featuredMovieList,
                 featuredMovieListNew,
                 trendingMovieList,
                 top10MovieList,
-                nowPlayingMovieList
+                nowPlayingMovieList,
+                catalogList
             )
         }
     }.stateIn(
@@ -71,6 +79,7 @@ sealed interface HomeScreenUiState {
         val featuredMovieListNew: MovieListNew,
         val trendingMovieList: MovieList,
         val top10MovieList: MovieList,
-        val nowPlayingMovieList: MovieList
+        val nowPlayingMovieList: MovieList,
+        val catalogList: List<Catalog>
     ) : HomeScreenUiState
 }

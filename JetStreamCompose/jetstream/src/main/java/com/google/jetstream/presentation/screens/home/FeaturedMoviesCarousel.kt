@@ -21,7 +21,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,7 +36,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,18 +48,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
@@ -73,8 +72,6 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.ShapeDefaults
 import androidx.tv.material3.Text
-import co.touchlab.kermit.Logger
-import androidx.compose.ui.text.style.TextOverflow
 import coil.compose.AsyncImage
 import com.google.jetstream.R
 import com.google.jetstream.data.entities.Movie
@@ -111,11 +108,11 @@ fun FeaturedMoviesCarousel(
     val focusManager = LocalFocusManager.current
 
     // Safely request focus on Watch Now button when carousel gains focus
-    LaunchedEffect(isCarouselFocused) {
-        if (isCarouselFocused) {
-            watchNowButtonFocusRequester.requestFocus()
-        }
-    }
+//    LaunchedEffect(isCarouselFocused) {
+//        if (isCarouselFocused) {
+//            watchNowButtonFocusRequester.requestFocus()
+//        }
+//    }
 
     val alpha = if (isCarouselFocused) 1f else 0f
 
@@ -146,7 +143,14 @@ fun FeaturedMoviesCarousel(
 //                    }
                 },
                 onLeft = { focusManager.moveFocus(FocusDirection.Left) },
-                onRight = { focusManager.moveFocus(FocusDirection.Right) }
+                onRight = {
+                    focusManager.moveFocus(FocusDirection.Right)
+                    if (currentCarouselFocusedItemIndex == 0) {
+                        watchNowButtonFocusRequester.requestFocus()
+                    } else {
+                        moreInfoButtonFocusRequester.requestFocus()
+                    }
+                }
             ),
         itemCount = moviesNew.size,
         carouselState = carouselState,

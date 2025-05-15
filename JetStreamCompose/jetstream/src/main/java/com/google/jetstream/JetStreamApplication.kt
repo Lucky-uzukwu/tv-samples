@@ -18,6 +18,8 @@ package com.google.jetstream
 
 import android.app.Application
 import android.content.Context
+import com.google.jetstream.data.repositories.CatalogRepository
+import com.google.jetstream.data.repositories.CatalogRepositoryImpl
 import com.google.jetstream.data.repositories.CustomerRepository
 import com.google.jetstream.data.repositories.CustomerRepositoryImpl
 import com.google.jetstream.data.repositories.MovieRepository
@@ -54,6 +56,17 @@ abstract class CustomerRepositoryModule {
         customerRepositoryImpl: CustomerRepositoryImpl
     ): CustomerRepository
 }
+
+@InstallIn(SingletonComponent::class)
+@Module
+abstract class CatalogRepositoryModule {
+
+    @Binds
+    abstract fun bindCatalogRepository(
+        catalogRepositoryImpl: CatalogRepositoryImpl
+    ): CatalogRepository
+}
+
 
 @Module
 @InstallIn(SingletonComponent::class)

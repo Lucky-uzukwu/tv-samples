@@ -35,9 +35,11 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.tv.material3.Text
 import com.google.jetstream.data.entities.Movie
 import com.google.jetstream.data.entities.MovieList
 import com.google.jetstream.data.entities.MovieListNew
+import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
@@ -62,6 +64,7 @@ fun HomeScreen(
                 trendingMovies = s.trendingMovieList,
                 top10Movies = s.top10MovieList,
                 nowPlayingMovies = s.nowPlayingMovieList,
+                catalogs = s.catalogList,
                 onMovieClick = onMovieClick,
                 onScroll = onScroll,
                 goToVideoPlayer = goToVideoPlayer,
@@ -79,6 +82,7 @@ fun HomeScreen(
 private fun Catalog(
     featuredMovies: MovieList,
     featuredMoviesNew: MovieListNew,
+    catalogs: List<Catalog>,
     trendingMovies: MovieList,
     top10Movies: MovieList,
     nowPlayingMovies: MovieList,
@@ -130,14 +134,20 @@ private fun Catalog(
                  */
             )
         }
-//        item(contentType = "MoviesRow") {
+        item(contentType = "MoviesRow") {
+            catalogs.forEach {
+                Text(
+                    text = it.name,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
+            }
 //            MoviesRow(
 //                modifier = Modifier.padding(top = 16.dp),
 //                movieList = trendingMovies,
 //                title = StringConstants.Composable.HomeScreenTrendingTitle,
 //                onMovieSelected = onMovieClick
 //            )
-//        }
+        }
         item(contentType = "Top10MoviesList") {
             Top10MoviesList(
                 movieList = top10Movies,
