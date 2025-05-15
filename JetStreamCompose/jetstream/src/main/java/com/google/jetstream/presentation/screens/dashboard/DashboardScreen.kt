@@ -16,7 +16,6 @@
 
 package com.google.jetstream.presentation.screens.dashboard
 
-import AuthScreen
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
@@ -70,15 +69,15 @@ import com.google.jetstream.presentation.screens.shows.ShowsScreen
 import com.google.jetstream.presentation.theme.JetStreamTheme
 import com.google.jetstream.presentation.utils.Padding
 
-val ParentPadding = PaddingValues(vertical = 16.dp, horizontal = 58.dp)
+val ParentPadding = PaddingValues(vertical = 8.dp, horizontal = 29.dp)
 
 @Composable
 fun rememberChildPadding(direction: LayoutDirection = LocalLayoutDirection.current): Padding {
     return remember {
         Padding(
-            start = ParentPadding.calculateStartPadding(direction) + 8.dp,
+            start = ParentPadding.calculateStartPadding(direction) + 4.dp,
             top = ParentPadding.calculateTopPadding(),
-            end = ParentPadding.calculateEndPadding(direction) + 8.dp,
+            end = ParentPadding.calculateEndPadding(direction) + 4.dp,
             bottom = ParentPadding.calculateBottomPadding()
         )
     }
@@ -175,7 +174,7 @@ fun DashboardScreen(
                 .padding(
                     horizontal = ParentPadding.calculateStartPadding(
                         LocalLayoutDirection.current
-                    ) + 8.dp
+                    ) + 4.dp
                 )
                 .padding(
                     top = ParentPadding.calculateTopPadding(),

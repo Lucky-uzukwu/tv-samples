@@ -16,9 +16,11 @@
 
 package com.google.jetstream.data.repositories
 
+import co.touchlab.kermit.Logger
 import com.google.jetstream.data.entities.MovieCategoryDetails
 import com.google.jetstream.data.entities.MovieDetails
 import com.google.jetstream.data.entities.MovieList
+import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.entities.MovieReviewsAndRatings
 import com.google.jetstream.data.entities.ThumbnailType
 import com.google.jetstream.data.network.MovieService
@@ -38,7 +40,7 @@ class MovieRepositoryImpl @Inject constructor(
     private val tvDataSource: TvDataSource,
     private val movieCastDataSource: MovieCastDataSource,
     private val movieCategoryDataSource: MovieCategoryDataSource,
-    private val movieService: MovieService
+    private val movieService: MovieService,
 ) : MovieRepository {
 
     override fun getFeaturedMovies() = flow {
@@ -158,12 +160,37 @@ class MovieRepositoryImpl @Inject constructor(
         emit(list)
     }
 
-    override suspend fun getMoviesToShowInHeroSection(): Flow<MovieList> {
-        // TODO: Figure out how to get user auth token without passing it around
+    override fun getMoviesToShowInHeroSection(token: String): Flow<MovieListNew> = flow {
+        Logger.i { "Fetching movies for hero section with token: $token" }
         val response = movieService.getMovies(
-            authToken = "",
+            authToken = "Bearer $token",
             showInHeroSection = 1
         )
-        return TODO("Provide the return value")
+
+        if (response.isSuccessful) {
+            val movies = response.body()
+            Logger.i { "API Response: $movies" }
+            Logger.i { "Successfully fetched ${movies?.member?.size} movies for hero section." }
+            if (movies != null) {
+                emit(movies.member)
+            }
+        } else {
+            // Handle HTTP error codes
+            val errorBody =
+                response.errorBody()?.string() // Get error message from server if available
+            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
+            when (response.code()) {
+                401 -> {
+                    // Unauthorized: Token is invalid or expired
+                    // You should trigger a re-authentication flow here.
+                    // TODO: Trigger re-authentication flow
+                }
+
+                else -> {
+                    // Handle other unexpected HTTP error codes
+                    Logger.e { "Unexpected HTTP error: ${response.code()}" }
+                }
+            }
+        }
     }
 }

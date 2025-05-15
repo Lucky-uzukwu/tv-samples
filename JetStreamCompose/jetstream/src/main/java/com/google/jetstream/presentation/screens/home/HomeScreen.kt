@@ -37,6 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.jetstream.data.entities.Movie
 import com.google.jetstream.data.entities.MovieList
+import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
@@ -57,6 +58,7 @@ fun HomeScreen(
         is HomeScreenUiState.Ready -> {
             Catalog(
                 featuredMovies = s.featuredMovieList,
+                featuredMoviesNew = s.featuredMovieListNew,
                 trendingMovies = s.trendingMovieList,
                 top10Movies = s.top10MovieList,
                 nowPlayingMovies = s.nowPlayingMovieList,
@@ -76,6 +78,7 @@ fun HomeScreen(
 @Composable
 private fun Catalog(
     featuredMovies: MovieList,
+    featuredMoviesNew: MovieListNew,
     trendingMovies: MovieList,
     top10Movies: MovieList,
     nowPlayingMovies: MovieList,
@@ -114,11 +117,13 @@ private fun Catalog(
         item(contentType = "FeaturedMoviesCarousel") {
             FeaturedMoviesCarousel(
                 movies = featuredMovies,
+                moviesNew = featuredMoviesNew,
                 padding = childPadding,
                 goToVideoPlayer = goToVideoPlayer,
+                goToMoreInfo = {},
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(324.dp)
+                    .height(400.dp),
                 /*
                  Setting height for the FeaturedMovieCarousel to keep it rendered with same height,
                  regardless of the top bar's visibility

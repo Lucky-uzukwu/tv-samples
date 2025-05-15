@@ -33,7 +33,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import co.touchlab.kermit.Logger
 import com.google.jetstream.presentation.screens.Screens
-import com.google.jetstream.presentation.screens.auth.AuthScreenViewModel
 import com.google.jetstream.presentation.screens.categories.CategoryMovieListScreen
 import com.google.jetstream.presentation.screens.dashboard.DashboardScreen
 import com.google.jetstream.presentation.screens.movies.MovieDetailsScreen
@@ -51,7 +50,7 @@ fun App(
     val userState by userStateHolder.userState.collectAsState()
     Logger.i { "user token: ${userState.user?.token}" }
     val startDestination =
-        if (userState.user?.token !== null) Screens.AuthScreen() else Screens.AuthScreen()
+        if (userState.user?.token !== null) Screens.Dashboard() else Screens.AuthScreen()
 
     NavHost(
         navController = navController,

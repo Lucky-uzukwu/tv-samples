@@ -19,29 +19,43 @@ package com.google.jetstream.presentation.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.jetstream.data.entities.MovieList
+import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.repositories.MovieRepository
+import com.google.jetstream.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 @HiltViewModel
-class HomeScreeViewModel @Inject constructor(movieRepository: MovieRepository) : ViewModel() {
+class HomeScreeViewModel @Inject constructor(
+    movieRepository: MovieRepository,
+    userRepository: UserRepository,
+) : ViewModel() {
 
     val uiState: StateFlow<HomeScreenUiState> = combine(
+        userRepository.userToken,
         movieRepository.getFeaturedMovies(),
         movieRepository.getTrendingMovies(),
         movieRepository.getTop10Movies(),
         movieRepository.getNowPlayingMovies(),
-    ) { featuredMovieList, trendingMovieList, top10MovieList, nowPlayingMovieList ->
-        HomeScreenUiState.Ready(
-            featuredMovieList,
-            trendingMovieList,
-            top10MovieList,
-            nowPlayingMovieList
-        )
+    ) { token, featuredMovieList, trendingMovieList, top10MovieList, nowPlayingMovieList ->
+        if (token == null || token.isBlank()) {
+            HomeScreenUiState.Error
+        } else {
+            val featuredMovieListNew =
+                movieRepository.getMoviesToShowInHeroSection(token).first()
+            HomeScreenUiState.Ready(
+                featuredMovieList,
+                featuredMovieListNew,
+                trendingMovieList,
+                top10MovieList,
+                nowPlayingMovieList
+            )
+        }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -54,6 +68,7 @@ sealed interface HomeScreenUiState {
     data object Error : HomeScreenUiState
     data class Ready(
         val featuredMovieList: MovieList,
+        val featuredMovieListNew: MovieListNew,
         val trendingMovieList: MovieList,
         val top10MovieList: MovieList,
         val nowPlayingMovieList: MovieList
