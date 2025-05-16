@@ -125,7 +125,11 @@ private fun CategoryDetails(
                             else Modifier
                         ),
                 ) {
-                    PosterImage(movie = movie, modifier = Modifier.fillMaxSize())
+                    PosterImage(
+                        movieTitle = movie.name,
+                        movieUri = movie.posterUri,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
             }
         }

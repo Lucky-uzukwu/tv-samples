@@ -110,17 +110,17 @@ private fun Details(
                 castAndCrew = movieDetails.castAndCrew
             )
         }
-
-        item {
-            MoviesRow(
-                title = StringConstants
-                    .Composable
-                    .movieDetailsScreenSimilarTo(movieDetails.name),
-                titleStyle = MaterialTheme.typography.titleMedium,
-                movieList = movieDetails.similarMovies,
-                onMovieSelected = refreshScreenWithNewMovie
-            )
-        }
+        // TODO: Uncomment and use
+//        item {
+//            MoviesRow(
+//                title = StringConstants
+//                    .Composable
+//                    .movieDetailsScreenSimilarTo(movieDetails.name),
+//                titleStyle = MaterialTheme.typography.titleMedium,
+//                movieList = movieDetails.similarMovies,
+//                onMovieSelected = refreshScreenWithNewMovie
+//            )
+//        }
 
         item {
             MovieReviews(

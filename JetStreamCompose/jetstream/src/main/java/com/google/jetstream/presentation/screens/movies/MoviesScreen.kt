@@ -96,13 +96,14 @@ private fun Catalog(
                 onMovieClick = onMovieClick
             )
         }
-        item {
-            MoviesRow(
-                modifier = Modifier.padding(top = childPadding.top),
-                title = StringConstants.Composable.PopularFilmsThisWeekTitle,
-                movieList = popularFilmsThisWeek,
-                onMovieSelected = onMovieClick
-            )
-        }
+        // TODO: Uncomment and use
+//        item {
+//            MoviesRow(
+//                modifier = Modifier.padding(top = childPadding.top),
+//                title = StringConstants.Composable.PopularFilmsThisWeekTitle,
+//                movieList = popularFilmsThisWeek,
+//                onMovieSelected = onMovieClick
+//            )
+//        }
     }
 }

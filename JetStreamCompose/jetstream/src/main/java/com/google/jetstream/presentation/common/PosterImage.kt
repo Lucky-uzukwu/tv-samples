@@ -27,16 +27,17 @@ import com.google.jetstream.data.util.StringConstants
 
 @Composable
 fun PosterImage(
-    movie: Movie,
+    movieTitle: String,
+    movieUri: String,
     modifier: Modifier = Modifier,
 ) {
     AsyncImage(
         modifier = modifier,
         model = ImageRequest.Builder(LocalContext.current)
             .crossfade(true)
-            .data(movie.posterUri)
+            .data(movieUri)
             .build(),
-        contentDescription = StringConstants.Composable.ContentDescription.moviePoster(movie.name),
+        contentDescription = StringConstants.Composable.ContentDescription.moviePoster(movieTitle),
         contentScale = ContentScale.Crop
     )
 }

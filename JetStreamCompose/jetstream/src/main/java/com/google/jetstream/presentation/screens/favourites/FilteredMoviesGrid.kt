@@ -51,7 +51,10 @@ fun FilteredMoviesGrid(
                 onClick = { onMovieClick(movie.id) },
                 modifier = Modifier.aspectRatio(1 / 1.5f),
             ) {
-                PosterImage(movie = movie, modifier = Modifier.fillMaxSize())
+                PosterImage(
+                    movieTitle = movie.name,
+                    movieUri = movie.posterUri, modifier = Modifier.fillMaxSize()
+                )
             }
         }
     }

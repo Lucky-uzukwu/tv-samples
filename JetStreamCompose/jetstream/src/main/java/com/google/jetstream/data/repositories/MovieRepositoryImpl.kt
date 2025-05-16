@@ -23,6 +23,7 @@ import com.google.jetstream.data.entities.MovieList
 import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.entities.MovieReviewsAndRatings
 import com.google.jetstream.data.entities.ThumbnailType
+import com.google.jetstream.data.network.MovieResponse
 import com.google.jetstream.data.network.MovieService
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.data.util.StringConstants.Movie.Reviewer.DefaultCount
@@ -160,11 +161,17 @@ class MovieRepositoryImpl @Inject constructor(
         emit(list)
     }
 
-    override fun getMoviesToShowInHeroSection(token: String): Flow<MovieListNew> = flow {
+    override fun getMoviesToShowInHeroSection(
+        token: String,
+        page: Int,
+        itemsPerPage: Int
+    ): Flow<MovieResponse> = flow {
         Logger.i { "Fetching movies for hero section with token: $token" }
         val response = movieService.getMovies(
             authToken = "Bearer $token",
-            showInHeroSection = 1
+            showInHeroSection = 1,
+            page = page,
+            itemsPerPage = itemsPerPage
         )
 
         if (response.isSuccessful) {
@@ -172,7 +179,7 @@ class MovieRepositoryImpl @Inject constructor(
             Logger.i { "API Response: $movies" }
             Logger.i { "Successfully fetched ${movies?.member?.size} movies for hero section." }
             if (movies != null) {
-                emit(movies.member)
+                emit(movies)
             }
         } else {
             // Handle HTTP error codes
@@ -193,4 +200,39 @@ class MovieRepositoryImpl @Inject constructor(
             }
         }
     }
+
+    override fun getMoviesToShowCatalog(token: String, catalogId: String): Flow<MovieListNew> =
+        flow {
+            Logger.i { "Fetching movies for catalog section with token: $token" }
+            val response = movieService.getMovies(
+                authToken = "Bearer $token",
+                catalogs = catalogId
+            )
+
+            if (response.isSuccessful) {
+                val movies = response.body()
+                Logger.i { "API Response: $movies" }
+                Logger.i { "Successfully fetched ${movies?.member?.size} movies for catalog section." }
+                if (movies != null) {
+                    emit(movies.member)
+                }
+            } else {
+                // Handle HTTP error codes
+                val errorBody =
+                    response.errorBody()?.string() // Get error message from server if available
+                Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
+                when (response.code()) {
+                    401 -> {
+                        // Unauthorized: Token is invalid or expired
+                        // You should trigger a re-authentication flow here.
+                        // TODO: Trigger re-authentication flow
+                    }
+
+                    else -> {
+                        // Handle other unexpected HTTP error codes
+                        Logger.e { "Unexpected HTTP error: ${response.code()}" }
+                    }
+                }
+            }
+        }
 }

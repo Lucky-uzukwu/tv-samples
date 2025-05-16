@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -57,6 +58,8 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.jetstream.data.entities.Movie
 import com.google.jetstream.data.entities.MovieList
+import com.google.jetstream.data.entities.MovieListNew
+import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 
 enum class ItemDirection(val aspectRatio: Float) {
@@ -67,7 +70,7 @@ enum class ItemDirection(val aspectRatio: Float) {
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MoviesRow(
-    movieList: MovieList,
+    movieList: MovieListNew,
     modifier: Modifier = Modifier,
     itemDirection: ItemDirection = ItemDirection.Vertical,
     startPadding: Dp = rememberChildPadding().start,
@@ -79,7 +82,7 @@ fun MoviesRow(
     ),
     showItemTitle: Boolean = true,
     showIndexOverImage: Boolean = false,
-    onMovieSelected: (movie: Movie) -> Unit = {}
+    onMovieSelected: (movie: MovieNew) -> Unit = {}
 ) {
     val (lazyRow, firstItem) = remember { FocusRequester.createRefs() }
 
@@ -138,7 +141,7 @@ fun MoviesRow(
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ImmersiveListMoviesRow(
-    movieList: MovieList,
+    movieList: MovieListNew,
     modifier: Modifier = Modifier,
     itemDirection: ItemDirection = ItemDirection.Vertical,
     startPadding: Dp = rememberChildPadding().start,
@@ -150,8 +153,8 @@ fun ImmersiveListMoviesRow(
     ),
     showItemTitle: Boolean = true,
     showIndexOverImage: Boolean = false,
-    onMovieSelected: (Movie) -> Unit = {},
-    onMovieFocused: (Movie) -> Unit = {}
+    onMovieSelected: (MovieNew) -> Unit = {},
+    onMovieFocused: (MovieNew) -> Unit = {}
 ) {
     val (lazyRow, firstItem) = remember { FocusRequester.createRefs() }
 
@@ -215,15 +218,16 @@ fun ImmersiveListMoviesRow(
 @Composable
 private fun MoviesRowItem(
     index: Int,
-    movie: Movie,
-    onMovieSelected: (Movie) -> Unit,
+    movie: MovieNew,
+    onMovieSelected: (MovieNew) -> Unit,
     showItemTitle: Boolean,
     showIndexOverImage: Boolean,
     modifier: Modifier = Modifier,
     itemDirection: ItemDirection = ItemDirection.Vertical,
-    onMovieFocused: (Movie) -> Unit = {},
+    onMovieFocused: (MovieNew) -> Unit = {},
 ) {
     var isFocused by remember { mutableStateOf(false) }
+    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
 
     MovieCard(
         onClick = { onMovieSelected(movie) },
@@ -231,7 +235,7 @@ private fun MoviesRowItem(
             MoviesRowItemText(
                 showItemTitle = showItemTitle,
                 isItemFocused = isFocused,
-                movie = movie
+                movieTitle = movie.title
             )
         },
         modifier = Modifier
@@ -253,7 +257,8 @@ private fun MoviesRowItem(
         MoviesRowItemImage(
             modifier = Modifier.aspectRatio(itemDirection.aspectRatio),
             showIndexOverImage = showIndexOverImage,
-            movie = movie,
+            movieTitle = movie.title,
+            movieUri = imageUrl,
             index = index
         )
     }
@@ -261,16 +266,19 @@ private fun MoviesRowItem(
 
 @Composable
 private fun MoviesRowItemImage(
-    movie: Movie,
+    movieTitle: String,
+    movieUri: String,
     showIndexOverImage: Boolean,
     index: Int,
     modifier: Modifier = Modifier,
 ) {
     Box(contentAlignment = Alignment.CenterStart) {
         PosterImage(
-            movie = movie,
+            movieTitle = movieTitle,
+            movieUri = movieUri,
             modifier = modifier
                 .fillMaxWidth()
+                .height(192.dp)
                 .drawWithContent {
                     drawContent()
                     if (showIndexOverImage) {
@@ -304,7 +312,7 @@ private fun MoviesRowItemImage(
 private fun MoviesRowItemText(
     showItemTitle: Boolean,
     isItemFocused: Boolean,
-    movie: Movie,
+    movieTitle: String,
     modifier: Modifier = Modifier
 ) {
     if (showItemTitle) {
@@ -313,7 +321,7 @@ private fun MoviesRowItemText(
             label = "",
         )
         Text(
-            text = movie.name,
+            text = movieTitle,
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontWeight = FontWeight.SemiBold
             ),

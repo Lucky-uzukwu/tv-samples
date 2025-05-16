@@ -31,16 +31,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.tv.material3.Text
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import co.touchlab.kermit.Logger
 import com.google.jetstream.data.entities.Movie
 import com.google.jetstream.data.entities.MovieList
 import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.network.Catalog
-import com.google.jetstream.data.util.StringConstants
+import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.MoviesRow
@@ -55,16 +56,18 @@ fun HomeScreen(
     homeScreeViewModel: HomeScreeViewModel = hiltViewModel(),
 ) {
     val uiState by homeScreeViewModel.uiState.collectAsStateWithLifecycle()
+    val featuredMovies = homeScreeViewModel.heroSectionMovies.collectAsLazyPagingItems()
 
     when (val s = uiState) {
         is HomeScreenUiState.Ready -> {
             Catalog(
                 featuredMovies = s.featuredMovieList,
-                featuredMoviesNew = s.featuredMovieListNew,
+                featuredMoviesNew = featuredMovies,
                 trendingMovies = s.trendingMovieList,
                 top10Movies = s.top10MovieList,
                 nowPlayingMovies = s.nowPlayingMovieList,
                 catalogs = s.catalogList,
+                catalogToMovies = s.catalogToMovies,
                 onMovieClick = onMovieClick,
                 onScroll = onScroll,
                 goToVideoPlayer = goToVideoPlayer,
@@ -81,8 +84,9 @@ fun HomeScreen(
 @Composable
 private fun Catalog(
     featuredMovies: MovieList,
-    featuredMoviesNew: MovieListNew,
+    featuredMoviesNew: LazyPagingItems<MovieNew>,
     catalogs: List<Catalog>,
+    catalogToMovies: Map<Catalog, MovieListNew>,
     trendingMovies: MovieList,
     top10Movies: MovieList,
     nowPlayingMovies: MovieList,
@@ -134,57 +138,69 @@ private fun Catalog(
                  */
             )
         }
-        item(contentType = "MoviesRow") {
-            catalogs.forEach {
-                Text(
-                    text = it.name,
-                    modifier = Modifier.padding(top = 16.dp)
+        // Loop through catalogToMovies to display catalogs and their movies
+        val catalogEntries = catalogToMovies.entries.toList()
+        Logger.i {
+            "catalogEntries: $catalogEntries"
+        }
+        Logger.i {
+            "catalogToMovies: $catalogToMovies"
+        }
+        Logger.i {
+            "catalogs: ${catalogToMovies.size}"
+        }
+        items(
+            count = catalogEntries.size,
+            key = { index -> catalogEntries[index].key.id }, // Use catalog ID as unique key
+            contentType = { "MoviesRow" },
+            itemContent = { index ->
+                val (catalog, movies) = catalogEntries[index]
+                MoviesRow(
+                    movieList = movies,
+                    title = catalog.name, // For accessibility
+                    onMovieSelected = { },
+                    modifier = Modifier.padding(top = 16.dp),
                 )
             }
+        )
+
+//        item(contentType = "Top10MoviesList") {
+//            Top10MoviesList(
+//                movieList = top10Movies,
+//                sectionTitle = "Latest Movies",
+//                onMovieClick = onMovieClick,
+//                modifier = Modifier.onFocusChanged {
+//                    immersiveListHasFocus = it.hasFocus
+//                },
+//            )
+//        }
+//        item(contentType = "Top10MoviesList") {
+//            Top10MoviesList(
+//                movieList = top10Movies,
+//                sectionTitle = "Trending Movies",
+//                onMovieClick = onMovieClick,
+//                modifier = Modifier.onFocusChanged {
+//                    immersiveListHasFocus = it.hasFocus
+//                },
+//            )
+//        }
+//        item(contentType = "Top10MoviesList") {
+//            Top10MoviesList(
+//                movieList = top10Movies,
+//                sectionTitle = "Action Movies",
+//                onMovieClick = onMovieClick,
+//                modifier = Modifier.onFocusChanged {
+//                    immersiveListHasFocus = it.hasFocus
+//                },
+//            )
+//        }
+//        item(contentType = "MoviesRow") {
 //            MoviesRow(
 //                modifier = Modifier.padding(top = 16.dp),
-//                movieList = trendingMovies,
-//                title = StringConstants.Composable.HomeScreenTrendingTitle,
+//                movieList = nowPlayingMovies,
+//                title = StringConstants.Composable.HomeScreenNowPlayingMoviesTitle,
 //                onMovieSelected = onMovieClick
 //            )
-        }
-        item(contentType = "Top10MoviesList") {
-            Top10MoviesList(
-                movieList = top10Movies,
-                sectionTitle = "Latest Movies",
-                onMovieClick = onMovieClick,
-                modifier = Modifier.onFocusChanged {
-                    immersiveListHasFocus = it.hasFocus
-                },
-            )
-        }
-        item(contentType = "Top10MoviesList") {
-            Top10MoviesList(
-                movieList = top10Movies,
-                sectionTitle = "Trending Movies",
-                onMovieClick = onMovieClick,
-                modifier = Modifier.onFocusChanged {
-                    immersiveListHasFocus = it.hasFocus
-                },
-            )
-        }
-        item(contentType = "Top10MoviesList") {
-            Top10MoviesList(
-                movieList = top10Movies,
-                sectionTitle = "Action Movies",
-                onMovieClick = onMovieClick,
-                modifier = Modifier.onFocusChanged {
-                    immersiveListHasFocus = it.hasFocus
-                },
-            )
-        }
-        item(contentType = "MoviesRow") {
-            MoviesRow(
-                modifier = Modifier.padding(top = 16.dp),
-                movieList = nowPlayingMovies,
-                title = StringConstants.Composable.HomeScreenNowPlayingMoviesTitle,
-                onMovieSelected = onMovieClick
-            )
-        }
+//        }
     }
 }

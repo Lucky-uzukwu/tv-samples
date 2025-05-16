@@ -78,7 +78,7 @@ private fun Catalog(
     val shouldShowTopBar by remember {
         derivedStateOf {
             lazyListState.firstVisibleItemIndex == 0 &&
-                lazyListState.firstVisibleItemScrollOffset == 0
+                    lazyListState.firstVisibleItemScrollOffset == 0
         }
     }
 
@@ -100,13 +100,15 @@ private fun Catalog(
                 onMovieClick = onTVShowClick
             )
         }
-        item {
-            MoviesRow(
-                modifier = Modifier.padding(top = childPadding.top),
-                title = StringConstants.Composable.BingeWatchDramasTitle,
-                movieList = bingeWatchDramaList,
-                onMovieSelected = onTVShowClick
-            )
-        }
+        // TODO: Uncomment and use
+
+//        item {
+//            MoviesRow(
+//                modifier = Modifier.padding(top = childPadding.top),
+//                title = StringConstants.Composable.BingeWatchDramasTitle,
+//                movieList = bingeWatchDramaList,
+//                onMovieSelected = onTVShowClick
+//            )
+//        }
     }
 }

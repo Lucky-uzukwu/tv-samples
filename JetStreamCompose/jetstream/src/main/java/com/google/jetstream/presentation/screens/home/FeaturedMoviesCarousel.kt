@@ -62,6 +62,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.paging.compose.LazyPagingItems
 import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.Carousel
@@ -75,6 +76,7 @@ import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import com.google.jetstream.R
 import com.google.jetstream.data.entities.Movie
+import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.theme.JetStreamBorderWidth
@@ -94,7 +96,7 @@ val CarouselSaver = Saver<CarouselState, Int>(
 @Composable
 fun FeaturedMoviesCarousel(
     movies: List<Movie>,
-    moviesNew: List<MovieNew>,
+    moviesNew: LazyPagingItems<MovieNew>,
     padding: Padding,
     goToVideoPlayer: (movie: Movie) -> Unit,
     goToMoreInfo: (movie: Movie) -> Unit,
@@ -152,11 +154,11 @@ fun FeaturedMoviesCarousel(
                     }
                 }
             ),
-        itemCount = moviesNew.size,
+        itemCount = moviesNew.itemCount,
         carouselState = carouselState,
         carouselIndicator = {
             CarouselIndicator(
-                itemCount = moviesNew.size,
+                itemCount = moviesNew.itemCount,
                 activeItemIndex = carouselState.activeItemIndex
             )
         },
@@ -165,7 +167,7 @@ fun FeaturedMoviesCarousel(
         contentTransformEndToStart = fadeIn(tween(durationMillis = 1000))
             .togetherWith(fadeOut(tween(durationMillis = 1000))),
         content = { index ->
-            val movieNew = moviesNew[index]
+            val movieNew = moviesNew[index]!!
             CarouselItemBackground(
                 movie = movieNew,
                 modifier = Modifier.fillMaxSize()

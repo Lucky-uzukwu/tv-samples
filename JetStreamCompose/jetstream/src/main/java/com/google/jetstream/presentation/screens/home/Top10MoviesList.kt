@@ -49,8 +49,8 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.jetstream.R
-import com.google.jetstream.data.entities.Movie
-import com.google.jetstream.data.entities.MovieList
+import com.google.jetstream.data.entities.MovieListNew
+import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.presentation.common.ImmersiveListMoviesRow
 import com.google.jetstream.presentation.common.ItemDirection
 import com.google.jetstream.presentation.common.PosterImage
@@ -59,11 +59,11 @@ import com.google.jetstream.presentation.utils.bringIntoViewIfChildrenAreFocused
 
 @Composable
 fun Top10MoviesList(
-    movieList: MovieList,
+    movieList: MovieListNew,
     sectionTitle: String? = stringResource(R.string.top_10_movies_title),
     modifier: Modifier = Modifier,
     gradientColor: Color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-    onMovieClick: (movie: Movie) -> Unit
+    onMovieClick: (movie: MovieNew) -> Unit
 ) {
     var isListFocused by remember { mutableStateOf(false) }
     var selectedMovie by remember(movieList) { mutableStateOf(movieList.first()) }
@@ -89,14 +89,14 @@ fun Top10MoviesList(
 
 @Composable
 private fun ImmersiveList(
-    selectedMovie: Movie,
+    selectedMovie: MovieNew,
     isListFocused: Boolean,
     gradientColor: Color,
-    movieList: MovieList,
+    movieList: MovieListNew,
     sectionTitle: String?,
     onFocusChanged: (FocusState) -> Unit,
-    onMovieFocused: (Movie) -> Unit,
-    onMovieClick: (Movie) -> Unit,
+    onMovieFocused: (MovieNew) -> Unit,
+    onMovieClick: (MovieNew) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -137,10 +137,11 @@ private fun ImmersiveList(
 
 @Composable
 private fun Background(
-    movie: Movie,
+    movie: MovieNew,
     visible: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
     AnimatedVisibility(
         visible = visible,
         enter = fadeIn() + expandVertically(),
@@ -152,28 +153,34 @@ private fun Background(
             label = "posterUriCrossfade",
 
             ) {
-            PosterImage(movie = it, modifier = Modifier.fillMaxSize())
+            PosterImage(
+                movieTitle = it.title,
+                movieUri = imageUrl,
+                modifier = Modifier.fillMaxSize()
+            )
         }
     }
 }
 
 @Composable
 private fun MovieDescription(
-    movie: Movie,
+    movie: MovieNew,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(text = movie.name, style = MaterialTheme.typography.displaySmall)
-        Text(
-            modifier = Modifier.fillMaxWidth(0.5f),
-            text = movie.description,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-            fontWeight = FontWeight.Light
-        )
+        Text(text = movie.title, style = MaterialTheme.typography.displaySmall)
+        movie.tagLine?.let {
+            Text(
+                modifier = Modifier.fillMaxWidth(0.5f),
+                text = it,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                fontWeight = FontWeight.Light
+            )
+        }
     }
 }
 

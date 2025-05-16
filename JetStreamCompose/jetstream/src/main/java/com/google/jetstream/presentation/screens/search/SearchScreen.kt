@@ -218,14 +218,14 @@ fun SearchResult(
                 )
             }
         }
-
-        item {
-            MoviesRow(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = childPadding.top * 2),
-                movieList = movieList
-            ) { selectedMovie -> onMovieClick(selectedMovie) }
-        }
+// TODO: Uncomment and use
+//        item {
+//            MoviesRow(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .padding(top = childPadding.top * 2),
+//                movieList = movieList
+//            ) { selectedMovie -> onMovieClick(selectedMovie) }
+//        }
     }
 }

@@ -22,6 +22,6 @@ data class CatalogResponse(
 )
 
 data class Catalog(
-    val id: Int,
+    val id: String,
     val name: String,
 )

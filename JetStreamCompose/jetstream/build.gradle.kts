@@ -126,4 +126,11 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation ("androidx.compose.material:material-icons-extended")
     implementation("androidx.datastore:datastore-preferences:1.1.6")
+
+    val paging_version = "3.3.6"
+
+    //noinspection UseTomlInstead
+    implementation("androidx.paging:paging-runtime:$paging_version")
+    // optional - Jetpack Compose integration
+    implementation("androidx.paging:paging-compose:$paging_version")
 }
