@@ -41,6 +41,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.google.jetstream.data.entities.Movie
 import com.google.jetstream.data.entities.MovieList
 import com.google.jetstream.data.network.Catalog
+import com.google.jetstream.data.network.Genre
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
@@ -68,7 +69,7 @@ fun HomeScreen(
                 top10Movies = s.top10MovieList,
                 nowPlayingMovies = s.nowPlayingMovieList,
                 catalogToMovies = s.catalogToMovies,
-                catalogs = s.catalogs,
+                genreToMovies = s.genreToMovies,
                 onMovieClick = { },
                 onScroll = onScroll,
                 goToVideoPlayer = goToVideoPlayer,
@@ -87,10 +88,10 @@ private fun Catalog(
     featuredMovies: MovieList,
     featuredMoviesNew: LazyPagingItems<MovieNew>,
     catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
+    genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>,
     trendingMovies: MovieList,
     top10Movies: MovieList,
     nowPlayingMovies: MovieList,
-    catalogs: List<Catalog>, // Added to access all catalogs
     onMovieClick: (movie: MovieNew) -> Unit,
     onScroll: (isTopBarVisible: Boolean) -> Unit,
     goToVideoPlayer: (movie: Movie) -> Unit,
@@ -136,11 +137,28 @@ private fun Catalog(
 
         // Loop through catalogList to display each catalog and its movies
         items(
-            items = catalogs,
+            items = catalogToMovies.keys.toList(),
             key = { catalog -> catalog.id }, // Use catalog ID as unique key
             contentType = { "MoviesRow" }
         ) { catalog ->
             val movies = catalogToMovies[catalog]?.collectAsLazyPagingItems()
+            val movieList = movies?.itemSnapshotList?.items ?: emptyList()
+
+            MoviesRow(
+                movieList = movieList,
+                title = catalog.name,
+                onMovieSelected = onMovieClick,
+                modifier = Modifier.padding(top = 16.dp),
+            )
+        }
+
+        // Loop through genreList to display each catalog and its movies
+        items(
+            items = genreToMovies.keys.toList(),
+            key = { genre -> genre.id }, // Use catalog ID as unique key
+            contentType = { "MoviesRow" }
+        ) { catalog ->
+            val movies = genreToMovies[catalog]?.collectAsLazyPagingItems()
             val movieList = movies?.itemSnapshotList?.items ?: emptyList()
 
             MoviesRow(

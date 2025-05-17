@@ -49,4 +49,10 @@ class NetworkModule {
     fun CatalogService(retrofit: Retrofit): CatalogService {
         return retrofit.create(CatalogService::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun GenreService(retrofit: Retrofit): GenreService {
+        return retrofit.create(GenreService::class.java)
+    }
 }

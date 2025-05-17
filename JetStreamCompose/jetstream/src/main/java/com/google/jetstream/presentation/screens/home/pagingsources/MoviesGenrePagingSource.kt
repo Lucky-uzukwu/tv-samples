@@ -1,4 +1,4 @@
-package com.google.jetstream.presentation.screens.home
+package com.google.jetstream.presentation.screens.home.pagingsources
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
@@ -8,10 +8,10 @@ import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.UserRepository
 import kotlinx.coroutines.flow.firstOrNull
 
-class MoviesCatalogPagingSource(
+class MoviesGenrePagingSource(
     private val movieRepository: MovieRepository,
     private val userRepository: UserRepository,
-    private val catalogId: String
+    private val genreId: Int
 ) : PagingSource<Int, MovieNew>() {
 
     override fun getRefreshKey(state: PagingState<Int, MovieNew>): Int? {
@@ -29,9 +29,9 @@ class MoviesCatalogPagingSource(
             val currentPage = params.key ?: 1
             val pageSize = params.loadSize
             // Fetch all catalogs
-            val movies: MovieResponse = movieRepository.getMoviesToShowCatalog(
+            val movies: MovieResponse = movieRepository.getMoviesToShowInGenreSection(
                 token = token,
-                catalogId = catalogId,
+                genreId = genreId,
                 page = currentPage,
                 itemsPerPage = pageSize
             ).firstOrNull() ?: MovieResponse(member = emptyList())

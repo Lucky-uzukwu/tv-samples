@@ -1,0 +1,48 @@
+package com.google.jetstream.data.repositories
+
+import co.touchlab.kermit.Logger
+import com.google.jetstream.data.network.Genre
+import com.google.jetstream.data.network.GenreService
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class GenreRepositoryImpl @Inject constructor(
+    private val genreService: GenreService,
+) : GenreRepository {
+    override fun getMovieGenre(token: String): Flow<List<Genre>> = flow {
+        Logger.i { "Fetching genres for Movie section with token: $token" }
+        val response = genreService.getGenres(
+            authToken = "Bearer $token"
+        )
+
+        if (response.isSuccessful) {
+            val genres = response.body()
+            Logger.i { "API Response: $genres" }
+            Logger.i { "Successfully fetched ${genres?.member?.size} genres for movie section." }
+            if (genres != null) {
+                emit(genres.member)
+            }
+        } else {
+            // Handle HTTP error codes
+            val errorBody =
+                response.errorBody()?.string() // Get error message from server if available
+            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
+            when (response.code()) {
+                401 -> {
+                    // Unauthorized: Token is invalid or expired
+                    // You should trigger a re-authentication flow here.
+                    // TODO: Trigger re-authentication flow
+                }
+
+                else -> {
+                    // Handle other unexpected HTTP error codes
+                    Logger.e { "Unexpected HTTP error: ${response.code()}" }
+                }
+            }
+        }
+
+    }
+}

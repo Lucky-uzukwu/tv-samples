@@ -20,7 +20,6 @@ import com.google.jetstream.data.entities.MovieCategoryDetails
 import com.google.jetstream.data.entities.MovieCategoryList
 import com.google.jetstream.data.entities.MovieDetails
 import com.google.jetstream.data.entities.MovieList
-import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.network.MovieResponse
 import kotlinx.coroutines.flow.Flow
 
@@ -45,9 +44,16 @@ interface MovieRepository {
         itemsPerPage: Int,
     ): Flow<MovieResponse>
 
-    fun getMoviesToShowCatalog(
+    fun getMoviesToShowInCatalogSection(
         token: String,
         catalogId: String,
+        itemsPerPage: Int,
+        page: Int
+    ): Flow<MovieResponse>
+
+    fun getMoviesToShowInGenreSection(
+        token: String,
+        genreId: Int,
         itemsPerPage: Int,
         page: Int
     ): Flow<MovieResponse>

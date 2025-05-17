@@ -200,7 +200,7 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getMoviesToShowCatalog(
+    override fun getMoviesToShowInCatalogSection(
         token: String,
         catalogId: String,
         itemsPerPage: Int,
@@ -210,7 +210,7 @@ class MovieRepositoryImpl @Inject constructor(
             Logger.i { "Fetching movies for catalog section with token: $token" }
             val response = movieService.getMovies(
                 authToken = "Bearer $token",
-                catalogs = catalogId,
+                catalogId = catalogId,
                 itemsPerPage = itemsPerPage,
                 page = page
             )
@@ -240,4 +240,45 @@ class MovieRepositoryImpl @Inject constructor(
                 }
             }
         }
+
+    override fun getMoviesToShowInGenreSection(
+        token: String,
+        genreId: Int,
+        itemsPerPage: Int,
+        page: Int
+    ): Flow<MovieResponse> = flow {
+        Logger.i { "Fetching movies for genre section with token: $token" }
+        val response = movieService.getMovies(
+            authToken = "Bearer $token",
+            genreId = genreId,
+            itemsPerPage = itemsPerPage,
+            page = page
+        )
+
+        if (response.isSuccessful) {
+            val moviesResponse = response.body()
+            Logger.i { "Successfully fetched ${moviesResponse?.member?.size} movies for genre section out of ${moviesResponse?.totalItems}." }
+            if (moviesResponse != null) {
+                emit(moviesResponse)
+            }
+        } else {
+            // Handle HTTP error codes
+            val errorBody =
+                response.errorBody()?.string() // Get error message from server if available
+            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
+            when (response.code()) {
+                401 -> {
+                    // Unauthorized: Token is invalid or expired
+                    // You should trigger a re-authentication flow here.
+                    // TODO: Trigger re-authentication flow
+                }
+
+                else -> {
+                    // Handle other unexpected HTTP error codes
+                    Logger.e { "Unexpected HTTP error: ${response.code()}" }
+                }
+            }
+        }
+    }
+
 }

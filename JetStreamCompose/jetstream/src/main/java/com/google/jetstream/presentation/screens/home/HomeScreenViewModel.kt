@@ -24,10 +24,14 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.google.jetstream.data.entities.MovieList
 import com.google.jetstream.data.network.Catalog
+import com.google.jetstream.data.network.Genre
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.repositories.CatalogRepository
+import com.google.jetstream.data.repositories.GenreRepository
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.UserRepository
+import com.google.jetstream.presentation.screens.home.pagingsources.HomeScreenPagingSources
+import com.google.jetstream.presentation.screens.home.pagingsources.MoviesHeroSectionPagingSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -37,14 +41,12 @@ import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 
-private const val NETWORK_PAGE_SIZE = 30
-
-
 @HiltViewModel
 class HomeScreeViewModel @Inject constructor(
     private val movieRepository: MovieRepository,
     userRepository: UserRepository,
-    catalogRepository: CatalogRepository
+    catalogRepository: CatalogRepository,
+    genreRepository: GenreRepository
 ) : ViewModel() {
 
     // Paginated flows for movie lists
@@ -70,34 +72,24 @@ class HomeScreeViewModel @Inject constructor(
             token.isNullOrBlank() -> HomeScreenUiState.Error
             else -> {
                 // Create paginated flows for each catalog
-                val catalogs = catalogRepository.getMovieCatalog(token).firstOrNull() ?: emptyList()
-                val catalogToMovies = catalogs.associateWith { catalog ->
-                    Pager(
-                        PagingConfig(
-                            pageSize = NETWORK_PAGE_SIZE,
-                            initialLoadSize = 40,
-                            enablePlaceholders = false
-                        )
-                    ) {
-                        MoviesCatalogPagingSource(
-                            movieRepository,
-                            userRepository,
-                            catalog.id
-                        )
-                    }.flow.cachedIn(viewModelScope).stateIn(
-                        viewModelScope,
-                        SharingStarted.WhileSubscribed(5_000),
-                        PagingData.empty()
-                    )
-                }
+                val catalogToMovies = fetchCatalogsAndMovies(
+                    catalogRepository,
+                    token,
+                    userRepository
+                )
+                val genreToMovies = fetchGenresAndMovies(
+                    genreRepository = genreRepository,
+                    token,
+                    userRepository
+                )
 
                 HomeScreenUiState.Ready(
                     featuredMovieList = featuredMovieList,
                     trendingMovieList = trendingMovieList,
                     top10MovieList = top10MovieList,
                     nowPlayingMovieList = nowPlayingMovieList,
-                    catalogs = catalogs,
-                    catalogToMovies = catalogToMovies
+                    catalogToMovies = catalogToMovies,
+                    genreToMovies = genreToMovies
                 )
             }
         }
@@ -106,6 +98,46 @@ class HomeScreeViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = HomeScreenUiState.Loading
     )
+
+    private suspend fun fetchCatalogsAndMovies(
+        catalogRepository: CatalogRepository,
+        token: String,
+        userRepository: UserRepository
+    ): Map<Catalog, StateFlow<PagingData<MovieNew>>> {
+        val catalogs = catalogRepository.getMovieCatalog(token).firstOrNull() ?: emptyList()
+        val catalogToMovies = catalogs.associateWith { catalog ->
+            HomeScreenPagingSources().getMoviesCatalogPagingSource(
+                catalog = catalog,
+                movieRepository = movieRepository,
+                userRepository = userRepository
+            ).cachedIn(viewModelScope).stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5_000),
+                PagingData.empty()
+            )
+        }
+        return catalogToMovies
+    }
+
+    private suspend fun fetchGenresAndMovies(
+        genreRepository: GenreRepository,
+        token: String,
+        userRepository: UserRepository
+    ): Map<Genre, StateFlow<PagingData<MovieNew>>> {
+        val genres = genreRepository.getMovieGenre(token).firstOrNull() ?: emptyList()
+        val genreToMovies = genres.associateWith { catalog ->
+            HomeScreenPagingSources().getMoviesGenrePagingSource(
+                genre = catalog,
+                movieRepository = movieRepository,
+                userRepository = userRepository
+            ).cachedIn(viewModelScope).stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5_000),
+                PagingData.empty()
+            )
+        }
+        return genreToMovies
+    }
 }
 
 sealed interface HomeScreenUiState {
@@ -116,7 +148,7 @@ sealed interface HomeScreenUiState {
         val trendingMovieList: MovieList,
         val top10MovieList: MovieList,
         val nowPlayingMovieList: MovieList,
-        val catalogs: List<Catalog> = emptyList(),
-        val catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>
+        val catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
+        val genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>
     ) : HomeScreenUiState
 }
