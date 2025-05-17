@@ -42,8 +42,13 @@ interface MovieRepository {
     fun getMoviesToShowInHeroSection(
         token: String,
         page: Int,
-        itemsPerPage: Int
+        itemsPerPage: Int,
     ): Flow<MovieResponse>
 
-    fun getMoviesToShowCatalog(token: String, catalogId: String): Flow<MovieListNew>
+    fun getMoviesToShowCatalog(
+        token: String,
+        catalogId: String,
+        itemsPerPage: Int,
+        page: Int
+    ): Flow<MovieResponse>
 }

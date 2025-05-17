@@ -13,7 +13,7 @@ interface MovieService {
         @Header("Authorization") authToken: String,
         @Header("Accept") accept: String = "application/ld+json",
         @Query("page") page: Int? = 1,
-        @Query("itemsPerPage") itemsPerPage: Int? = 20,
+        @Query("itemsPerPage") itemsPerPage: Int? = 15,
 //        @Query("search") search: String? = null,
 //        @Query("is_adult_content") isAdultContent: String? = null,
 //        @Query("is_kids_content") isKidsContent: String? = null,

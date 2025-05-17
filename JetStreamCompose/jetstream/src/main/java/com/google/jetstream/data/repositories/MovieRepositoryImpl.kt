@@ -20,7 +20,6 @@ import co.touchlab.kermit.Logger
 import com.google.jetstream.data.entities.MovieCategoryDetails
 import com.google.jetstream.data.entities.MovieDetails
 import com.google.jetstream.data.entities.MovieList
-import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.entities.MovieReviewsAndRatings
 import com.google.jetstream.data.entities.ThumbnailType
 import com.google.jetstream.data.network.MovieResponse
@@ -201,20 +200,26 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getMoviesToShowCatalog(token: String, catalogId: String): Flow<MovieListNew> =
+    override fun getMoviesToShowCatalog(
+        token: String,
+        catalogId: String,
+        itemsPerPage: Int,
+        page: Int
+    ): Flow<MovieResponse> =
         flow {
             Logger.i { "Fetching movies for catalog section with token: $token" }
             val response = movieService.getMovies(
                 authToken = "Bearer $token",
-                catalogs = catalogId
+                catalogs = catalogId,
+                itemsPerPage = itemsPerPage,
+                page = page
             )
 
             if (response.isSuccessful) {
-                val movies = response.body()
-                Logger.i { "API Response: $movies" }
-                Logger.i { "Successfully fetched ${movies?.member?.size} movies for catalog section." }
-                if (movies != null) {
-                    emit(movies.member)
+                val moviesResponse = response.body()
+                Logger.i { "Successfully fetched ${moviesResponse?.member?.size} movies for catalog section out of ${moviesResponse?.totalItems}." }
+                if (moviesResponse != null) {
+                    emit(moviesResponse)
                 }
             } else {
                 // Handle HTTP error codes

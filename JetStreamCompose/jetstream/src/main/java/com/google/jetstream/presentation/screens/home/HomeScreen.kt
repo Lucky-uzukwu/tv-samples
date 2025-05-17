@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,18 +35,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import co.touchlab.kermit.Logger
 import com.google.jetstream.data.entities.Movie
 import com.google.jetstream.data.entities.MovieList
-import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.MoviesRow
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun HomeScreen(
@@ -66,9 +67,9 @@ fun HomeScreen(
                 trendingMovies = s.trendingMovieList,
                 top10Movies = s.top10MovieList,
                 nowPlayingMovies = s.nowPlayingMovieList,
-                catalogs = s.catalogList,
                 catalogToMovies = s.catalogToMovies,
-                onMovieClick = onMovieClick,
+                catalogs = s.catalogs,
+                onMovieClick = { },
                 onScroll = onScroll,
                 goToVideoPlayer = goToVideoPlayer,
                 isTopBarVisible = isTopBarVisible,
@@ -85,21 +86,21 @@ fun HomeScreen(
 private fun Catalog(
     featuredMovies: MovieList,
     featuredMoviesNew: LazyPagingItems<MovieNew>,
-    catalogs: List<Catalog>,
-    catalogToMovies: Map<Catalog, MovieListNew>,
+    catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
     trendingMovies: MovieList,
     top10Movies: MovieList,
     nowPlayingMovies: MovieList,
-    onMovieClick: (movie: Movie) -> Unit,
+    catalogs: List<Catalog>, // Added to access all catalogs
+    onMovieClick: (movie: MovieNew) -> Unit,
     onScroll: (isTopBarVisible: Boolean) -> Unit,
     goToVideoPlayer: (movie: Movie) -> Unit,
     modifier: Modifier = Modifier,
     isTopBarVisible: Boolean = true,
 ) {
-
     val lazyListState = rememberLazyListState()
     val childPadding = rememberChildPadding()
     var immersiveListHasFocus by remember { mutableStateOf(false) }
+    val groupedMovies = remember { mutableStateOf<Map<Catalog, List<MovieNew>>>(emptyMap()) }
 
     val shouldShowTopBar by remember {
         derivedStateOf {
@@ -118,10 +119,8 @@ private fun Catalog(
     LazyColumn(
         state = lazyListState,
         contentPadding = PaddingValues(bottom = 108.dp),
-        // Setting overscan margin to bottom to ensure the last row's visibility
         modifier = modifier,
     ) {
-
         item(contentType = "FeaturedMoviesCarousel") {
             FeaturedMoviesCarousel(
                 movies = featuredMovies,
@@ -132,75 +131,66 @@ private fun Catalog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(400.dp),
-                /*
-                 Setting height for the FeaturedMovieCarousel to keep it rendered with same height,
-                 regardless of the top bar's visibility
-                 */
             )
         }
-        // Loop through catalogToMovies to display catalogs and their movies
-        val catalogEntries = catalogToMovies.entries.toList()
-        Logger.i {
-            "catalogEntries: $catalogEntries"
-        }
-        Logger.i {
-            "catalogToMovies: $catalogToMovies"
-        }
-        Logger.i {
-            "catalogs: ${catalogToMovies.size}"
-        }
-        items(
-            count = catalogEntries.size,
-            key = { index -> catalogEntries[index].key.id }, // Use catalog ID as unique key
-            contentType = { "MoviesRow" },
-            itemContent = { index ->
-                val (catalog, movies) = catalogEntries[index]
-                MoviesRow(
-                    movieList = movies,
-                    title = catalog.name, // For accessibility
-                    onMovieSelected = { },
-                    modifier = Modifier.padding(top = 16.dp),
-                )
-            }
-        )
 
-//        item(contentType = "Top10MoviesList") {
-//            Top10MoviesList(
-//                movieList = top10Movies,
-//                sectionTitle = "Latest Movies",
-//                onMovieClick = onMovieClick,
-//                modifier = Modifier.onFocusChanged {
-//                    immersiveListHasFocus = it.hasFocus
-//                },
-//            )
-//        }
-//        item(contentType = "Top10MoviesList") {
-//            Top10MoviesList(
-//                movieList = top10Movies,
-//                sectionTitle = "Trending Movies",
-//                onMovieClick = onMovieClick,
-//                modifier = Modifier.onFocusChanged {
-//                    immersiveListHasFocus = it.hasFocus
-//                },
-//            )
-//        }
-//        item(contentType = "Top10MoviesList") {
-//            Top10MoviesList(
-//                movieList = top10Movies,
-//                sectionTitle = "Action Movies",
-//                onMovieClick = onMovieClick,
-//                modifier = Modifier.onFocusChanged {
-//                    immersiveListHasFocus = it.hasFocus
-//                },
-//            )
-//        }
-//        item(contentType = "MoviesRow") {
-//            MoviesRow(
-//                modifier = Modifier.padding(top = 16.dp),
-//                movieList = nowPlayingMovies,
-//                title = StringConstants.Composable.HomeScreenNowPlayingMoviesTitle,
-//                onMovieSelected = onMovieClick
-//            )
-//        }
+        // Loop through catalogList to display each catalog and its movies
+        items(
+            items = catalogs,
+            key = { catalog -> catalog.id }, // Use catalog ID as unique key
+            contentType = { "MoviesRow" }
+        ) { catalog ->
+            val movies = catalogToMovies[catalog]?.collectAsLazyPagingItems()
+            val movieList = movies?.itemSnapshotList?.items ?: emptyList()
+
+            MoviesRow(
+                movieList = movieList,
+                title = catalog.name,
+                onMovieSelected = onMovieClick,
+                modifier = Modifier.padding(top = 16.dp),
+            )
+        }
+
+        // Uncomment other sections as needed
+        /*
+        item(contentType = "Top10MoviesList") {
+            Top10MoviesList(
+                movieList = top10Movies,
+                sectionTitle = "Latest Movies",
+                onMovieClick = onMovieClick,
+                modifier = Modifier.onFocusChanged {
+                    immersiveListHasFocus = it.hasFocus
+                },
+            )
+        }
+        item(contentType = "Top10MoviesList") {
+            Top10MoviesList(
+                movieList = top10Movies,
+                sectionTitle = "Trending Movies",
+                onMovieClick = onMovieClick,
+                modifier = Modifier.onFocusChanged {
+                    immersiveListHasFocus = it.hasFocus
+                },
+            )
+        }
+        item(contentType = "Top10MoviesList") {
+            Top10MoviesList(
+                movieList = top10Movies,
+                sectionTitle = "Action Movies",
+                onMovieClick = onMovieClick,
+                modifier = Modifier.onFocusChanged {
+                    immersiveListHasFocus = it.hasFocus
+                },
+            )
+        }
+        item(contentType = "MoviesRow") {
+            MoviesRow(
+                modifier = Modifier.padding(top = 16.dp),
+                movieList = nowPlayingMovies,
+                title = StringConstants.Composable.HomeScreenNowPlayingMoviesTitle,
+                onMovieSelected = onMovieClick
+            )
+        }
+        */
     }
 }
