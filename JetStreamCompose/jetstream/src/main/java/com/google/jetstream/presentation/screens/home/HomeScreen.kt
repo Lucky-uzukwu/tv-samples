@@ -32,6 +32,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -144,12 +145,22 @@ private fun Catalog(
             val movies = catalogToMovies[catalog]?.collectAsLazyPagingItems()
             val movieList = movies?.itemSnapshotList?.items ?: emptyList()
 
-            MoviesRow(
+
+            Top10MoviesList(
                 movieList = movieList,
-                title = catalog.name,
-                onMovieSelected = onMovieClick,
-                modifier = Modifier.padding(top = 16.dp),
+                sectionTitle = catalog.name,
+                onMovieClick = onMovieClick,
+                modifier = Modifier.onFocusChanged {
+                    immersiveListHasFocus = it.hasFocus
+                },
             )
+
+//            MoviesRow(
+//                movieList = movieList,
+//                title = catalog.name,
+//                onMovieSelected = onMovieClick,
+//                modifier = Modifier.padding(top = 16.dp),
+//            )
         }
 
         // Loop through genreList to display each catalog and its movies
@@ -157,30 +168,24 @@ private fun Catalog(
             items = genreToMovies.keys.toList(),
             key = { genre -> genre.id }, // Use catalog ID as unique key
             contentType = { "MoviesRow" }
-        ) { catalog ->
-            val movies = genreToMovies[catalog]?.collectAsLazyPagingItems()
+        ) { genre ->
+            val movies = genreToMovies[genre]?.collectAsLazyPagingItems()
             val movieList = movies?.itemSnapshotList?.items ?: emptyList()
 
-            MoviesRow(
-                movieList = movieList,
-                title = catalog.name,
-                onMovieSelected = onMovieClick,
-                modifier = Modifier.padding(top = 16.dp),
-            )
-        }
-
-        // Uncomment other sections as needed
-        /*
-        item(contentType = "Top10MoviesList") {
             Top10MoviesList(
-                movieList = top10Movies,
-                sectionTitle = "Latest Movies",
+                movieList = movieList,
+                sectionTitle = genre.name,
                 onMovieClick = onMovieClick,
                 modifier = Modifier.onFocusChanged {
                     immersiveListHasFocus = it.hasFocus
                 },
             )
         }
+
+
+        // Uncomment other sections as needed
+        /*
+
         item(contentType = "Top10MoviesList") {
             Top10MoviesList(
                 movieList = top10Movies,

@@ -227,7 +227,7 @@ private fun MoviesRowItem(
     onMovieFocused: (MovieNew) -> Unit = {},
 ) {
     var isFocused by remember { mutableStateOf(false) }
-    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
+    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.posterImagePath
 
     MovieCard(
         onClick = { onMovieSelected(movie) },

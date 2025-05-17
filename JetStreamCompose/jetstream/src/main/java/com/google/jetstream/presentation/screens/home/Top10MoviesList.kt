@@ -66,10 +66,17 @@ fun Top10MoviesList(
     onMovieClick: (movie: MovieNew) -> Unit
 ) {
     var isListFocused by remember { mutableStateOf(false) }
-    var selectedMovie by remember(movieList) { mutableStateOf(movieList.first()) }
+
+    var selectedMovie by remember(movieList) {
+        mutableStateOf(movieList.firstOrNull())
+    }
+
+    if (selectedMovie == null && movieList.isNotEmpty()) {
+        selectedMovie = movieList.first()
+    }
 
     ImmersiveList(
-        selectedMovie = selectedMovie,
+        selectedMovie = selectedMovie ?: return,
         isListFocused = isListFocused,
         gradientColor = gradientColor,
         movieList = movieList,
@@ -85,6 +92,7 @@ fun Top10MoviesList(
             PaddingValues(bottom = 116.dp)
         )
     )
+
 }
 
 @Composable
@@ -111,6 +119,7 @@ private fun ImmersiveList(
                 .gradientOverlay(gradientColor)
         )
         Column {
+            // TODO HERE you can add more deails for each row
             if (isListFocused) {
                 MovieDescription(
                     movie = selectedMovie,
@@ -126,7 +135,7 @@ private fun ImmersiveList(
                 itemDirection = ItemDirection.Horizontal,
                 title = sectionTitle,
                 showItemTitle = !isListFocused,
-                showIndexOverImage = true,
+                showIndexOverImage = false,
                 onMovieSelected = onMovieClick,
                 onMovieFocused = onMovieFocused,
                 modifier = Modifier.onFocusChanged(onFocusChanged)
