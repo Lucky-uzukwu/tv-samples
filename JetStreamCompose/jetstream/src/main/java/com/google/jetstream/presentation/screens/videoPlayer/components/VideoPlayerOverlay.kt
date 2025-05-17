@@ -40,7 +40,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.google.jetstream.presentation.theme.JetStreamTheme
+import com.google.jetstream.presentation.theme.AppTheme
 
 /**
  * Handles the visibility and animation of the controls.
@@ -118,7 +118,7 @@ fun CinematicBackground(modifier: Modifier = Modifier) {
 @Preview(device = "id:tv_4k")
 @Composable
 private fun VideoPlayerOverlayPreview() {
-    JetStreamTheme {
+    AppTheme {
         Box(Modifier.fillMaxSize()) {
             VideoPlayerOverlay(
                 modifier = Modifier.align(Alignment.BottomCenter),

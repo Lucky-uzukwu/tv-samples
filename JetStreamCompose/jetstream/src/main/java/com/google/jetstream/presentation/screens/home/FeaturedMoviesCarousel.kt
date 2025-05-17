@@ -76,7 +76,6 @@ import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import com.google.jetstream.R
 import com.google.jetstream.data.entities.Movie
-import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.theme.JetStreamBorderWidth
@@ -239,17 +238,7 @@ private fun CarouselItemForeground(
                 .padding(32.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            Text(
-                text = movie.title,
-                style = MaterialTheme.typography.displayMedium.copy(
-                    shadow = Shadow(
-                        color = Color.Black.copy(alpha = 0.5f),
-                        offset = Offset(x = 2f, y = 4f),
-                        blurRadius = 2f
-                    )
-                ),
-                maxLines = 2
-            )
+            CarouselMovieTitle(movie)
             movie.tagLine?.let {
                 Text(
                     text = it,
@@ -355,6 +344,21 @@ private fun CarouselItemForeground(
             )
         }
     }
+}
+
+@Composable
+private fun CarouselMovieTitle(movie: MovieNew) {
+    Text(
+        text = movie.title,
+        style = MaterialTheme.typography.displayLarge.copy(
+            shadow = Shadow(
+                color = Color.Black.copy(alpha = 0.5f),
+                offset = Offset(x = 2f, y = 4f),
+                blurRadius = 2f
+            )
+        ),
+        maxLines = 2
+    )
 }
 
 @Composable

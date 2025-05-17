@@ -66,7 +66,7 @@ import com.google.jetstream.presentation.screens.movies.MoviesScreen
 import com.google.jetstream.presentation.screens.profile.ProfileScreen
 import com.google.jetstream.presentation.screens.search.SearchScreen
 import com.google.jetstream.presentation.screens.shows.ShowsScreen
-import com.google.jetstream.presentation.theme.JetStreamTheme
+import com.google.jetstream.presentation.theme.AppTheme
 import com.google.jetstream.presentation.utils.Padding
 
 val ParentPadding = PaddingValues(vertical = 8.dp, horizontal = 29.dp)
@@ -287,7 +287,7 @@ private fun Body(
 @Preview(showBackground = true)
 @Composable
 fun DashboardScreenPreview() {
-    JetStreamTheme {
+    AppTheme {
         DashboardScreen(
             isComingBackFromDifferentScreen = false
         )

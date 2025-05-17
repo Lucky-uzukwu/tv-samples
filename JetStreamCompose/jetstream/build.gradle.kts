@@ -133,4 +133,6 @@ dependencies {
     implementation("androidx.paging:paging-runtime:$paging_version")
     // optional - Jetpack Compose integration
     implementation("androidx.paging:paging-compose:$paging_version")
+
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.8.1")
 }

@@ -51,7 +51,7 @@ class HomeScreeViewModel @Inject constructor(
 
     // Paginated flows for movie lists
     val heroSectionMovies: StateFlow<PagingData<MovieNew>> = Pager(
-        PagingConfig(pageSize = 10, initialLoadSize = 10)
+        PagingConfig(pageSize = 5, initialLoadSize = 5)
     ) {
         MoviesHeroSectionPagingSource(movieRepository, userRepository)
     }.flow.cachedIn(viewModelScope).stateIn(

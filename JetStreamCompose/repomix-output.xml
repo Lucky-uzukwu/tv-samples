@@ -7978,7 +7978,7 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.jetstream.R
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
-import com.google.jetstream.presentation.theme.JetStreamTheme
+import com.google.jetstream.presentation.theme.AppTheme
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -9546,7 +9546,7 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
 import com.google.jetstream.R
-import com.google.jetstream.presentation.theme.JetStreamTheme
+import com.google.jetstream.presentation.theme.AppTheme
 
 enum class VideoPlayerMediaTitleType { AD, LIVE, DEFAULT }
 
@@ -9697,7 +9697,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.google.jetstream.presentation.theme.JetStreamTheme
+import com.google.jetstream.presentation.theme.AppTheme
 
 /**
  * Handles the visibility and animation of the controls.
@@ -12155,7 +12155,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.tv.material3.LocalContentColor
 import androidx.tv.material3.MaterialTheme
 import com.google.jetstream.presentation.App
-import com.google.jetstream.presentation.theme.JetStreamTheme
+import com.google.jetstream.presentation.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

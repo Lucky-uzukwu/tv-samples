@@ -28,7 +28,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.tv.material3.LocalContentColor
 import androidx.tv.material3.MaterialTheme
 import com.google.jetstream.presentation.App
-import com.google.jetstream.presentation.theme.JetStreamTheme
+import com.google.jetstream.presentation.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            JetStreamTheme {
+            AppTheme {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()

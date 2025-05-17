@@ -59,7 +59,6 @@ import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.theme.IconSize
 import com.google.jetstream.presentation.theme.JetStreamCardShape
-import com.google.jetstream.presentation.theme.LexendExa
 import com.google.jetstream.presentation.utils.occupyScreenSize
 
 val TopBarTabs = Screens.entries.toList().filter { it.isTabItem }
@@ -188,7 +187,7 @@ private fun JetStreamLogo(
             text = stringResource(R.string.brand_logo_text),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Medium,
-            fontFamily = LexendExa
+            fontFamily = MaterialTheme.typography.titleSmall.fontFamily
         )
     }
 }

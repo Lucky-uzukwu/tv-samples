@@ -66,9 +66,6 @@ fun HomeScreen(
             Catalog(
                 featuredMovies = s.featuredMovieList,
                 featuredMoviesNew = featuredMovies,
-                trendingMovies = s.trendingMovieList,
-                top10Movies = s.top10MovieList,
-                nowPlayingMovies = s.nowPlayingMovieList,
                 catalogToMovies = s.catalogToMovies,
                 genreToMovies = s.genreToMovies,
                 onMovieClick = { },
@@ -90,9 +87,6 @@ private fun Catalog(
     featuredMoviesNew: LazyPagingItems<MovieNew>,
     catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
     genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>,
-    trendingMovies: MovieList,
-    top10Movies: MovieList,
-    nowPlayingMovies: MovieList,
     onMovieClick: (movie: MovieNew) -> Unit,
     onScroll: (isTopBarVisible: Boolean) -> Unit,
     goToVideoPlayer: (movie: Movie) -> Unit,
@@ -102,7 +96,6 @@ private fun Catalog(
     val lazyListState = rememberLazyListState()
     val childPadding = rememberChildPadding()
     var immersiveListHasFocus by remember { mutableStateOf(false) }
-    val groupedMovies = remember { mutableStateOf<Map<Catalog, List<MovieNew>>>(emptyMap()) }
 
     val shouldShowTopBar by remember {
         derivedStateOf {
