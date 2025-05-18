@@ -35,12 +35,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -52,7 +51,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -69,6 +67,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
@@ -80,7 +79,6 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.ShapeDefaults
 import androidx.tv.material3.Text
-import co.touchlab.kermit.Logger
 import coil.compose.AsyncImage
 import com.google.jetstream.R
 import com.google.jetstream.data.entities.Movie
@@ -88,7 +86,6 @@ import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.theme.JetStreamBorderWidth
 import com.google.jetstream.presentation.theme.JetStreamButtonShape
-import com.google.jetstream.presentation.theme.errorContainerLightHighContrast
 import com.google.jetstream.presentation.theme.onPrimaryContainerLightHighContrast
 import com.google.jetstream.presentation.theme.onPrimaryLight
 import com.google.jetstream.presentation.utils.Padding
@@ -113,36 +110,32 @@ fun HeroSectionCarousel(
     modifier: Modifier = Modifier
 ) {
     var isCarouselFocused by remember { mutableStateOf(true) }
-    var currentCarouselFocusedItemIndex by remember { mutableIntStateOf(0) }
-    var currentItemIndex by rememberSaveable { mutableIntStateOf(0) }
-    val carouselState =
-        remember(currentItemIndex) { CarouselState(initialActiveItemIndex = currentItemIndex) }
-    // Synchronize activeIndex with moviesNew and prevent invalid indices
-    LaunchedEffect(currentItemIndex, moviesNew.itemCount, carouselState) {
-        if (moviesNew.itemCount > 0 && currentItemIndex >= moviesNew.itemCount) {
-            currentItemIndex = moviesNew.itemCount - 1
-        } else if (currentItemIndex < 0) {
-            currentItemIndex = 0
-        }
-        // Update carouselState.activeItemIndex to keep indicator in sync
-//        carouselState.activeItemIndex = currentItemIndex
-    }
+    var isWatchNowFocused by remember { mutableStateOf(false) }
+    var currentPage by rememberSaveable { mutableIntStateOf(0) }
+    var currentMovieIndex by rememberSaveable { mutableIntStateOf(0) }
 
+    val itemsPerPage = 5
+    val startIndex by remember {
+        derivedStateOf { currentPage * itemsPerPage }
+    }
+    val endIndex by remember {
+        derivedStateOf { minOf(startIndex + itemsPerPage - 1, moviesNew.itemCount - 1) }
+    }
+    val currentItemCount by remember {
+        derivedStateOf { if (moviesNew.itemCount > 0) (endIndex - startIndex + 1) else 0 }
+    }
 
     val watchNowButtonFocusRequester = remember { FocusRequester() }
     val moreInfoButtonFocusRequester = remember { FocusRequester() }
-    val leftArrowFocusRequester = remember { FocusRequester() }
-    val rightArrowFocusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
 
-    // Safely request focus on Watch Now button when carousel gains focus
-    LaunchedEffect(isCarouselFocused) {
-        if (isCarouselFocused) {
-            watchNowButtonFocusRequester.requestFocus()
+    // Ensure currentMovieIndex stays within bounds
+    LaunchedEffect(currentItemCount) {
+        if (currentItemCount > 0 && currentMovieIndex >= currentItemCount) {
+            currentMovieIndex = currentItemCount - 1
+        } else if (currentMovieIndex < 0) {
+            currentMovieIndex = 0
         }
     }
-
-    val alpha = if (isCarouselFocused) 1f else 0f
 
     Box(modifier = modifier) {
         Carousel(
@@ -150,76 +143,43 @@ fun HeroSectionCarousel(
                 .padding(start = padding.start, end = padding.start, top = padding.top)
                 .border(
                     width = JetStreamBorderWidth,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (isCarouselFocused) 1f else 0f),
                     shape = ShapeDefaults.Medium
                 )
                 .clip(ShapeDefaults.Medium)
-                .onFocusChanged {
-                    isCarouselFocused = it.hasFocus
-                }
+                .onFocusChanged { isCarouselFocused = it.hasFocus }
                 .semantics {
                     contentDescription =
                         StringConstants.Composable.ContentDescription.MoviesCarousel
                 }
                 .handleDPadKeyEvents(
-                    onEnter = {
-                        if (currentCarouselFocusedItemIndex == 3) {
-                            if (currentItemIndex < moviesNew.itemCount - 1) {
-                                currentItemIndex += 1
-                                moviesNew[currentItemIndex] // This helps to get new movies
-                            } else if (currentItemIndex == moviesNew.itemCount - 1) {
-                                moviesNew[currentItemIndex]
-                            }
-                        } else if (currentCarouselFocusedItemIndex == 2) {
-                            if (currentItemIndex > 0) {
-                                currentItemIndex--
-                            }
+                    onRight = {
+                        if (currentMovieIndex < currentItemCount - 1) {
+                            currentMovieIndex += 1
+                        } else if (startIndex + itemsPerPage < moviesNew.itemCount) {
+                            currentPage += 1
+                            currentMovieIndex = 0
+                            // Trigger pagination safely
+                            moviesNew.loadState.append is LoadState.NotLoading || moviesNew.get(
+                                startIndex + itemsPerPage
+                            ) != null
                         }
                     },
                     onLeft = {
-                        focusManager.moveFocus(FocusDirection.Left)
-                    },
-                    onRight = {
-                        if (currentCarouselFocusedItemIndex == 0) {
-                            watchNowButtonFocusRequester.requestFocus()
-                        } else if (currentCarouselFocusedItemIndex == 1) {
-                            moreInfoButtonFocusRequester.requestFocus()
-                        } else if (currentCarouselFocusedItemIndex == 2) {
-                            leftArrowFocusRequester.requestFocus()
-                        } else if (currentCarouselFocusedItemIndex == 3) {
-                            rightArrowFocusRequester.requestFocus()
+                        if (currentMovieIndex > 0) {
+                            currentMovieIndex -= 1
+                        } else if (currentPage > 0) {
+                            currentPage -= 1
+                            currentMovieIndex = itemsPerPage - 1
                         }
-                        focusManager.moveFocus(FocusDirection.Right)
-                    }
+                    },
+                    onDown = { isWatchNowFocused = true }
                 ),
-            itemCount = moviesNew.itemCount,
-            carouselState = carouselState,
+            itemCount = currentItemCount,
             carouselIndicator = {
                 CarouselIndicator(
-                    itemCount = moviesNew.itemCount,
-                    activeItemIndex = currentItemIndex,
-                    leftArrowFocusRequester = leftArrowFocusRequester,
-                    rightArrowFocusRequester = rightArrowFocusRequester,
-                    onPreviousClick = {
-                        if (currentItemIndex > 0) {
-                            currentItemIndex--
-                        }
-                    },
-                    onNextClick = {
-                        if (currentItemIndex < moviesNew.itemCount - 1) {
-                            currentItemIndex += 1
-                        } else {
-                            moviesNew.get(
-                                moviesNew.itemCount
-                            )
-                        }
-                    },
-                    onButtonFocusLeft = { buttonIndex ->
-                        currentCarouselFocusedItemIndex = buttonIndex
-                    },
-                    onButtonFocusRight = { buttonIndex ->
-                        currentCarouselFocusedItemIndex = buttonIndex
-                    }
+                    itemCount = currentItemCount,
+                    activeItemIndex = currentMovieIndex,
                 )
             },
             autoScrollDurationMillis = 5000,
@@ -227,94 +187,59 @@ fun HeroSectionCarousel(
                 .togetherWith(fadeOut(tween(durationMillis = 1000))),
             contentTransformEndToStart = fadeIn(tween(durationMillis = 1000))
                 .togetherWith(fadeOut(tween(durationMillis = 1000))),
-            content = { index ->
-                val movieNew = moviesNew[index]!!
-                currentItemIndex = index
-                CarouselItemBackground(
-                    movie = movieNew,
-                    modifier = Modifier.fillMaxSize()
-                )
-                CarouselItemForeground(
-                    movie = movieNew,
-                    isCarouselFocused = isCarouselFocused,
-                    modifier = Modifier.fillMaxSize(),
-                    onWatchNowClick = { goToVideoPlayer(movies[currentItemIndex]) },
-                    onMoreInfoClick = { goToMoreInfo(movies[currentItemIndex]) },
-                    watchNowButtonFocusRequester = watchNowButtonFocusRequester,
-                    leftArrowFocusRequester = leftArrowFocusRequester,
-                    moreInfoButtonFocusRequester = moreInfoButtonFocusRequester,
-                    onButtonFocus = { buttonIndex ->
-                        currentCarouselFocusedItemIndex = buttonIndex
-                    }
-                )
+            content = { idx ->
+                val movieIndex = startIndex + idx
+                val movieNew = moviesNew[movieIndex]
+
+                // Only render if the item is loaded
+                if (movieNew != null) {
+                    CarouselItemBackground(
+                        movie = movieNew,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    CarouselItemForeground(
+                        movie = movieNew,
+                        isCarouselFocused = isCarouselFocused,
+                        modifier = Modifier.fillMaxSize(),
+                        onWatchNowClick = {
+                            movies.getOrNull(movieIndex)?.let { goToVideoPlayer(it) }
+                        },
+                        onMoreInfoClick = {
+                            movies.getOrNull(movieIndex)?.let { goToMoreInfo(it) }
+                        },
+                        watchNowButtonFocusRequester = watchNowButtonFocusRequester,
+                        moreInfoButtonFocusRequester = moreInfoButtonFocusRequester,
+                        onInnerElementRight = {
+                            if (currentMovieIndex < currentItemCount - 1) {
+                                currentMovieIndex += 1
+                            } else if (startIndex + itemsPerPage < moviesNew.itemCount) {
+                                currentPage += 1
+                                currentMovieIndex = 0
+                                moviesNew.loadState.append is LoadState.NotLoading || moviesNew.get(
+                                    startIndex + itemsPerPage
+                                ) != null
+                            }
+                        },
+                        onButtonFocus = { /* Handle button focus if needed */ }
+                    )
+                }
             }
-        );
+        )
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Composable
-private fun CarouselNavigationArrow(
-    modifier: Modifier = Modifier,
-    isLeft: Boolean,
-    isEnabled: Boolean,
-    focusRequester: FocusRequester,
-    onClick: () -> Unit,
-    onFocus: () -> Unit,
-    nextFocusRequester: FocusRequester? = null,
-    previousFocusRequester: FocusRequester? = null,
-) {
-    val focusManager = LocalFocusManager.current
-
-    Button(
-        onClick = onClick,
-        enabled = isEnabled,
-        modifier = modifier
-            .size(48.dp)
-            .focusRequester(focusRequester)
-            .onFocusChanged { if (it.isFocused) onFocus() }
-            .handleDPadKeyEvents(
-                onEnter = {
-                    Logger.i { "onEnter pressed" }
-                    onClick
-                },
-                onLeft = {
-                    if (!isLeft && previousFocusRequester != null) {
-                        previousFocusRequester.requestFocus()
-                    } else {
-                        focusManager.moveFocus(FocusDirection.Left)
-                    }
-                },
-                onRight = {
-                    if (isLeft && nextFocusRequester != null) {
-                        nextFocusRequester.requestFocus()
-                    } else {
-                        focusManager.moveFocus(FocusDirection.Right)
-                    }
-                },
-                onUp = {
-                    focusManager.moveFocus(FocusDirection.Up)
-                },
-                onDown = {
-                    focusManager.moveFocus(FocusDirection.Down)
-                }
-            ),
-        colors = ButtonDefaults.colors(
-            containerColor = errorContainerLightHighContrast,
-            contentColor = MaterialTheme.colorScheme.surface,
-            focusedContainerColor = onPrimaryContainerLightHighContrast,
-            focusedContentColor = MaterialTheme.colorScheme.surface,
-            disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-            disabledContentColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
-        ),
-        scale = ButtonDefaults.scale(scale = 1f)
-    ) {
-        Icon(
-            imageVector = if (isLeft) Icons.AutoMirrored.Outlined.KeyboardArrowLeft else Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-            contentDescription = if (isLeft) "Navigate to previous movie" else "Navigate to next movie",
-            modifier = Modifier.size(64.dp)
-        )
+private fun getNewMovieItemIndex(
+    currentItemIndex: Int,
+    moviesNew: LazyPagingItems<MovieNew>
+): Int {
+    var currentItemIndex1 = currentItemIndex
+    if (currentItemIndex1 < moviesNew.itemCount - 1) {
+        currentItemIndex1 += 1
+        moviesNew[currentItemIndex1] // This helps to get new movies
+    } else if (currentItemIndex1 == moviesNew.itemCount - 1) {
+        moviesNew[currentItemIndex1]
     }
+    return currentItemIndex1
 }
 
 
@@ -323,12 +248,6 @@ private fun CarouselNavigationArrow(
 private fun BoxScope.CarouselIndicator(
     itemCount: Int,
     activeItemIndex: Int,
-    leftArrowFocusRequester: FocusRequester,
-    rightArrowFocusRequester: FocusRequester,
-    onPreviousClick: () -> Unit,
-    onNextClick: () -> Unit,
-    onButtonFocusLeft: (Int) -> Unit,
-    onButtonFocusRight: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -347,30 +266,10 @@ private fun BoxScope.CarouselIndicator(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Left Arrow Button
-            CarouselNavigationArrow(
-                isLeft = true,
-                isEnabled = true,
-                focusRequester = leftArrowFocusRequester,
-                onClick = onPreviousClick,
-                nextFocusRequester = rightArrowFocusRequester,
-                onFocus = { onButtonFocusLeft(2) },
-            )
-
             // Indicator Row
             CarouselDefaults.IndicatorRow(
                 itemCount = itemCount,
                 activeItemIndex = activeItemIndex
-            )
-
-            // Right Arrow Button
-            CarouselNavigationArrow(
-                isLeft = false,
-                isEnabled = activeItemIndex < itemCount - 1,
-                focusRequester = rightArrowFocusRequester,
-                onClick = onNextClick,
-                previousFocusRequester = leftArrowFocusRequester,
-                onFocus = { onButtonFocusRight(3) },
             )
         }
     }
@@ -384,8 +283,8 @@ private fun CarouselItemForeground(
     onWatchNowClick: () -> Unit,
     onMoreInfoClick: () -> Unit,
     watchNowButtonFocusRequester: FocusRequester,
-    leftArrowFocusRequester: FocusRequester,
     moreInfoButtonFocusRequester: FocusRequester,
+    onInnerElementRight: () -> Unit,
     onButtonFocus: (Int) -> Unit
 ) {
 
@@ -439,18 +338,19 @@ private fun CarouselItemForeground(
             AnimatedVisibility(
                 visible = isCarouselFocused,
                 content = {
-                    Row(modifier = Modifier.padding(top = 16.dp)) {
+                    Column {
+                        Spacer(modifier = Modifier.height(16.dp))
                         WatchNowButton(
                             onClick = onWatchNowClick,
                             focusRequester = watchNowButtonFocusRequester,
                             moreInfoButtonFocusRequester = moreInfoButtonFocusRequester,
-                            onFocus = { onButtonFocus(0) }
+                            onFocus = { onButtonFocus(0) },
+                            onRight = onInnerElementRight
                         )
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
                         MoreInfoButton(
                             onClick = onMoreInfoClick,
                             focusRequester = moreInfoButtonFocusRequester,
-                            leftArrowFocusRequester = leftArrowFocusRequester,
                             onFocus = { onButtonFocus(1) })
                     }
                 }
@@ -588,7 +488,8 @@ private fun WatchNowButton(
     onClick: () -> Unit,
     focusRequester: FocusRequester,
     onFocus: () -> Unit,
-    moreInfoButtonFocusRequester: FocusRequester
+    moreInfoButtonFocusRequester: FocusRequester,
+    onRight: () -> Unit
 ) {
     Button(
         onClick = onClick,
@@ -597,8 +498,11 @@ private fun WatchNowButton(
             .onFocusChanged { if (it.isFocused) onFocus() }
             .handleDPadKeyEvents(
                 onRight = {
-                    moreInfoButtonFocusRequester.requestFocus()
+                    onRight
                 },
+                onDown = {
+                    moreInfoButtonFocusRequester.requestFocus()
+                }
             ),
         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
         shape = ButtonDefaults.shape(shape = JetStreamButtonShape),
@@ -645,7 +549,6 @@ fun IMDbLogo(
 private fun MoreInfoButton(
     onClick: () -> Unit,
     focusRequester: FocusRequester,
-    leftArrowFocusRequester: FocusRequester,
     onFocus: () -> Unit
 ) {
     Button(
@@ -654,9 +557,7 @@ private fun MoreInfoButton(
             .focusRequester(focusRequester)
             .onFocusChanged { if (it.isFocused) onFocus() }
             .handleDPadKeyEvents(
-                onRight = {
-                    leftArrowFocusRequester.requestFocus()
-                }
+                onRight = {}
             ),
         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
         shape = ButtonDefaults.shape(shape = JetStreamButtonShape),
