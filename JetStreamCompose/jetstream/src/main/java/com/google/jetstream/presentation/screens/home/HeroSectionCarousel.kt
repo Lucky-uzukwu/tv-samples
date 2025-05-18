@@ -23,7 +23,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -36,6 +35,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.runtime.Composable
@@ -54,7 +55,6 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -80,6 +80,7 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.ShapeDefaults
 import androidx.tv.material3.Text
+import co.touchlab.kermit.Logger
 import coil.compose.AsyncImage
 import com.google.jetstream.R
 import com.google.jetstream.data.entities.Movie
@@ -87,13 +88,13 @@ import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.theme.JetStreamBorderWidth
 import com.google.jetstream.presentation.theme.JetStreamButtonShape
+import com.google.jetstream.presentation.theme.errorContainerLightHighContrast
 import com.google.jetstream.presentation.theme.onPrimaryContainerLightHighContrast
 import com.google.jetstream.presentation.theme.onPrimaryLight
 import com.google.jetstream.presentation.utils.Padding
 import com.google.jetstream.presentation.utils.formatDuration
 import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.handleDPadKeyEvents
-import kotlin.math.roundToLong
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 val CarouselSaver = Saver<CarouselState, Int>(
@@ -111,13 +112,27 @@ fun HeroSectionCarousel(
     goToMoreInfo: (movie: Movie) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val carouselState = rememberSaveable(saver = CarouselSaver) { CarouselState(0) }
     var isCarouselFocused by remember { mutableStateOf(true) }
     var currentCarouselFocusedItemIndex by remember { mutableIntStateOf(0) }
+    var currentItemIndex by rememberSaveable { mutableIntStateOf(0) }
+    val carouselState =
+        remember(currentItemIndex) { CarouselState(initialActiveItemIndex = currentItemIndex) }
+    // Synchronize activeIndex with moviesNew and prevent invalid indices
+    LaunchedEffect(currentItemIndex, moviesNew.itemCount, carouselState) {
+        if (moviesNew.itemCount > 0 && currentItemIndex >= moviesNew.itemCount) {
+            currentItemIndex = moviesNew.itemCount - 1
+        } else if (currentItemIndex < 0) {
+            currentItemIndex = 0
+        }
+        // Update carouselState.activeItemIndex to keep indicator in sync
+//        carouselState.activeItemIndex = currentItemIndex
+    }
 
 
     val watchNowButtonFocusRequester = remember { FocusRequester() }
     val moreInfoButtonFocusRequester = remember { FocusRequester() }
+    val leftArrowFocusRequester = remember { FocusRequester() }
+    val rightArrowFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
     // Safely request focus on Watch Now button when carousel gains focus
@@ -129,99 +144,235 @@ fun HeroSectionCarousel(
 
     val alpha = if (isCarouselFocused) 1f else 0f
 
-    Carousel(
+    Box(modifier = modifier) {
+        Carousel(
+            modifier = Modifier
+                .padding(start = padding.start, end = padding.start, top = padding.top)
+                .border(
+                    width = JetStreamBorderWidth,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
+                    shape = ShapeDefaults.Medium
+                )
+                .clip(ShapeDefaults.Medium)
+                .onFocusChanged {
+                    isCarouselFocused = it.hasFocus
+                }
+                .semantics {
+                    contentDescription =
+                        StringConstants.Composable.ContentDescription.MoviesCarousel
+                }
+                .handleDPadKeyEvents(
+                    onEnter = {
+                        if (currentCarouselFocusedItemIndex == 3) {
+                            if (currentItemIndex < moviesNew.itemCount - 1) {
+                                currentItemIndex += 1
+                                moviesNew[currentItemIndex] // This helps to get new movies
+                            } else if (currentItemIndex == moviesNew.itemCount - 1) {
+                                moviesNew[currentItemIndex]
+                            }
+                        } else if (currentCarouselFocusedItemIndex == 2) {
+                            if (currentItemIndex > 0) {
+                                currentItemIndex--
+                            }
+                        }
+                    },
+                    onLeft = {
+                        focusManager.moveFocus(FocusDirection.Left)
+                    },
+                    onRight = {
+                        if (currentCarouselFocusedItemIndex == 0) {
+                            watchNowButtonFocusRequester.requestFocus()
+                        } else if (currentCarouselFocusedItemIndex == 1) {
+                            moreInfoButtonFocusRequester.requestFocus()
+                        } else if (currentCarouselFocusedItemIndex == 2) {
+                            leftArrowFocusRequester.requestFocus()
+                        } else if (currentCarouselFocusedItemIndex == 3) {
+                            rightArrowFocusRequester.requestFocus()
+                        }
+                        focusManager.moveFocus(FocusDirection.Right)
+                    }
+                ),
+            itemCount = moviesNew.itemCount,
+            carouselState = carouselState,
+            carouselIndicator = {
+                CarouselIndicator(
+                    itemCount = moviesNew.itemCount,
+                    activeItemIndex = currentItemIndex,
+                    leftArrowFocusRequester = leftArrowFocusRequester,
+                    rightArrowFocusRequester = rightArrowFocusRequester,
+                    onPreviousClick = {
+                        if (currentItemIndex > 0) {
+                            currentItemIndex--
+                        }
+                    },
+                    onNextClick = {
+                        if (currentItemIndex < moviesNew.itemCount - 1) {
+                            currentItemIndex += 1
+                        } else {
+                            moviesNew.get(
+                                moviesNew.itemCount
+                            )
+                        }
+                    },
+                    onButtonFocusLeft = { buttonIndex ->
+                        currentCarouselFocusedItemIndex = buttonIndex
+                    },
+                    onButtonFocusRight = { buttonIndex ->
+                        currentCarouselFocusedItemIndex = buttonIndex
+                    }
+                )
+            },
+            autoScrollDurationMillis = 5000,
+            contentTransformStartToEnd = fadeIn(tween(durationMillis = 1000))
+                .togetherWith(fadeOut(tween(durationMillis = 1000))),
+            contentTransformEndToStart = fadeIn(tween(durationMillis = 1000))
+                .togetherWith(fadeOut(tween(durationMillis = 1000))),
+            content = { index ->
+                val movieNew = moviesNew[index]!!
+                currentItemIndex = index
+                CarouselItemBackground(
+                    movie = movieNew,
+                    modifier = Modifier.fillMaxSize()
+                )
+                CarouselItemForeground(
+                    movie = movieNew,
+                    isCarouselFocused = isCarouselFocused,
+                    modifier = Modifier.fillMaxSize(),
+                    onWatchNowClick = { goToVideoPlayer(movies[currentItemIndex]) },
+                    onMoreInfoClick = { goToMoreInfo(movies[currentItemIndex]) },
+                    watchNowButtonFocusRequester = watchNowButtonFocusRequester,
+                    leftArrowFocusRequester = leftArrowFocusRequester,
+                    moreInfoButtonFocusRequester = moreInfoButtonFocusRequester,
+                    onButtonFocus = { buttonIndex ->
+                        currentCarouselFocusedItemIndex = buttonIndex
+                    }
+                )
+            }
+        );
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun CarouselNavigationArrow(
+    modifier: Modifier = Modifier,
+    isLeft: Boolean,
+    isEnabled: Boolean,
+    focusRequester: FocusRequester,
+    onClick: () -> Unit,
+    onFocus: () -> Unit,
+    nextFocusRequester: FocusRequester? = null,
+    previousFocusRequester: FocusRequester? = null,
+) {
+    val focusManager = LocalFocusManager.current
+
+    Button(
+        onClick = onClick,
+        enabled = isEnabled,
         modifier = modifier
-            .padding(start = padding.start, end = padding.start, top = padding.top)
-            .border(
-                width = JetStreamBorderWidth,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
-                shape = ShapeDefaults.Medium
-            )
-            .clip(ShapeDefaults.Medium)
-            .onFocusChanged {
-                isCarouselFocused = it.hasFocus
-            }
-            .semantics {
-                contentDescription = StringConstants.Composable.ContentDescription.MoviesCarousel
-            }
+            .size(48.dp)
+            .focusRequester(focusRequester)
+            .onFocusChanged { if (it.isFocused) onFocus() }
             .handleDPadKeyEvents(
                 onEnter = {
-//                    if (isCarouselFocused) {
-//                        val currentMovie = movies[carouselState.activeItemIndex]
-//                        if (currentCarouselFocusedItemIndex == 0) {
-//                            goToVideoPlayer(currentMovie)
-//                        } else {
-//                            goToMoreInfo(currentMovie)
-//                        }
-//                    }
+                    Logger.i { "onEnter pressed" }
+                    onClick
                 },
-                onLeft = { focusManager.moveFocus(FocusDirection.Left) },
-                onRight = {
-                    focusManager.moveFocus(FocusDirection.Right)
-                    if (currentCarouselFocusedItemIndex == 0) {
-                        watchNowButtonFocusRequester.requestFocus()
+                onLeft = {
+                    if (!isLeft && previousFocusRequester != null) {
+                        previousFocusRequester.requestFocus()
                     } else {
-                        moreInfoButtonFocusRequester.requestFocus()
+                        focusManager.moveFocus(FocusDirection.Left)
                     }
+                },
+                onRight = {
+                    if (isLeft && nextFocusRequester != null) {
+                        nextFocusRequester.requestFocus()
+                    } else {
+                        focusManager.moveFocus(FocusDirection.Right)
+                    }
+                },
+                onUp = {
+                    focusManager.moveFocus(FocusDirection.Up)
+                },
+                onDown = {
+                    focusManager.moveFocus(FocusDirection.Down)
                 }
             ),
-        itemCount = moviesNew.itemCount,
-        carouselState = carouselState,
-        carouselIndicator = {
-            CarouselIndicator(
-                itemCount = moviesNew.itemCount,
-                activeItemIndex = carouselState.activeItemIndex
-            )
-        },
-        contentTransformStartToEnd = fadeIn(tween(durationMillis = 1000))
-            .togetherWith(fadeOut(tween(durationMillis = 1000))),
-        contentTransformEndToStart = fadeIn(tween(durationMillis = 1000))
-            .togetherWith(fadeOut(tween(durationMillis = 1000))),
-        content = { index ->
-            val movieNew = moviesNew[index]!!
-            CarouselItemBackground(
-                movie = movieNew,
-                modifier = Modifier.fillMaxSize()
-            )
-            CarouselItemForeground(
-                movie = movieNew,
-                isCarouselFocused = isCarouselFocused,
-                modifier = Modifier.fillMaxSize(),
-                onWatchNowClick = { goToVideoPlayer(movies[index]) },
-                onMoreInfoClick = { goToMoreInfo(movies[index]) },
-                watchNowButtonFocusRequester = watchNowButtonFocusRequester,
-                moreInfoButtonFocusRequester = moreInfoButtonFocusRequester,
-                onButtonFocus = { buttonIndex ->
-                    currentCarouselFocusedItemIndex = buttonIndex
-                }
-            )
-        }
-    )
+        colors = ButtonDefaults.colors(
+            containerColor = errorContainerLightHighContrast,
+            contentColor = MaterialTheme.colorScheme.surface,
+            focusedContainerColor = onPrimaryContainerLightHighContrast,
+            focusedContentColor = MaterialTheme.colorScheme.surface,
+            disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+            disabledContentColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+        ),
+        scale = ButtonDefaults.scale(scale = 1f)
+    ) {
+        Icon(
+            imageVector = if (isLeft) Icons.AutoMirrored.Outlined.KeyboardArrowLeft else Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+            contentDescription = if (isLeft) "Navigate to previous movie" else "Navigate to next movie",
+            modifier = Modifier.size(64.dp)
+        )
+    }
 }
+
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun BoxScope.CarouselIndicator(
     itemCount: Int,
     activeItemIndex: Int,
+    leftArrowFocusRequester: FocusRequester,
+    rightArrowFocusRequester: FocusRequester,
+    onPreviousClick: () -> Unit,
+    onNextClick: () -> Unit,
+    onButtonFocusLeft: (Int) -> Unit,
+    onButtonFocusRight: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
-            .padding(32.dp)
+            .padding(top = 64.dp)
             .graphicsLayer {
                 clip = true
                 shape = ShapeDefaults.ExtraSmall
             }
             .align(Alignment.BottomCenter)
     ) {
-        CarouselDefaults.IndicatorRow(
+        Row(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(8.dp),
-            itemCount = itemCount,
-            activeItemIndex = activeItemIndex,
-        )
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Left Arrow Button
+            CarouselNavigationArrow(
+                isLeft = true,
+                isEnabled = true,
+                focusRequester = leftArrowFocusRequester,
+                onClick = onPreviousClick,
+                nextFocusRequester = rightArrowFocusRequester,
+                onFocus = { onButtonFocusLeft(2) },
+            )
+
+            // Indicator Row
+            CarouselDefaults.IndicatorRow(
+                itemCount = itemCount,
+                activeItemIndex = activeItemIndex
+            )
+
+            // Right Arrow Button
+            CarouselNavigationArrow(
+                isLeft = false,
+                isEnabled = activeItemIndex < itemCount - 1,
+                focusRequester = rightArrowFocusRequester,
+                onClick = onNextClick,
+                previousFocusRequester = leftArrowFocusRequester,
+                onFocus = { onButtonFocusRight(3) },
+            )
+        }
     }
 }
 
@@ -233,6 +384,7 @@ private fun CarouselItemForeground(
     onWatchNowClick: () -> Unit,
     onMoreInfoClick: () -> Unit,
     watchNowButtonFocusRequester: FocusRequester,
+    leftArrowFocusRequester: FocusRequester,
     moreInfoButtonFocusRequester: FocusRequester,
     onButtonFocus: (Int) -> Unit
 ) {
@@ -272,10 +424,7 @@ private fun CarouselItemForeground(
             CarouselMovieGenericText(formattedPlot)
             Spacer(modifier = Modifier.height(10.dp))
 
-            Row(
-//                modifier = Modifier.padding(top = 16.dp),
-//                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row {
                 IMDbLogo()
                 Spacer(modifier = Modifier.width(8.dp))
                 CarouselMovieGenericText(
@@ -301,6 +450,7 @@ private fun CarouselItemForeground(
                         MoreInfoButton(
                             onClick = onMoreInfoClick,
                             focusRequester = moreInfoButtonFocusRequester,
+                            leftArrowFocusRequester = leftArrowFocusRequester,
                             onFocus = { onButtonFocus(1) })
                     }
                 }
@@ -391,7 +541,7 @@ private fun CarouselMovieTitle(movie: MovieNew) {
     Text(
         text = movie.title,
         color = onPrimaryLight,
-        style = MaterialTheme.typography.displayLarge.copy(
+        style = MaterialTheme.typography.displaySmall.copy(
             shadow = Shadow(
                 color = Color.Black.copy(alpha = 0.5f),
                 offset = Offset(x = 2f, y = 4f),
@@ -440,25 +590,16 @@ private fun WatchNowButton(
     onFocus: () -> Unit,
     moreInfoButtonFocusRequester: FocusRequester
 ) {
-    val focusManager = LocalFocusManager.current
-
     Button(
         onClick = onClick,
         modifier = Modifier
             .focusRequester(focusRequester)
+            .onFocusChanged { if (it.isFocused) onFocus() }
             .handleDPadKeyEvents(
                 onRight = {
-                    focusManager.moveFocus(FocusDirection.Right)
                     moreInfoButtonFocusRequester.requestFocus()
                 },
-                onUp = {
-                    focusManager.moveFocus(FocusDirection.Up)
-                },
-                onDown = {
-                    focusManager.moveFocus(FocusDirection.Down)
-                }
             ),
-//            .onFocusChanged { if (it.isFocused) onFocus() },
         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
         shape = ButtonDefaults.shape(shape = JetStreamButtonShape),
         colors = ButtonDefaults.colors(
@@ -504,13 +645,19 @@ fun IMDbLogo(
 private fun MoreInfoButton(
     onClick: () -> Unit,
     focusRequester: FocusRequester,
+    leftArrowFocusRequester: FocusRequester,
     onFocus: () -> Unit
 ) {
     Button(
         onClick = onClick,
         modifier = Modifier
             .focusRequester(focusRequester)
-            .onFocusChanged { if (it.isFocused) onFocus() },
+            .onFocusChanged { if (it.isFocused) onFocus() }
+            .handleDPadKeyEvents(
+                onRight = {
+                    leftArrowFocusRequester.requestFocus()
+                }
+            ),
         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
         shape = ButtonDefaults.shape(shape = JetStreamButtonShape),
         colors = ButtonDefaults.colors(
