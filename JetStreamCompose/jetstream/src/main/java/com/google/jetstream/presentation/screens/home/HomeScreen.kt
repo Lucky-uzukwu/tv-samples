@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -46,7 +45,6 @@ import com.google.jetstream.data.network.Genre
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
-import com.google.jetstream.presentation.common.MoviesRow
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import kotlinx.coroutines.flow.StateFlow
 
@@ -116,8 +114,8 @@ private fun Catalog(
         contentPadding = PaddingValues(bottom = 108.dp),
         modifier = modifier,
     ) {
-        item(contentType = "FeaturedMoviesCarousel") {
-            FeaturedMoviesCarousel(
+        item(contentType = "HeroSectionCarousel") {
+            HeroSectionCarousel(
                 movies = featuredMovies,
                 moviesNew = featuredMoviesNew,
                 padding = childPadding,

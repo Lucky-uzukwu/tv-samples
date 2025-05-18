@@ -21,7 +21,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -29,6 +31,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -36,7 +39,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
@@ -49,6 +54,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -60,6 +66,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.paging.compose.LazyPagingItems
@@ -80,8 +87,11 @@ import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.theme.JetStreamBorderWidth
 import com.google.jetstream.presentation.theme.JetStreamButtonShape
+import com.google.jetstream.presentation.theme.onPrimaryContainerLightHighContrast
+import com.google.jetstream.presentation.theme.onPrimaryLight
 import com.google.jetstream.presentation.utils.Padding
 import com.google.jetstream.presentation.utils.formatDuration
+import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.handleDPadKeyEvents
 import kotlin.math.roundToLong
 
@@ -93,7 +103,7 @@ val CarouselSaver = Saver<CarouselState, Int>(
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-fun FeaturedMoviesCarousel(
+fun HeroSectionCarousel(
     movies: List<Movie>,
     moviesNew: LazyPagingItems<MovieNew>,
     padding: Padding,
@@ -102,18 +112,20 @@ fun FeaturedMoviesCarousel(
     modifier: Modifier = Modifier
 ) {
     val carouselState = rememberSaveable(saver = CarouselSaver) { CarouselState(0) }
-    var isCarouselFocused by remember { mutableStateOf(false) }
-    var currentCarouselFocusedItemIndex by remember { mutableStateOf(0) }
+    var isCarouselFocused by remember { mutableStateOf(true) }
+    var currentCarouselFocusedItemIndex by remember { mutableIntStateOf(0) }
+
+
     val watchNowButtonFocusRequester = remember { FocusRequester() }
     val moreInfoButtonFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
     // Safely request focus on Watch Now button when carousel gains focus
-//    LaunchedEffect(isCarouselFocused) {
-//        if (isCarouselFocused) {
-//            watchNowButtonFocusRequester.requestFocus()
-//        }
-//    }
+    LaunchedEffect(isCarouselFocused) {
+        if (isCarouselFocused) {
+            watchNowButtonFocusRequester.requestFocus()
+        }
+    }
 
     val alpha = if (isCarouselFocused) 1f else 0f
 
@@ -197,7 +209,6 @@ private fun BoxScope.CarouselIndicator(
     Box(
         modifier = modifier
             .padding(32.dp)
-//            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
             .graphicsLayer {
                 clip = true
                 shape = ShapeDefaults.ExtraSmall
@@ -239,39 +250,8 @@ private fun CarouselItemForeground(
             verticalArrangement = Arrangement.Top
         ) {
             CarouselMovieTitle(movie)
-            movie.tagLine?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurface.copy(
-                            alpha = 0.65f
-                        ),
-                        shadow = Shadow(
-                            color = Color.Black.copy(alpha = 0.5f),
-                            offset = Offset(x = 2f, y = 4f),
-                            blurRadius = 2f
-                        )
-                    ),
-                    maxLines = 1,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-
-            Text(
-                text = "$getYear - $combinedGenre - ${movie.duration?.formatDuration()}",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    color = MaterialTheme.colorScheme.onSurface.copy(
-                        alpha = 0.65f
-                    ),
-                    shadow = Shadow(
-                        color = Color.Black.copy(alpha = 0.5f),
-                        offset = Offset(x = 2f, y = 4f),
-                        blurRadius = 2f
-                    )
-                ),
-                maxLines = 1,
-                modifier = Modifier.padding(top = 8.dp)
-            )
+            CarouselMovieDescription(movie)
+            CarouselMovieExtraInfo(getYear, combinedGenre, movie)
 
             val plotWords = movie.plot?.split(" ") ?: emptyList()
             val formattedPlot = plotWords.chunked(9).joinToString("\n") { chunk ->
@@ -288,41 +268,24 @@ private fun CarouselItemForeground(
                 } else it
             }
 
-            Text(
-                text = formattedPlot,
-                style = MaterialTheme.typography.titleSmall.copy(
-                    color = MaterialTheme.colorScheme.onSurface.copy(
-                        alpha = 0.65f
-                    ),
-                    shadow = Shadow(
-                        color = Color.Black.copy(alpha = 0.5f),
-                        offset = Offset(x = 2f, y = 4f),
-                        blurRadius = 2f
-                    )
-                ),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 8.dp)
-            )
 
-            Text(
-                text = "${
-                    movie.imdbRating?.toDouble()?.roundToLong()
-                }/10 - ${movie.imdbVotes} IMDB Votes",
-                style = MaterialTheme.typography.titleSmall.copy(
-                    color = MaterialTheme.colorScheme.onSurface.copy(
-                        alpha = 0.65f
-                    ),
-                    shadow = Shadow(
-                        color = Color.Black.copy(alpha = 0.5f),
-                        offset = Offset(x = 2f, y = 4f),
-                        blurRadius = 2f
-                    )
-                ),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 8.dp)
-            )
+            CarouselMovieGenericText(formattedPlot)
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(
+//                modifier = Modifier.padding(top = 16.dp),
+//                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IMDbLogo()
+                Spacer(modifier = Modifier.width(8.dp))
+                CarouselMovieGenericText(
+                    "${
+                        getMovieRating(movie)
+                    }/10 - ${movie.imdbVotes.toString().formatVotes()} IMDB Votes"
+                )
+            }
+
+
 
             AnimatedVisibility(
                 visible = isCarouselFocused,
@@ -347,9 +310,87 @@ private fun CarouselItemForeground(
 }
 
 @Composable
+private fun getMovieRating(movie: MovieNew): String? {
+    return if (movie.imdbRating?.length!! > 3) {
+        movie.imdbRating.substring(0, 3)
+    } else {
+        movie.imdbRating
+    }
+}
+
+@Composable
+private fun CarouselMovieGenericText(text: String) {
+
+    Text(
+        text = text,
+        color = onPrimaryLight,
+        style = MaterialTheme.typography.titleSmall.copy(
+            color = MaterialTheme.colorScheme.onSurface.copy(
+                alpha = 0.65f
+            ),
+            shadow = Shadow(
+                color = Color.Black.copy(alpha = 0.5f),
+                offset = Offset(x = 2f, y = 4f),
+                blurRadius = 2f
+            )
+        ),
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.padding(top = 8.dp)
+    )
+}
+
+@Composable
+private fun CarouselMovieExtraInfo(
+    getYear: String?,
+    combinedGenre: String,
+    movie: MovieNew
+) {
+    Text(
+        text = "$getYear - $combinedGenre - ${movie.duration?.formatDuration()}",
+        color = onPrimaryLight,
+        style = MaterialTheme.typography.titleMedium.copy(
+            color = MaterialTheme.colorScheme.onSurface.copy(
+                alpha = 0.65f
+            ),
+            shadow = Shadow(
+                color = Color.Black.copy(alpha = 0.5f),
+                offset = Offset(x = 2f, y = 4f),
+                blurRadius = 2f
+            )
+        ),
+        maxLines = 1,
+        modifier = Modifier.padding(top = 8.dp)
+    )
+}
+
+@Composable
+private fun CarouselMovieDescription(movie: MovieNew) {
+    movie.tagLine?.let {
+        Text(
+            text = it,
+            color = onPrimaryLight,
+            style = MaterialTheme.typography.titleMedium.copy(
+                color = MaterialTheme.colorScheme.onSurface.copy(
+                    alpha = 0.65f
+                ),
+                shadow = Shadow(
+                    color = Color.Black.copy(alpha = 0.5f),
+                    offset = Offset(x = 2f, y = 4f),
+                    blurRadius = 2f
+                )
+            ),
+            maxLines = 1,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+    }
+}
+
+@Composable
 private fun CarouselMovieTitle(movie: MovieNew) {
     Text(
         text = movie.title,
+        color = onPrimaryLight,
         style = MaterialTheme.typography.displayLarge.copy(
             shadow = Shadow(
                 color = Color.Black.copy(alpha = 0.5f),
@@ -409,6 +450,12 @@ private fun WatchNowButton(
                 onRight = {
                     focusManager.moveFocus(FocusDirection.Right)
                     moreInfoButtonFocusRequester.requestFocus()
+                },
+                onUp = {
+                    focusManager.moveFocus(FocusDirection.Up)
+                },
+                onDown = {
+                    focusManager.moveFocus(FocusDirection.Down)
                 }
             ),
 //            .onFocusChanged { if (it.isFocused) onFocus() },
@@ -416,6 +463,7 @@ private fun WatchNowButton(
         shape = ButtonDefaults.shape(shape = JetStreamButtonShape),
         colors = ButtonDefaults.colors(
             containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+            focusedContainerColor = onPrimaryContainerLightHighContrast,
             contentColor = MaterialTheme.colorScheme.surface,
             focusedContentColor = MaterialTheme.colorScheme.surface,
         ),
@@ -434,6 +482,25 @@ private fun WatchNowButton(
 }
 
 @Composable
+fun IMDbLogo(
+    modifier: Modifier = Modifier,
+    textColor: Color = Color(0xFF111827), // Tailwind's text-gray-950
+    backgroundColor: Color = Color(0xFFFBBF24) // Tailwind's bg-yellow-500
+) {
+
+    Text(
+        text = "IMDb",
+        modifier = modifier
+            .background(backgroundColor)
+            .padding(horizontal = 4.dp, vertical = 8.dp),
+        color = textColor,
+        style = MaterialTheme.typography.titleSmall.copy(
+            fontWeight = FontWeight.ExtraBold
+        )
+    )
+}
+
+@Composable
 private fun MoreInfoButton(
     onClick: () -> Unit,
     focusRequester: FocusRequester,
@@ -449,6 +516,7 @@ private fun MoreInfoButton(
         colors = ButtonDefaults.colors(
             containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
             contentColor = MaterialTheme.colorScheme.surface,
+            focusedContainerColor = onPrimaryContainerLightHighContrast,
             focusedContentColor = MaterialTheme.colorScheme.surface,
         ),
         scale = ButtonDefaults.scale(scale = 1f)

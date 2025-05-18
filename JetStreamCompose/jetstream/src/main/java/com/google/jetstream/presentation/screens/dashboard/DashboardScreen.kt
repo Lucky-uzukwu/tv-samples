@@ -159,12 +159,12 @@ fun DashboardScreen(
             label = "",
         )
 
-        LaunchedEffect(Unit) {
-            if (!wasTopBarFocusRequestedBefore) {
-                TopBarFocusRequesters[currentTopBarSelectedTabIndex + 1].requestFocus()
-                wasTopBarFocusRequestedBefore = true
-            }
-        }
+//        LaunchedEffect(Unit) {
+//            if (!isComingBackFromDifferentScreen && !wasTopBarFocusRequestedBefore) {
+//                TopBarFocusRequesters[currentTopBarSelectedTabIndex + 1].requestFocus()
+//                wasTopBarFocusRequestedBefore = true
+//            }
+//        }
 
         DashboardTopBar(
             modifier = Modifier

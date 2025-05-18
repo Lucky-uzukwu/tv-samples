@@ -48,17 +48,23 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.Icon
 import androidx.tv.material3.LocalContentColor
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Tab
+import androidx.tv.material3.TabColors
+import androidx.tv.material3.TabDefaults
 import androidx.tv.material3.TabRow
 import androidx.tv.material3.Text
+import co.touchlab.kermit.Logger
 import com.google.jetstream.R
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.theme.IconSize
 import com.google.jetstream.presentation.theme.JetStreamCardShape
+import com.google.jetstream.presentation.theme.primaryLight
+import com.google.jetstream.presentation.utils.handleDPadKeyEvents
 import com.google.jetstream.presentation.utils.occupyScreenSize
 
 val TopBarTabs = Screens.entries.toList().filter { it.isTabItem }
@@ -125,12 +131,39 @@ fun DashboardTopBar(
                 ) {
                     screens.forEachIndexed { index, screen ->
                         key(index) {
+                            Logger.i { "$screen" + "and" + "$index" }
                             Tab(
                                 modifier = Modifier
                                     .height(32.dp)
-                                    .focusRequester(focusRequesters[index + 1]),
+                                    .focusRequester(focusRequesters[index + 1])
+                                    .handleDPadKeyEvents(
+                                        onEnter = {
+                                        },
+                                        onDown = {
+
+
+                                        },
+                                        onLeft = {
+                                            if (index == 0) focusRequesters[1].requestFocus()
+                                            else focusRequesters[index + 1].requestFocus()
+
+                                        },
+                                        onRight = {
+                                            if (index == screens.size - 1) focusRequesters.last()
+                                                .requestFocus()
+                                            else focusRequesters[index + 1].requestFocus()
+                                        },
+                                        onUp = {
+                                            focusRequesters[index + 1].requestFocus()
+                                        }
+                                    ),
                                 selected = index == selectedTabIndex,
                                 onFocus = { onScreenSelection(screen) },
+                                colors = TabDefaults.pillIndicatorTabColors(
+                                    focusedContentColor = primaryLight,
+                                    selectedContentColor = MaterialTheme.colorScheme.onPrimary,
+                                    contentColor = MaterialTheme.colorScheme.onSurface,
+                                ),
                                 onClick = { focusManager.moveFocus(FocusDirection.Down) },
                             ) {
                                 if (screen.tabIcon != null) {
