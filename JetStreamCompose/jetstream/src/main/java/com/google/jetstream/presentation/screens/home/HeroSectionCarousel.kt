@@ -156,23 +156,15 @@ fun HeroSectionCarousel(
                     onLeft = {
                         Logger.i("onLeft triggered")
                         if (currentMovieIndex > 0 && currentPage == 0) {
-                            Logger.i("Condition (currentMovieIndex > 0 && currentPage == 0) is true. currentMovieIndex: $currentMovieIndex, currentPage: $currentPage")
                             currentMovieIndex -= 1
-                            Logger.i("currentMovieIndex decremented to $currentMovieIndex")
                         } else {
                             if (currentPage > 0 && currentMovieIndex >= startIndex + itemsPerPage) { // Log entering the else if block
-                                Logger.i("Condition (currentPage > 0 && currentMovieIndex >= startIndex + itemsPerPage) is true. currentPage: $currentPage, currentMovieIndex: $currentMovieIndex, startIndex: $startIndex, itemsPerPage: $itemsPerPage")
                                 currentPage -= 1 // Log after decrementing currentPage
-                                Logger.i("currentPage decremented to $currentPage")
                                 currentMovieIndex -= 1
-                                Logger.i("currentMovieIndex decremented to $currentMovieIndex (reset to last item in previous page)")
                             } else {
                                 if (currentPage > 0) {
-                                    Logger.i("Condition (currentPage > 0) is true. currentPage: $currentPage")
                                     currentPage -= 1
-                                    Logger.i("currentPage decremented to $currentPage")
                                     currentMovieIndex -= 1
-//                                    Logger.i("currentMovieIndex decremented to $currentMovieIndex")
                                 } else {
                                     Logger.i("No conditions met in onLeft block.")
                                 }
