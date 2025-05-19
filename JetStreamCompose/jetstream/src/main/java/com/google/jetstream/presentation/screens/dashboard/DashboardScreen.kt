@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -58,6 +57,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.jetstream.data.entities.Movie
+import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.screens.categories.CategoriesScreen
 import com.google.jetstream.presentation.screens.favourites.FavouritesScreen
@@ -89,6 +89,8 @@ fun DashboardScreen(
     openMovieDetailsScreen: (movieId: String) -> Unit = {},
     openVideoPlayer: (Movie) -> Unit = {},
     isComingBackFromDifferentScreen: Boolean,
+    selectedMovie: MovieNew? = null,
+    setSelectedMovie: (movie: MovieNew) -> Unit,
     resetIsComingBackFromDifferentScreen: () -> Unit = {},
     onBackPressed: () -> Unit = {}
 ) {
@@ -181,6 +183,7 @@ fun DashboardScreen(
                     bottom = ParentPadding.calculateBottomPadding()
                 ),
             selectedTabIndex = currentTopBarSelectedTabIndex,
+            selectedMovie = selectedMovie
         ) { screen ->
             navController.navigate(screen()) {
                 if (screen == TopBarTabs[0]) popUpTo(TopBarTabs[0].invoke())
@@ -196,6 +199,8 @@ fun DashboardScreen(
             isTopBarVisible = isTopBarVisible,
             navController = navController,
             modifier = Modifier.offset(y = navHostTopPaddingDp),
+            selectedMovie = selectedMovie,
+            setSelectedMovie = setSelectedMovie
         )
     }
 }
@@ -226,6 +231,8 @@ private fun Body(
     openMovieDetailsScreen: (movieId: String) -> Unit,
     openVideoPlayer: (Movie) -> Unit,
     updateTopBarVisibility: (Boolean) -> Unit,
+    selectedMovie: MovieNew? = null,
+    setSelectedMovie: (movie: MovieNew) -> Unit,
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     isTopBarVisible: Boolean = true,
@@ -245,7 +252,9 @@ private fun Body(
                 },
                 goToVideoPlayer = openVideoPlayer,
                 onScroll = updateTopBarVisibility,
-                isTopBarVisible = isTopBarVisible
+                isTopBarVisible = isTopBarVisible,
+                selectedMovie = selectedMovie,
+                setSelectedMovie = setSelectedMovie
             )
         }
         composable(Screens.Categories()) {
@@ -289,7 +298,9 @@ private fun Body(
 fun DashboardScreenPreview() {
     AppTheme {
         DashboardScreen(
-            isComingBackFromDifferentScreen = false
+            isComingBackFromDifferentScreen = false,
+            selectedMovie = null,
+            setSelectedMovie = {}
         )
     }
 }

@@ -19,15 +19,18 @@ package com.google.jetstream.presentation.screens.dashboard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -37,31 +40,42 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.Icon
 import androidx.tv.material3.LocalContentColor
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Tab
-import androidx.tv.material3.TabColors
 import androidx.tv.material3.TabDefaults
 import androidx.tv.material3.TabRow
 import androidx.tv.material3.Text
 import co.touchlab.kermit.Logger
+import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.google.jetstream.R
+import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.theme.IconSize
+import com.google.jetstream.presentation.common.PosterImage
 import com.google.jetstream.presentation.theme.JetStreamCardShape
 import com.google.jetstream.presentation.theme.primaryLight
 import com.google.jetstream.presentation.utils.handleDPadKeyEvents
@@ -80,16 +94,70 @@ fun DashboardTopBar(
     modifier: Modifier = Modifier,
     selectedTabIndex: Int,
     screens: List<Screens> = TopBarTabs,
+    selectedMovie: MovieNew?,
     focusRequesters: List<FocusRequester> = remember { TopBarFocusRequesters },
     onScreenSelection: (screen: Screens) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
-    Box(modifier = modifier) {
+    var rememberAsyncImagePainter by remember { mutableStateOf<AsyncImagePainter?>(null) }
+    if (selectedMovie != null) {
+        val imageUrl =
+            "https://stage.nortv.xyz/" + "storage/" + selectedMovie.backdropImagePath
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = "Movie background",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .drawWithContent {
+                    drawContent()
+                    drawRect(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.9f),
+                                Color.Transparent
+                            ),
+                            startX = 0f,
+                            endX = size.width * 0.8f // Stretch the gradient to 80% of the width
+                        )
+                    )
+                }
+        )
+        rememberAsyncImagePainter = rememberAsyncImagePainter(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(imageUrl)
+                .build(),
+            contentScale = ContentScale.Crop
+        )
+    }
+
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+    ) {
+        // Overlay your top bar content
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp)
-                .background(MaterialTheme.colorScheme.surface)
+//                .background(
+//                    brush = Brush.linearGradient(
+//                        colors = listOf(
+//                            Color.Black.copy(alpha = 0.4f),
+//                            Color.Black.copy(alpha = 0.4f)
+//                        )
+//                    )) // Semi-transparent overlay for readability
+                .drawBehind {
+                    // Draw the movie image as the Row's background
+//                    if (selectedMovie != null) {
+//                        val painter = rememberAsyncImagePainter!!
+//                        with(painter) {
+//                            draw(size = size, alpha = 0.6f)
+//                        }
+//                    }
+                }
                 .focusRestorer(),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -102,21 +170,17 @@ fun DashboardTopBar(
                             StringConstants.Composable.ContentDescription.UserAvatar
                     },
                 selected = selectedTabIndex == PROFILE_SCREEN_INDEX,
-                onClick = {
-                    onScreenSelection(Screens.Profile)
-                }
+                onClick = { onScreenSelection(Screens.Profile) }
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 var isTabRowFocused by remember { mutableStateOf(false) }
-
                 Spacer(modifier = Modifier.width(20.dp))
                 TabRow(
-                    modifier = Modifier
-                        .onFocusChanged {
-                            isTabRowFocused = it.isFocused || it.hasFocus
-                        },
+                    modifier = Modifier.onFocusChanged {
+                        isTabRowFocused = it.isFocused || it.hasFocus
+                    },
                     selectedTabIndex = selectedTabIndex,
                     indicator = { tabPositions, _ ->
                         if (selectedTabIndex >= 0) {
@@ -131,31 +195,24 @@ fun DashboardTopBar(
                 ) {
                     screens.forEachIndexed { index, screen ->
                         key(index) {
-                            Logger.i { "$screen" + "and" + "$index" }
+                            Logger.i { "$screen and $index" }
                             Tab(
                                 modifier = Modifier
                                     .height(32.dp)
                                     .focusRequester(focusRequesters[index + 1])
                                     .handleDPadKeyEvents(
-                                        onEnter = {
-                                        },
-                                        onDown = {
-
-
-                                        },
+                                        onEnter = { /* Handle Enter */ },
+                                        onDown = { /* Handle Down */ },
                                         onLeft = {
                                             if (index == 0) focusRequesters[1].requestFocus()
                                             else focusRequesters[index + 1].requestFocus()
-
                                         },
                                         onRight = {
                                             if (index == screens.size - 1) focusRequesters.last()
                                                 .requestFocus()
                                             else focusRequesters[index + 1].requestFocus()
                                         },
-                                        onUp = {
-                                            focusRequesters[index + 1].requestFocus()
-                                        }
+                                        onUp = { focusRequesters[index + 1].requestFocus() }
                                     ),
                                 selected = index == selectedTabIndex,
                                 onFocus = { onScreenSelection(screen) },
@@ -168,10 +225,9 @@ fun DashboardTopBar(
                             ) {
                                 if (screen.tabIcon != null) {
                                     Icon(
-                                        screen.tabIcon,
+                                        imageVector = screen.tabIcon,
                                         modifier = Modifier.padding(4.dp),
-                                        contentDescription = StringConstants.Composable
-                                            .ContentDescription.DashboardSearchButton,
+                                        contentDescription = StringConstants.Composable.ContentDescription.DashboardSearchButton,
                                         tint = LocalContentColor.current
                                     )
                                 } else {

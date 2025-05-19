@@ -102,6 +102,7 @@ fun HeroSectionCarousel(
     padding: Padding,
     goToVideoPlayer: (movie: Movie) -> Unit,
     goToMoreInfo: (movie: Movie) -> Unit,
+    setSelectedMovie: (MovieNew) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var isCarouselFocused by remember { mutableStateOf(true) }
@@ -128,13 +129,13 @@ fun HeroSectionCarousel(
     Box(modifier = modifier) {
         Carousel(
             modifier = Modifier
-                .padding(start = padding.start, end = padding.start, top = padding.top)
-                .border(
-                    width = JetStreamBorderWidth,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (isCarouselFocused) 1f else 0f),
-                    shape = ShapeDefaults.Medium
-                )
-                .clip(ShapeDefaults.Medium)
+//                .padding(top = padding.top)
+//                .border(
+//                    width = JetStreamBorderWidth,
+//                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (isCarouselFocused) 1f else 0f),
+//                    shape = ShapeDefaults.Medium
+//                )
+//                .clip(ShapeDefaults.Medium)
                 .onFocusChanged { isCarouselFocused = it.hasFocus }
                 .semantics {
                     contentDescription =
@@ -191,6 +192,7 @@ fun HeroSectionCarousel(
 
                 // Only render if the item is loaded
                 if (movieNew != null) {
+                    setSelectedMovie(movieNew)
                     CarouselItemBackground(
                         movie = movieNew,
                         modifier = Modifier.fillMaxSize()

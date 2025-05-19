@@ -16,6 +16,7 @@
 
 package com.google.jetstream.presentation.screens.home
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,6 +46,7 @@ import com.google.jetstream.data.network.Genre
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
+import com.google.jetstream.presentation.common.PosterImage
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import kotlinx.coroutines.flow.StateFlow
 
@@ -52,6 +54,8 @@ import kotlinx.coroutines.flow.StateFlow
 fun HomeScreen(
     onMovieClick: (movie: Movie) -> Unit,
     goToVideoPlayer: (movie: Movie) -> Unit,
+    selectedMovie: MovieNew? = null,
+    setSelectedMovie: (movie: MovieNew) -> Unit,
     onScroll: (isTopBarVisible: Boolean) -> Unit,
     isTopBarVisible: Boolean,
     homeScreeViewModel: HomeScreeViewModel = hiltViewModel(),
@@ -68,6 +72,8 @@ fun HomeScreen(
                 genreToMovies = s.genreToMovies,
                 onMovieClick = { },
                 onScroll = onScroll,
+                selectedMovie = selectedMovie,
+                setSelectedMovie = setSelectedMovie,
                 goToVideoPlayer = goToVideoPlayer,
                 isTopBarVisible = isTopBarVisible,
                 modifier = Modifier.fillMaxSize(),
@@ -89,6 +95,8 @@ private fun Catalog(
     onScroll: (isTopBarVisible: Boolean) -> Unit,
     goToVideoPlayer: (movie: Movie) -> Unit,
     modifier: Modifier = Modifier,
+    selectedMovie: MovieNew? = null,
+    setSelectedMovie: (movie: MovieNew) -> Unit,
     isTopBarVisible: Boolean = true,
 ) {
     val lazyListState = rememberLazyListState()
@@ -109,42 +117,69 @@ private fun Catalog(
         if (isTopBarVisible) lazyListState.animateScrollToItem(0)
     }
 
-    LazyColumn(
-        state = lazyListState,
-        contentPadding = PaddingValues(bottom = 108.dp),
-        modifier = modifier,
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+//            .height(400.dp)
     ) {
-        item(contentType = "HeroSectionCarousel") {
-            HeroSectionCarousel(
-                movies = featuredMovies,
-                moviesNew = featuredMoviesNew,
-                padding = childPadding,
-                goToVideoPlayer = goToVideoPlayer,
-                goToMoreInfo = {},
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(400.dp),
+
+        // Background
+        if (selectedMovie != null) {
+            val imageUrl =
+                "https://stage.nortv.xyz/" + "storage/" + selectedMovie.backdropImagePath
+
+            PosterImage(
+                movieTitle = selectedMovie.title,
+                movieUri = imageUrl,
+                modifier = Modifier.fillMaxSize()
             )
+
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxSize()
+////                    .aspectRatio(20f / 7)
+//                    .background(movieBackground)
+//            ) {}
         }
 
-        // Loop through catalogList to display each catalog and its movies
-        items(
-            items = catalogToMovies.keys.toList(),
-            key = { catalog -> catalog.id }, // Use catalog ID as unique key
-            contentType = { "MoviesRow" }
-        ) { catalog ->
-            val movies = catalogToMovies[catalog]?.collectAsLazyPagingItems()
-            val movieList = movies?.itemSnapshotList?.items ?: emptyList()
+        LazyColumn(
+            state = lazyListState,
+            contentPadding = PaddingValues(bottom = 108.dp),
+            modifier = modifier,
+        ) {
+            item(contentType = "HeroSectionCarousel") {
+                HeroSectionCarousel(
+                    movies = featuredMovies,
+                    moviesNew = featuredMoviesNew,
+                    padding = childPadding,
+                    goToVideoPlayer = goToVideoPlayer,
+                    goToMoreInfo = {},
+                    setSelectedMovie = setSelectedMovie,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(400.dp),
+                )
+            }
+
+            // Loop through catalogList to display each catalog and its movies
+            items(
+                items = catalogToMovies.keys.toList(),
+                key = { catalog -> catalog.id }, // Use catalog ID as unique key
+                contentType = { "MoviesRow" }
+            ) { catalog ->
+                val movies = catalogToMovies[catalog]?.collectAsLazyPagingItems()
+                val movieList = movies?.itemSnapshotList?.items ?: emptyList()
 
 
-            Top10MoviesList(
-                movieList = movieList,
-                sectionTitle = catalog.name,
-                onMovieClick = onMovieClick,
-                modifier = Modifier.onFocusChanged {
-                    immersiveListHasFocus = it.hasFocus
-                },
-            )
+                Top10MoviesList(
+                    movieList = movieList,
+                    sectionTitle = catalog.name,
+                    onMovieClick = onMovieClick,
+                    modifier = Modifier.onFocusChanged {
+                        immersiveListHasFocus = it.hasFocus
+                    },
+                )
 
 //            MoviesRow(
 //                movieList = movieList,
@@ -152,59 +187,60 @@ private fun Catalog(
 //                onMovieSelected = onMovieClick,
 //                modifier = Modifier.padding(top = 16.dp),
 //            )
-        }
+            }
 
-        // Loop through genreList to display each catalog and its movies
-        items(
-            items = genreToMovies.keys.toList(),
-            key = { genre -> genre.id }, // Use catalog ID as unique key
-            contentType = { "MoviesRow" }
-        ) { genre ->
-            val movies = genreToMovies[genre]?.collectAsLazyPagingItems()
-            val movieList = movies?.itemSnapshotList?.items ?: emptyList()
+            // Loop through genreList to display each catalog and its movies
+            items(
+                items = genreToMovies.keys.toList(),
+                key = { genre -> genre.id }, // Use catalog ID as unique key
+                contentType = { "MoviesRow" }
+            ) { genre ->
+                val movies = genreToMovies[genre]?.collectAsLazyPagingItems()
+                val movieList = movies?.itemSnapshotList?.items ?: emptyList()
 
-            Top10MoviesList(
-                movieList = movieList,
-                sectionTitle = genre.name,
-                onMovieClick = onMovieClick,
-                modifier = Modifier.onFocusChanged {
-                    immersiveListHasFocus = it.hasFocus
-                },
-            )
-        }
+                Top10MoviesList(
+                    movieList = movieList,
+                    sectionTitle = genre.name,
+                    onMovieClick = onMovieClick,
+                    modifier = Modifier.onFocusChanged {
+                        immersiveListHasFocus = it.hasFocus
+                    },
+                )
+            }
 
 
-        // Uncomment other sections as needed
-        /*
+            // Uncomment other sections as needed
+            /*
 
-        item(contentType = "Top10MoviesList") {
-            Top10MoviesList(
-                movieList = top10Movies,
-                sectionTitle = "Trending Movies",
-                onMovieClick = onMovieClick,
-                modifier = Modifier.onFocusChanged {
-                    immersiveListHasFocus = it.hasFocus
-                },
-            )
+            item(contentType = "Top10MoviesList") {
+                Top10MoviesList(
+                    movieList = top10Movies,
+                    sectionTitle = "Trending Movies",
+                    onMovieClick = onMovieClick,
+                    modifier = Modifier.onFocusChanged {
+                        immersiveListHasFocus = it.hasFocus
+                    },
+                )
+            }
+            item(contentType = "Top10MoviesList") {
+                Top10MoviesList(
+                    movieList = top10Movies,
+                    sectionTitle = "Action Movies",
+                    onMovieClick = onMovieClick,
+                    modifier = Modifier.onFocusChanged {
+                        immersiveListHasFocus = it.hasFocus
+                    },
+                )
+            }
+            item(contentType = "MoviesRow") {
+                MoviesRow(
+                    modifier = Modifier.padding(top = 16.dp),
+                    movieList = nowPlayingMovies,
+                    title = StringConstants.Composable.HomeScreenNowPlayingMoviesTitle,
+                    onMovieSelected = onMovieClick
+                )
+            }
+            */
         }
-        item(contentType = "Top10MoviesList") {
-            Top10MoviesList(
-                movieList = top10Movies,
-                sectionTitle = "Action Movies",
-                onMovieClick = onMovieClick,
-                modifier = Modifier.onFocusChanged {
-                    immersiveListHasFocus = it.hasFocus
-                },
-            )
-        }
-        item(contentType = "MoviesRow") {
-            MoviesRow(
-                modifier = Modifier.padding(top = 16.dp),
-                movieList = nowPlayingMovies,
-                title = StringConstants.Composable.HomeScreenNowPlayingMoviesTitle,
-                onMovieSelected = onMovieClick
-            )
-        }
-        */
     }
 }
