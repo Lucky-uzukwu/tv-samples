@@ -60,7 +60,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -92,12 +91,8 @@ import com.google.jetstream.presentation.utils.Padding
 import com.google.jetstream.presentation.utils.formatDuration
 import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.handleDPadKeyEvents
+import co.touchlab.kermit.Logger
 
-@OptIn(ExperimentalTvMaterial3Api::class)
-val CarouselSaver = Saver<CarouselState, Int>(
-    save = { it.activeItemIndex },
-    restore = { CarouselState(it) }
-)
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -111,6 +106,8 @@ fun HeroSectionCarousel(
 ) {
     var isCarouselFocused by remember { mutableStateOf(true) }
     var isWatchNowFocused by remember { mutableStateOf(false) }
+
+
     var currentPage by rememberSaveable { mutableIntStateOf(0) }
     var currentMovieIndex by rememberSaveable { mutableIntStateOf(0) }
 
@@ -127,15 +124,6 @@ fun HeroSectionCarousel(
 
     val watchNowButtonFocusRequester = remember { FocusRequester() }
     val moreInfoButtonFocusRequester = remember { FocusRequester() }
-
-    // Ensure currentMovieIndex stays within bounds
-    LaunchedEffect(currentItemCount) {
-        if (currentItemCount > 0 && currentMovieIndex >= currentItemCount) {
-            currentMovieIndex = currentItemCount - 1
-        } else if (currentMovieIndex < 0) {
-            currentMovieIndex = 0
-        }
-    }
 
     Box(modifier = modifier) {
         Carousel(
@@ -158,7 +146,7 @@ fun HeroSectionCarousel(
                             currentMovieIndex += 1
                         } else if (startIndex + itemsPerPage < moviesNew.itemCount) {
                             currentPage += 1
-                            currentMovieIndex = 0
+                            currentMovieIndex += 1
                             // Trigger pagination safely
                             moviesNew.loadState.append is LoadState.NotLoading || moviesNew.get(
                                 startIndex + itemsPerPage
@@ -166,11 +154,29 @@ fun HeroSectionCarousel(
                         }
                     },
                     onLeft = {
-                        if (currentMovieIndex > 0) {
+                        Logger.i("onLeft triggered")
+                        if (currentMovieIndex > 0 && currentPage == 0) {
+                            Logger.i("Condition (currentMovieIndex > 0 && currentPage == 0) is true. currentMovieIndex: $currentMovieIndex, currentPage: $currentPage")
                             currentMovieIndex -= 1
-                        } else if (currentPage > 0) {
-                            currentPage -= 1
-                            currentMovieIndex = itemsPerPage - 1
+                            Logger.i("currentMovieIndex decremented to $currentMovieIndex")
+                        } else {
+                            if (currentPage > 0 && currentMovieIndex >= startIndex + itemsPerPage) { // Log entering the else if block
+                                Logger.i("Condition (currentPage > 0 && currentMovieIndex >= startIndex + itemsPerPage) is true. currentPage: $currentPage, currentMovieIndex: $currentMovieIndex, startIndex: $startIndex, itemsPerPage: $itemsPerPage")
+                                currentPage -= 1 // Log after decrementing currentPage
+                                Logger.i("currentPage decremented to $currentPage")
+                                currentMovieIndex -= 1
+                                Logger.i("currentMovieIndex decremented to $currentMovieIndex (reset to last item in previous page)")
+                            } else {
+                                if (currentPage > 0) {
+                                    Logger.i("Condition (currentPage > 0) is true. currentPage: $currentPage")
+                                    currentPage -= 1
+                                    Logger.i("currentPage decremented to $currentPage")
+                                    currentMovieIndex -= 1
+//                                    Logger.i("currentMovieIndex decremented to $currentMovieIndex")
+                                } else {
+                                    Logger.i("No conditions met in onLeft block.")
+                                }
+                            }
                         }
                     },
                     onDown = { isWatchNowFocused = true }
@@ -269,7 +275,7 @@ private fun BoxScope.CarouselIndicator(
             // Indicator Row
             CarouselDefaults.IndicatorRow(
                 itemCount = itemCount,
-                activeItemIndex = activeItemIndex
+                activeItemIndex = getListBPosition(activeItemIndex).position
             )
         }
     }
@@ -579,4 +585,13 @@ private fun MoreInfoButton(
             style = MaterialTheme.typography.titleSmall
         )
     }
+}
+
+data class ListBPosition(val page: Int, val position: Int)
+
+fun getListBPosition(listAIndex: Int, pageSize: Int = 5): ListBPosition {
+    require(listAIndex >= 0) { "listAIndex must be non-negative" }
+    val page = listAIndex / pageSize
+    val position = listAIndex % pageSize
+    return ListBPosition(page, position)
 }
