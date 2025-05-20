@@ -231,13 +231,14 @@ fun DashboardTopBar(
                                         tint = LocalContentColor.current
                                     )
                                 } else {
+                                    // make the color of this text white
                                     Text(
                                         modifier = Modifier
                                             .occupyScreenSize()
                                             .padding(horizontal = 16.dp),
                                         text = screen(),
                                         style = MaterialTheme.typography.titleSmall.copy(
-                                            color = LocalContentColor.current
+                                            color = Color.White
                                         )
                                     )
                                 }
@@ -246,12 +247,6 @@ fun DashboardTopBar(
                     }
                 }
             }
-            Spacer(modifier = Modifier.weight(1f))
-            JetStreamLogo(
-                modifier = Modifier
-                    .alpha(0.75f)
-                    .padding(end = 8.dp),
-            )
         }
     }
 }
