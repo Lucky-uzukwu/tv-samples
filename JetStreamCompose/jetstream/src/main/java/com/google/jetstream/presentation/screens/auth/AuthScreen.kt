@@ -82,6 +82,9 @@ fun AuthScreen(
                     email = uiState.customerData!!.email,
                     profilePhotoPath = uiState.customerData?.profilePhotoPath,
                     profilePhotoUrl = uiState.customerData?.profilePhotoUrl,
+                    clientIp = clientIp,
+                    deviceName = deviceName,
+                    deviceMacAddress = macAddress,
                 )
             )
             onNavigateToLogin()
@@ -99,6 +102,9 @@ fun AuthScreen(
                     email = uiState.customerData!!.email,
                     profilePhotoPath = uiState.customerData?.profilePhotoPath,
                     profilePhotoUrl = uiState.customerData?.profilePhotoUrl,
+                    clientIp = clientIp,
+                    deviceName = deviceName,
+                    deviceMacAddress = macAddress,
                 )
             )
             onNavigateToRegister()

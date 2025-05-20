@@ -11,9 +11,12 @@ import javax.inject.Singleton
 @Singleton
 class GenreRepositoryImpl @Inject constructor(
     private val genreService: GenreService,
+    private val customerRepository: CustomerRepository,
+    private val userRepository: UserRepository
 ) : GenreRepository {
     override fun getMovieGenre(token: String): Flow<List<Genre>> = flow {
         Logger.i { "Fetching genres for Movie section with token: $token" }
+        val user = userRepository.getUser() ?: return@flow
         val response = genreService.getGenres(
             authToken = "Bearer $token"
         )
@@ -30,18 +33,22 @@ class GenreRepositoryImpl @Inject constructor(
             val errorBody =
                 response.errorBody()?.string() // Get error message from server if available
             Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-            when (response.code()) {
-                401 -> {
-                    // Unauthorized: Token is invalid or expired
-                    // You should trigger a re-authentication flow here.
-                    // TODO: Trigger re-authentication flow
-                }
-
-                else -> {
-                    // Handle other unexpected HTTP error codes
-                    Logger.e { "Unexpected HTTP error: ${response.code()}" }
+            val loginResponse = user.password?.let {
+                customerRepository.login(
+                    deviceMacAddress = user.deviceMacAddress,
+                    clientIp = user.clientIp,
+                    deviceName = user.deviceName,
+                    identifier = user.accessCode,
+                    password = it
+                )
+            }
+            when (loginResponse?.code()) {
+                201 -> {
+                    userRepository.saveUserToken(loginResponse.body()!!.token)
                 }
             }
+
+            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
         }
 
     }

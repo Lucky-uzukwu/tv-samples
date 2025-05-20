@@ -79,7 +79,11 @@ fun LoginScreen(
         if (uiEvent is NavigateToDashboard) {
             userStateHolder.updateUser(
                 userState.user!!.copy(
-                    token = uiState.token
+                    token = uiState.token,
+                    password = password.value,
+                    clientIp = clientIp,
+                    deviceName = deviceName,
+                    deviceMacAddress = deviceMacAddress
                 )
             )
             onSubmitSuccess()

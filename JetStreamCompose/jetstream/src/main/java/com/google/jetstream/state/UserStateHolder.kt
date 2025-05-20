@@ -32,6 +32,10 @@ class UserStateHolder @Inject constructor(
                 userRepository.userProfilePhotoPath,
                 userRepository.userProfilePhotoUrl,
                 userRepository.userToken,
+                userRepository.userPassword,
+                userRepository.userClientIp,
+                userRepository.userDeviceName,
+                userRepository.userDeviceMacAddress,
             ) { user ->
                 Logger.i(user.contentToString())
                 UserState(
@@ -42,7 +46,11 @@ class UserStateHolder @Inject constructor(
                         email = user[3] ?: "",
                         profilePhotoPath = user[4],
                         profilePhotoUrl = user[5],
-                        token = user[6]
+                        token = user[6],
+                        password = user[7] ?: "",
+                        clientIp = user[8] ?: "",
+                        deviceName = user[9] ?: "",
+                        deviceMacAddress = user[10] ?: ""
                     )
                 )
             }.collect { newState ->
@@ -62,6 +70,10 @@ class UserStateHolder @Inject constructor(
         user.token?.let { userRepository.saveUserToken(it) }
         userRepository.saveUserName(user.name)
         userRepository.saveUserEmail(user.email)
+        user.password?.let { userRepository.saveUserPassword(it) }
+        userRepository.saveUserClientIp(user.clientIp)
+        userRepository.saveUserDeviceName(user.deviceName)
+        userRepository.saveUserDeviceMacAddress(user.deviceMacAddress)
         userRepository.saveUserAccessCode(user.accessCode)
         user.profilePhotoPath?.let { userRepository.saveUserProfilePhotoPath(it) }
         user.profilePhotoUrl?.let { userRepository.saveUserProfilePhotoUrl(it) }

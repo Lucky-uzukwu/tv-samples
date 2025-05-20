@@ -41,6 +41,8 @@ class MovieRepositoryImpl @Inject constructor(
     private val movieCastDataSource: MovieCastDataSource,
     private val movieCategoryDataSource: MovieCategoryDataSource,
     private val movieService: MovieService,
+    private val customerRepository: CustomerRepository,
+    private val userRepository: UserRepository
 ) : MovieRepository {
 
     override fun getFeaturedMovies() = flow {
@@ -166,6 +168,7 @@ class MovieRepositoryImpl @Inject constructor(
         itemsPerPage: Int
     ): Flow<MovieResponse> = flow {
         Logger.i { "Fetching movies for hero section with token: $token" }
+        val user = userRepository.getUser() ?: return@flow
         val response = movieService.getMovies(
             authToken = "Bearer $token",
             showInHeroSection = 1,
@@ -185,18 +188,23 @@ class MovieRepositoryImpl @Inject constructor(
             val errorBody =
                 response.errorBody()?.string() // Get error message from server if available
             Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-            when (response.code()) {
-                401 -> {
-                    // Unauthorized: Token is invalid or expired
-                    // You should trigger a re-authentication flow here.
-                    // TODO: Trigger re-authentication flow
-                }
-
-                else -> {
-                    // Handle other unexpected HTTP error codes
-                    Logger.e { "Unexpected HTTP error: ${response.code()}" }
+            val loginResponse = user.password?.let {
+                customerRepository.login(
+                    deviceMacAddress = user.deviceMacAddress,
+                    clientIp = user.clientIp,
+                    deviceName = user.deviceName,
+                    identifier = user.accessCode,
+                    password = it
+                )
+            }
+            when (loginResponse?.code()) {
+                201 -> {
+                    userRepository.saveUserToken(loginResponse.body()!!.token)
+                    getMoviesToShowInHeroSection(token, page, itemsPerPage)
                 }
             }
+
+            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
         }
     }
 
@@ -208,6 +216,7 @@ class MovieRepositoryImpl @Inject constructor(
     ): Flow<MovieResponse> =
         flow {
             Logger.i { "Fetching movies for catalog section with token: $token" }
+            val user = userRepository.getUser() ?: return@flow
             val response = movieService.getMovies(
                 authToken = "Bearer $token",
                 catalogId = catalogId,
@@ -226,18 +235,23 @@ class MovieRepositoryImpl @Inject constructor(
                 val errorBody =
                     response.errorBody()?.string() // Get error message from server if available
                 Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-                when (response.code()) {
-                    401 -> {
-                        // Unauthorized: Token is invalid or expired
-                        // You should trigger a re-authentication flow here.
-                        // TODO: Trigger re-authentication flow
-                    }
-
-                    else -> {
-                        // Handle other unexpected HTTP error codes
-                        Logger.e { "Unexpected HTTP error: ${response.code()}" }
+                val loginResponse = user.password?.let {
+                    customerRepository.login(
+                        deviceMacAddress = user.deviceMacAddress,
+                        clientIp = user.clientIp,
+                        deviceName = user.deviceName,
+                        identifier = user.accessCode,
+                        password = it
+                    )
+                }
+                when (loginResponse?.code()) {
+                    201 -> {
+                        userRepository.saveUserToken(loginResponse.body()!!.token)
+                        getMoviesToShowInCatalogSection(token, catalogId, itemsPerPage, page)
                     }
                 }
+
+                Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
             }
         }
 
@@ -248,6 +262,7 @@ class MovieRepositoryImpl @Inject constructor(
         page: Int
     ): Flow<MovieResponse> = flow {
         Logger.i { "Fetching movies for genre section with token: $token" }
+        val user = userRepository.getUser() ?: return@flow
         val response = movieService.getMovies(
             authToken = "Bearer $token",
             genreId = genreId,
@@ -266,18 +281,23 @@ class MovieRepositoryImpl @Inject constructor(
             val errorBody =
                 response.errorBody()?.string() // Get error message from server if available
             Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-            when (response.code()) {
-                401 -> {
-                    // Unauthorized: Token is invalid or expired
-                    // You should trigger a re-authentication flow here.
-                    // TODO: Trigger re-authentication flow
-                }
-
-                else -> {
-                    // Handle other unexpected HTTP error codes
-                    Logger.e { "Unexpected HTTP error: ${response.code()}" }
+            val loginResponse = user.password?.let {
+                customerRepository.login(
+                    deviceMacAddress = user.deviceMacAddress,
+                    clientIp = user.clientIp,
+                    deviceName = user.deviceName,
+                    identifier = user.accessCode,
+                    password = it
+                )
+            }
+            when (loginResponse?.code()) {
+                201 -> {
+                    userRepository.saveUserToken(loginResponse.body()!!.token)
+                    getMoviesToShowInGenreSection(token, genreId, itemsPerPage, page)
                 }
             }
+
+            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
         }
     }
 

@@ -6,7 +6,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.google.jetstream.data.entities.User
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -22,6 +24,10 @@ class UserRepository @Inject constructor(
         private val KEY_USER_TOKEN = stringPreferencesKey("user_token")
         private val KEY_USER_ID = stringPreferencesKey("user_id")
         private val KEY_USER_EMAIL = stringPreferencesKey("user_email")
+        private val KEY_USER_PASSWORD = stringPreferencesKey("user_password")
+        private val KEY_USER_CLIENT_IP = stringPreferencesKey("user_client_ip")
+        private val KEY_USER_DEVICE_NAME = stringPreferencesKey("user_device_name")
+        private val KEY_USER_DEVICE_MAC_ADDRESS = stringPreferencesKey("user_device_mac_address")
         private val KEY_USER_ACCESS_CODE = stringPreferencesKey("user_access_code")
         private val KEY_USER_NAME = stringPreferencesKey("user_name")
         private val KEY_USER_PROFILE_PHOTO_PATH = stringPreferencesKey("user_profile_photo_path")
@@ -34,6 +40,11 @@ class UserRepository @Inject constructor(
     val userEmail: Flow<String?> = context.dataStore.data.map { it[KEY_USER_EMAIL] }
     val userAccessCode: Flow<String?> = context.dataStore.data.map { it[KEY_USER_ACCESS_CODE] }
     val userName: Flow<String?> = context.dataStore.data.map { it[KEY_USER_NAME] }
+    val userPassword: Flow<String?> = context.dataStore.data.map { it[KEY_USER_PASSWORD] }
+    val userClientIp: Flow<String?> = context.dataStore.data.map { it[KEY_USER_CLIENT_IP] }
+    val userDeviceName: Flow<String?> = context.dataStore.data.map { it[KEY_USER_DEVICE_NAME] }
+    val userDeviceMacAddress: Flow<String?> =
+        context.dataStore.data.map { it[KEY_USER_DEVICE_MAC_ADDRESS] }
     val userProfilePhotoPath: Flow<String?> =
         context.dataStore.data.map { it[KEY_USER_PROFILE_PHOTO_PATH] }
     val userProfilePhotoUrl: Flow<String?> =
@@ -60,12 +71,43 @@ class UserRepository @Inject constructor(
         context.dataStore.edit { it[KEY_USER_NAME] = userName }
     }
 
+    suspend fun saveUserPassword(password: String) {
+        context.dataStore.edit { it[KEY_USER_PASSWORD] = password }
+    }
+
+    suspend fun saveUserClientIp(clientIp: String) {
+        context.dataStore.edit { it[KEY_USER_CLIENT_IP] = clientIp }
+    }
+
+    suspend fun saveUserDeviceName(deviceName: String) {
+        context.dataStore.edit { it[KEY_USER_DEVICE_NAME] = deviceName }
+    }
+
+    suspend fun saveUserDeviceMacAddress(deviceMacAddress: String) {
+        context.dataStore.edit { it[KEY_USER_DEVICE_MAC_ADDRESS] = deviceMacAddress }
+    }
+
     suspend fun saveUserProfilePhotoPath(profilePhotoPath: String) {
         context.dataStore.edit { it[KEY_USER_PROFILE_PHOTO_PATH] = profilePhotoPath }
     }
 
     suspend fun saveUserProfilePhotoUrl(profilePhotoUrl: String) {
         context.dataStore.edit { it[KEY_USER_PROFILE_PHOTO_URL] = profilePhotoUrl }
+    }
+
+    suspend fun getUser(): User? {
+        return User(
+            id = userId.first() ?: "",
+            email = userEmail.first() ?: "",
+            accessCode = userAccessCode.first() ?: "",
+            name = userName.first() ?: "",
+            password = userPassword.first() ?: "",
+            clientIp = userClientIp.first() ?: "",
+            deviceName = userDeviceName.first() ?: "",
+            deviceMacAddress = userDeviceMacAddress.first() ?: "",
+            profilePhotoPath = userProfilePhotoPath.first() ?: "",
+            profilePhotoUrl = userProfilePhotoUrl.first() ?: ""
+        )
     }
 
     // Clear all user data

@@ -12,9 +12,12 @@ import javax.inject.Singleton
 @Singleton
 class CatalogRepositoryImpl @Inject constructor(
     private val catalogService: CatalogService,
+    private val customerRepository: CustomerRepository,
+    private val userRepository: UserRepository
 ) : CatalogRepository {
     override fun getMovieCatalog(token: String): Flow<List<Catalog>> = flow {
         Logger.i { "Fetching categories for Movie section with token: $token" }
+        val user = userRepository.getUser() ?: return@flow
         val response = catalogService.getCatalogs(
             authToken = "Bearer $token",
             type = "App\\Models\\Movie"
@@ -32,18 +35,22 @@ class CatalogRepositoryImpl @Inject constructor(
             val errorBody =
                 response.errorBody()?.string() // Get error message from server if available
             Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-            when (response.code()) {
-                401 -> {
-                    // Unauthorized: Token is invalid or expired
-                    // You should trigger a re-authentication flow here.
-                    // TODO: Trigger re-authentication flow
-                }
-
-                else -> {
-                    // Handle other unexpected HTTP error codes
-                    Logger.e { "Unexpected HTTP error: ${response.code()}" }
+            val loginResponse = user.password?.let {
+                customerRepository.login(
+                    deviceMacAddress = user.deviceMacAddress,
+                    clientIp = user.clientIp,
+                    deviceName = user.deviceName,
+                    identifier = user.accessCode,
+                    password = it
+                )
+            }
+            when (loginResponse?.code()) {
+                201 -> {
+                    userRepository.saveUserToken(loginResponse.body()!!.token)
                 }
             }
+
+            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
         }
 
     }
