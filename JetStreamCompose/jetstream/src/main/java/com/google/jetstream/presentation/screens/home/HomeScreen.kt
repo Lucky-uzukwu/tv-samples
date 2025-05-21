@@ -46,8 +46,6 @@ import com.google.jetstream.data.network.Genre
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
-import com.google.jetstream.presentation.common.PosterImage
-import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
@@ -100,7 +98,6 @@ private fun Catalog(
     isTopBarVisible: Boolean = true,
 ) {
     val lazyListState = rememberLazyListState()
-    val childPadding = rememberChildPadding()
     var immersiveListHasFocus by remember { mutableStateOf(false) }
 
     val shouldShowTopBar by remember {
@@ -121,27 +118,7 @@ private fun Catalog(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-//            .height(400.dp)
     ) {
-
-        // Background
-        if (selectedMovie != null) {
-            val imageUrl =
-                "https://stage.nortv.xyz/" + "storage/" + selectedMovie.backdropImagePath
-
-            PosterImage(
-                movieTitle = selectedMovie.title,
-                movieUri = imageUrl,
-                modifier = Modifier.fillMaxSize()
-            )
-
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxSize()
-////                    .aspectRatio(20f / 7)
-//                    .background(movieBackground)
-//            ) {}
-        }
 
         LazyColumn(
             state = lazyListState,
@@ -152,7 +129,6 @@ private fun Catalog(
                 HeroSectionCarousel(
                     movies = featuredMovies,
                     moviesNew = featuredMoviesNew,
-                    padding = childPadding,
                     goToVideoPlayer = goToVideoPlayer,
                     goToMoreInfo = {},
                     setSelectedMovie = setSelectedMovie,

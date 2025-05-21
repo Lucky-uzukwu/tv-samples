@@ -22,7 +22,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -34,22 +33,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -72,26 +69,24 @@ import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.Carousel
 import androidx.tv.material3.CarouselDefaults
-import androidx.tv.material3.CarouselState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.ShapeDefaults
 import androidx.tv.material3.Text
+import co.touchlab.kermit.Logger
 import coil.compose.AsyncImage
 import com.google.jetstream.R
 import com.google.jetstream.data.entities.Movie
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.util.StringConstants
-import com.google.jetstream.presentation.theme.JetStreamBorderWidth
 import com.google.jetstream.presentation.theme.JetStreamButtonShape
 import com.google.jetstream.presentation.theme.onPrimaryContainerLightHighContrast
 import com.google.jetstream.presentation.theme.onPrimaryLight
-import com.google.jetstream.presentation.utils.Padding
+import com.google.jetstream.presentation.utils.fadingEdge
 import com.google.jetstream.presentation.utils.formatDuration
 import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.handleDPadKeyEvents
-import co.touchlab.kermit.Logger
 
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -99,7 +94,6 @@ import co.touchlab.kermit.Logger
 fun HeroSectionCarousel(
     movies: List<Movie>,
     moviesNew: LazyPagingItems<MovieNew>,
-    padding: Padding,
     goToVideoPlayer: (movie: Movie) -> Unit,
     goToMoreInfo: (movie: Movie) -> Unit,
     setSelectedMovie: (MovieNew) -> Unit,
@@ -125,17 +119,18 @@ fun HeroSectionCarousel(
 
     val watchNowButtonFocusRequester = remember { FocusRequester() }
     val moreInfoButtonFocusRequester = remember { FocusRequester() }
+    val topBottomFade =
+        Brush.verticalGradient(
+            0f to Color.Transparent,
+            0.1f to Color.Red,
+            1f to Color.Red,
+            1f to Color.Transparent,
+        )
 
     Box(modifier = modifier) {
         Carousel(
             modifier = Modifier
-//                .padding(top = padding.top)
-//                .border(
-//                    width = JetStreamBorderWidth,
-//                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (isCarouselFocused) 1f else 0f),
-//                    shape = ShapeDefaults.Medium
-//                )
-//                .clip(ShapeDefaults.Medium)
+                .fadingEdge(topBottomFade)
                 .onFocusChanged { isCarouselFocused = it.hasFocus }
                 .semantics {
                     contentDescription =
@@ -228,21 +223,6 @@ fun HeroSectionCarousel(
     }
 }
 
-private fun getNewMovieItemIndex(
-    currentItemIndex: Int,
-    moviesNew: LazyPagingItems<MovieNew>
-): Int {
-    var currentItemIndex1 = currentItemIndex
-    if (currentItemIndex1 < moviesNew.itemCount - 1) {
-        currentItemIndex1 += 1
-        moviesNew[currentItemIndex1] // This helps to get new movies
-    } else if (currentItemIndex1 == moviesNew.itemCount - 1) {
-        moviesNew[currentItemIndex1]
-    }
-    return currentItemIndex1
-}
-
-
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun BoxScope.CarouselIndicator(
@@ -269,7 +249,21 @@ private fun BoxScope.CarouselIndicator(
             // Indicator Row
             CarouselDefaults.IndicatorRow(
                 itemCount = itemCount,
-                activeItemIndex = getListBPosition(activeItemIndex).position
+                activeItemIndex = getListBPosition(activeItemIndex).position,
+                indicator =
+                    { isActive ->
+                        val activeColor = Color.White.copy(alpha = 1f) // Increased whiteness
+                        val inactiveColor = activeColor.copy(alpha = 0.3f)
+                        Box(
+                            modifier =
+                                Modifier
+                                    .size(8.dp)
+                                    .background(
+                                        color = if (isActive) activeColor else inactiveColor,
+                                        shape = CircleShape,
+                                    ),
+                        )
+                    }
             )
         }
     }

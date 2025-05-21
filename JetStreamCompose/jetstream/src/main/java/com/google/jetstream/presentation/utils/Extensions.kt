@@ -1,6 +1,12 @@
 package com.google.jetstream.presentation.utils
 
 import android.annotation.SuppressLint
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 
 
 @SuppressLint("DefaultLocale")
@@ -21,3 +27,10 @@ fun String.formatVotes(): String {
         else -> "$number"
     }.replace(".0", "")  // Remove trailing .0 if it's a whole number
 }
+
+fun Modifier.fadingEdge(brush: Brush) = this
+    .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+    .drawWithContent {
+        drawContent()
+        drawRect(brush = brush, blendMode = BlendMode.DstIn)
+    }
