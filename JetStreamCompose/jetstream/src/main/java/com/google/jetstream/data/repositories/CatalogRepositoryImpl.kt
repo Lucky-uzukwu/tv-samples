@@ -47,10 +47,15 @@ class CatalogRepositoryImpl @Inject constructor(
             when (loginResponse?.code()) {
                 201 -> {
                     userRepository.saveUserToken(loginResponse.body()!!.token)
+                    getMovieCatalog(loginResponse.body()!!.token)
+                }
+
+                else -> {
+                    Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
                 }
             }
 
-            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+//            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
         }
 
     }

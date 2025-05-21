@@ -295,6 +295,11 @@ class MovieRepositoryImpl @Inject constructor(
                     userRepository.saveUserToken(loginResponse.body()!!.token)
                     getMoviesToShowInGenreSection(token, genreId, itemsPerPage, page)
                 }
+                else -> {
+                    Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+                    // todo navigate to login
+
+                }
             }
 
             Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }

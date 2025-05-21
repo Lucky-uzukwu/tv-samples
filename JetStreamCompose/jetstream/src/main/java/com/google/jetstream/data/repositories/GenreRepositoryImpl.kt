@@ -45,10 +45,13 @@ class GenreRepositoryImpl @Inject constructor(
             when (loginResponse?.code()) {
                 201 -> {
                     userRepository.saveUserToken(loginResponse.body()!!.token)
+                    getMovieGenre(loginResponse.body()!!.token)
+                }
+
+                else -> {
+                    Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
                 }
             }
-
-            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
         }
 
     }
