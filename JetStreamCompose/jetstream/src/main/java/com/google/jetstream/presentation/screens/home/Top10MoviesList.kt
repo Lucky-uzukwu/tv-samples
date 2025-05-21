@@ -62,6 +62,7 @@ fun Top10MoviesList(
     movieList: MovieListNew,
     sectionTitle: String? = stringResource(R.string.top_10_movies_title),
     modifier: Modifier = Modifier,
+    setSelectedMovie: (MovieNew) -> Unit,
     gradientColor: Color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
     onMovieClick: (movie: MovieNew) -> Unit
 ) {
@@ -84,6 +85,7 @@ fun Top10MoviesList(
         onMovieClick = onMovieClick,
         onMovieFocused = {
             selectedMovie = it
+            setSelectedMovie(it)
         },
         onFocusChanged = {
             isListFocused = it.hasFocus
@@ -138,6 +140,7 @@ private fun ImmersiveList(
                 showIndexOverImage = false,
                 onMovieSelected = onMovieClick,
                 onMovieFocused = onMovieFocused,
+                isListFocused = isListFocused,
                 modifier = Modifier.onFocusChanged(onFocusChanged)
             )
         }

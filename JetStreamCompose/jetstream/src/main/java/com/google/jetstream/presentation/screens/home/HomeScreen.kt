@@ -152,6 +152,7 @@ private fun Catalog(
                     movieList = movieList,
                     sectionTitle = catalog.name,
                     onMovieClick = onMovieClick,
+                    setSelectedMovie =setSelectedMovie ,
                     modifier = Modifier.onFocusChanged {
                         immersiveListHasFocus = it.hasFocus
                     },
@@ -178,6 +179,7 @@ private fun Catalog(
                     movieList = movieList,
                     sectionTitle = genre.name,
                     onMovieClick = onMovieClick,
+                    setSelectedMovie =setSelectedMovie ,
                     modifier = Modifier.onFocusChanged {
                         immersiveListHasFocus = it.hasFocus
                     },

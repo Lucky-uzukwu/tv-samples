@@ -40,6 +40,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
@@ -56,8 +58,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.google.jetstream.data.entities.Movie
-import com.google.jetstream.data.entities.MovieList
 import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
@@ -152,6 +152,7 @@ fun ImmersiveListMoviesRow(
         fontSize = 30.sp
     ),
     showItemTitle: Boolean = true,
+    isListFocused: Boolean,
     showIndexOverImage: Boolean = false,
     onMovieSelected: (MovieNew) -> Unit = {},
     onMovieFocused: (MovieNew) -> Unit = {}
@@ -164,6 +165,7 @@ fun ImmersiveListMoviesRow(
         if (title != null) {
             Text(
                 text = title,
+                color = if (isListFocused) Color.Black else Color.White,
                 style = titleStyle,
                 modifier = Modifier
                     .alpha(1f)
