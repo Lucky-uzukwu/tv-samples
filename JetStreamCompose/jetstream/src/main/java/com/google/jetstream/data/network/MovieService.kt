@@ -28,10 +28,10 @@ interface MovieService {
 //        @QueryMap sort: Map<String, String>? = emptyMap()
     ): Response<MovieResponse>
 
-    @GET("api/movies/{movieId}")
+    @GET("api/movies/{id}")
     suspend fun getMovieById(
         @Header("Authorization") authToken: String,
-        @Path("movieId") movieId: String
+        @Path("id") movieId: String
     ): Response<MovieNew>
 
 }

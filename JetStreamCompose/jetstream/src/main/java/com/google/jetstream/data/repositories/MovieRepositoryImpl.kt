@@ -22,6 +22,7 @@ import com.google.jetstream.data.entities.MovieDetails
 import com.google.jetstream.data.entities.MovieList
 import com.google.jetstream.data.entities.MovieReviewsAndRatings
 import com.google.jetstream.data.entities.ThumbnailType
+import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.network.MovieResponse
 import com.google.jetstream.data.network.MovieService
 import com.google.jetstream.data.util.StringConstants
@@ -295,6 +296,7 @@ class MovieRepositoryImpl @Inject constructor(
                     userRepository.saveUserToken(loginResponse.body()!!.token)
                     getMoviesToShowInGenreSection(token, genreId, itemsPerPage, page)
                 }
+
                 else -> {
                     Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
                     // todo navigate to login
@@ -305,5 +307,54 @@ class MovieRepositoryImpl @Inject constructor(
             Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
         }
     }
+
+    override fun getMovieDetailsNew(
+        token: String,
+        movieId: String
+    ): Flow<MovieNew> = flow {
+        Logger.i { "Fetching movies for genre section with token: $token" }
+        val user = userRepository.getUser() ?: return@flow
+        val response = movieService.getMovieById(
+            authToken = "Bearer $token",
+            movieId = movieId
+        )
+
+        if (response.isSuccessful) {
+            val movieData = response.body()
+            Logger.i { "Successfully fetched ${movieData?.id}." }
+            if (movieData != null) {
+                emit(movieData)
+            }
+        } else {
+            // Handle HTTP error codes
+            val errorBody =
+                response.errorBody()?.string() // Get error message from server if available
+            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
+            val loginResponse = user.password?.let {
+                customerRepository.login(
+                    deviceMacAddress = user.deviceMacAddress,
+                    clientIp = user.clientIp,
+                    deviceName = user.deviceName,
+                    identifier = user.accessCode,
+                    password = it
+                )
+            }
+            when (loginResponse?.code()) {
+                201 -> {
+                    userRepository.saveUserToken(loginResponse.body()!!.token)
+                    getMovieDetailsNew(token, movieId)
+                }
+
+                else -> {
+                    Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+                    // todo navigate to login
+
+                }
+            }
+
+            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+        }
+    }
+
 
 }

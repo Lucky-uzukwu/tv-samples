@@ -79,11 +79,6 @@ fun MovieDetails(
             .height(432.dp)
             .bringIntoViewRequester(bringIntoViewRequester)
     ) {
-        MovieImageWithGradients(
-            movie = selectedMovie,
-            modifier = Modifier.fillMaxSize()
-        )
-
         Column(modifier = Modifier.fillMaxWidth(0.55f)) {
             Spacer(modifier = Modifier.height(50.dp))
             Column(
@@ -200,46 +195,5 @@ private fun MovieLargeTitle(movieTitle: String) {
             fontWeight = FontWeight.Bold
         ),
         maxLines = 1
-    )
-}
-
-@Composable
-private fun MovieImageWithGradients(
-    movie: MovieNew,
-    modifier: Modifier = Modifier,
-    gradientColor: Color = MaterialTheme.colorScheme.surface,
-) {
-    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.posterImagePath
-    AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current).data(imageUrl)
-            .crossfade(true).build(),
-        contentDescription = StringConstants
-            .Composable
-            .ContentDescription
-            .moviePoster(movie.title),
-        contentScale = ContentScale.Crop,
-        modifier = modifier.drawWithContent {
-            drawContent()
-            drawRect(
-                Brush.verticalGradient(
-                    colors = listOf(Color.Transparent, gradientColor),
-                    startY = 300f
-                )
-            )
-            drawRect(
-                Brush.horizontalGradient(
-                    colors = listOf(gradientColor, Color.Transparent),
-                    endX = 500f,
-                    startX = 150f
-                )
-            )
-            drawRect(
-                Brush.linearGradient(
-                    colors = listOf(gradientColor, Color.Transparent),
-                    start = Offset(x = 250f, y = 250f),
-                    end = Offset(x = 500f, y = 0f)
-                )
-            )
-        }
     )
 }

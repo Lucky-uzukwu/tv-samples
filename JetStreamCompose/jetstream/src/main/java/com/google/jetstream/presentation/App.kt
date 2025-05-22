@@ -116,7 +116,6 @@ fun App(
                     goToMoviePlayer = {
                         navController.navigate(Screens.VideoPlayer())
                     },
-                    selectedMovie = selectedMovie.value,
                     refreshScreenWithNewMovie = { movie ->
                         navController.navigate(
                             Screens.MovieDetails.withArgs(movie.id)

@@ -20,6 +20,7 @@ import com.google.jetstream.data.entities.MovieCategoryDetails
 import com.google.jetstream.data.entities.MovieCategoryList
 import com.google.jetstream.data.entities.MovieDetails
 import com.google.jetstream.data.entities.MovieList
+import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.network.MovieResponse
 import kotlinx.coroutines.flow.Flow
 
@@ -30,7 +31,6 @@ interface MovieRepository {
     fun getNowPlayingMovies(): Flow<MovieList>
     fun getMovieCategories(): Flow<MovieCategoryList>
     suspend fun getMovieCategoryDetails(categoryId: String): MovieCategoryDetails
-    suspend fun getMovieDetails(movieId: String): MovieDetails
     suspend fun searchMovies(query: String): MovieList
     fun getMoviesWithLongThumbnail(): Flow<MovieList>
     fun getMovies(): Flow<MovieList>
@@ -57,4 +57,12 @@ interface MovieRepository {
         itemsPerPage: Int,
         page: Int
     ): Flow<MovieResponse>
+
+    fun getMovieDetailsNew(
+        token: String,
+        movieId: String
+    ): Flow<MovieNew>
+
+
+    suspend fun getMovieDetails(movieId: String): MovieDetails
 }

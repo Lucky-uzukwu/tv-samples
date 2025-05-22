@@ -33,11 +33,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.MaterialTheme
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.google.jetstream.R
 import com.google.jetstream.data.entities.Movie
 import com.google.jetstream.data.entities.MovieDetails
@@ -59,7 +63,6 @@ fun MovieDetailsScreen(
     onBackPressed: () -> Unit,
     refreshScreenWithNewMovie: (Movie) -> Unit,
     movieDetailsScreenViewModel: MovieDetailsScreenViewModel = hiltViewModel(),
-    selectedMovie: MovieNew? = null
 ) {
     val uiState by movieDetailsScreenViewModel.uiState.collectAsStateWithLifecycle()
 
@@ -73,18 +76,15 @@ fun MovieDetailsScreen(
         }
 
         is MovieDetailsScreenUiState.Done -> {
-            if (selectedMovie != null) {
-                Details(
-                    selectedMovie = selectedMovie,
-                    goToMoviePlayer = goToMoviePlayer,
-                    onBackPressed = onBackPressed,
-                    refreshScreenWithNewMovie = refreshScreenWithNewMovie,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .animateContentSize()
-                )
-            }
-
+            Details(
+                selectedMovie = s.movie,
+                goToMoviePlayer = goToMoviePlayer,
+                onBackPressed = onBackPressed,
+                refreshScreenWithNewMovie = refreshScreenWithNewMovie,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .animateContentSize()
+            )
         }
     }
 }
@@ -98,6 +98,12 @@ private fun Details(
     modifier: Modifier = Modifier,
 ) {
     val childPadding = rememberChildPadding()
+
+    MovieImageWithGradients(
+        movie = selectedMovie,
+        modifier = Modifier
+            .fillMaxSize()
+    )
 
     BackHandler(onBack = onBackPressed)
     LazyColumn(
@@ -170,5 +176,22 @@ private fun Details(
         }
     }
 }
+
+@Composable
+private fun MovieImageWithGradients(
+    movie: MovieNew,
+    modifier: Modifier = Modifier,
+) {
+    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current).data(imageUrl)
+            .crossfade(true).build(),
+        contentDescription = StringConstants
+            .Composable
+            .ContentDescription
+            .moviePoster(movie.title), modifier = modifier
+    )
+}
+
 
 private val BottomDividerPadding = PaddingValues(vertical = 48.dp)

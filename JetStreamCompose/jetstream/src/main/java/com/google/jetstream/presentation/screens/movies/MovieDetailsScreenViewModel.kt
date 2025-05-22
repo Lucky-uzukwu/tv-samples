@@ -20,36 +20,46 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.jetstream.data.entities.MovieDetails
+import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.repositories.MovieRepository
+import com.google.jetstream.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class MovieDetailsScreenViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     repository: MovieRepository,
+    userRepository: UserRepository,
 ) : ViewModel() {
-    val uiState = savedStateHandle
-        .getStateFlow<String?>(MovieDetailsScreen.MovieIdBundleKey, null)
-        .map { id ->
-            if (id == null) {
-                MovieDetailsScreenUiState.Error
-            } else {
-                val details = repository.getMovieDetails(movieId = id)
-                MovieDetailsScreenUiState.Done(movieDetails = details)
-            }
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = MovieDetailsScreenUiState.Loading
-        )
+    val uiState: StateFlow<MovieDetailsScreenUiState> = combine(
+        savedStateHandle
+            .getStateFlow<String?>(MovieDetailsScreen.MovieIdBundleKey, null),
+        userRepository.userToken,
+    ) { movieId, userToken ->
+        if (movieId == null || userToken == null) {
+            MovieDetailsScreenUiState.Error
+        } else {
+            val details = repository.getMovieDetailsNew(
+                movieId = movieId,
+                token = userToken
+            ).firstOrNull() ?: return@combine MovieDetailsScreenUiState.Error
+            MovieDetailsScreenUiState.Done(movie = details)
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = MovieDetailsScreenUiState.Loading
+    )
 }
 
 sealed class MovieDetailsScreenUiState {
     data object Loading : MovieDetailsScreenUiState()
     data object Error : MovieDetailsScreenUiState()
-    data class Done(val movieDetails: MovieDetails) : MovieDetailsScreenUiState()
+    data class Done(val movie: MovieNew) : MovieDetailsScreenUiState()
 }
