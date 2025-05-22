@@ -216,7 +216,7 @@ fun DashboardTopBar(
                                         imageVector = screen.tabIcon,
                                         modifier = Modifier.padding(4.dp),
                                         contentDescription = StringConstants.Composable.ContentDescription.DashboardSearchButton,
-                                        tint = LocalContentColor.current
+                                        tint = Color.White
                                     )
                                 } else {
                                     // make the color of this text white
