@@ -26,10 +26,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,19 +46,29 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.jetstream.R
 import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.network.MovieNew
+import com.google.jetstream.presentation.common.DisplayMovieDescription
+import com.google.jetstream.presentation.common.DisplayMovieExtraInfo
+import com.google.jetstream.presentation.common.DisplayMovieGenericText
+import com.google.jetstream.presentation.common.DisplayMovieTitle
+import com.google.jetstream.presentation.common.IMDbLogo
 import com.google.jetstream.presentation.common.ImmersiveListMoviesRow
 import com.google.jetstream.presentation.common.ItemDirection
 import com.google.jetstream.presentation.common.PosterImage
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
+import com.google.jetstream.presentation.theme.onPrimaryLight
 import com.google.jetstream.presentation.utils.bringIntoViewIfChildrenAreFocused
+import com.google.jetstream.presentation.utils.formatVotes
+import com.google.jetstream.presentation.utils.getImdbRating
 
 @Composable
 fun Top10MoviesList(
@@ -117,7 +130,7 @@ private fun ImmersiveList(
             movie = selectedMovie,
             visible = isListFocused,
             modifier = modifier
-                .height(432.dp)
+                .height(500.dp)
                 .gradientOverlay(gradientColor)
         )
         Column {
@@ -127,7 +140,7 @@ private fun ImmersiveList(
                     movie = selectedMovie,
                     modifier = Modifier.padding(
                         start = rememberChildPadding().start,
-                        bottom = 40.dp
+                        bottom = 10.dp
                     )
                 )
             }
@@ -179,20 +192,38 @@ private fun MovieDescription(
     movie: MovieNew,
     modifier: Modifier = Modifier,
 ) {
+    val combinedGenre = movie.genres.joinToString(" ") { genre -> genre.name }
+    val getYear = movie.releaseDate?.substring(0, 4)
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(text = movie.title, style = MaterialTheme.typography.displaySmall)
-        movie.tagLine?.let {
+        DisplayMovieTitle(movie, style = MaterialTheme.typography.displaySmall)
+        DisplayMovieDescription(
+            movie,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Row {
+            IMDbLogo()
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
-                modifier = Modifier.fillMaxWidth(0.5f),
-                text = it,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-                fontWeight = FontWeight.Light
+                text = "${
+                    movie.getImdbRating()
+                }/10 - ${movie.imdbVotes.toString().formatVotes()} IMDB Votes",
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 8.dp)
             )
         }
+        DisplayMovieExtraInfo(
+            getYear,
+            combinedGenre,
+            movie,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+
     }
 }
 

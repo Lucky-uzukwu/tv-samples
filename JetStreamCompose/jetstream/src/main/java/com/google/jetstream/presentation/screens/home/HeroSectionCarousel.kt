@@ -295,7 +295,9 @@ private fun CarouselItemForeground(
             verticalArrangement = Arrangement.Top
         ) {
             DisplayMovieTitle(movie)
-            DisplayMovieDescription(movie)
+            DisplayMovieDescription(
+                movie = movie,
+            )
             DisplayMovieExtraInfo(getYear, combinedGenre, movie)
 
             val plotWords = movie.plot?.split(" ") ?: emptyList()
