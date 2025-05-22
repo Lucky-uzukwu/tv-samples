@@ -32,7 +32,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -42,8 +46,11 @@ import androidx.tv.material3.CardDefaults
 import androidx.tv.material3.ClassicCard
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
+import coil.compose.AsyncImage
 import com.google.jetstream.R
 import com.google.jetstream.data.entities.MovieCast
+import com.google.jetstream.data.network.MoviePerson
+import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import com.google.jetstream.presentation.theme.JetStreamBorderWidth
 import com.google.jetstream.presentation.theme.JetStreamCardShape
@@ -51,7 +58,9 @@ import com.google.jetstream.presentation.utils.ourColors
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun CastAndCrewList(castAndCrew: List<MovieCast>) {
+fun CastAndCrewList(
+    castAndCrew: List<MoviePerson>,
+) {
     val childPadding = rememberChildPadding()
 
     Column(
@@ -80,9 +89,10 @@ fun CastAndCrewList(castAndCrew: List<MovieCast>) {
 
 @Composable
 private fun CastAndCrewItem(
-    castMember: MovieCast,
+    castMemberNew: MoviePerson,
     modifier: Modifier = Modifier,
 ) {
+    val castImageUrl = "https://stage.nortv.xyz/" + "storage/" + castMemberNew.person.profilePath
     ClassicCard(
         modifier = modifier
             .padding(end = 20.dp, bottom = 16.dp)
@@ -104,7 +114,7 @@ private fun CastAndCrewItem(
                     .fillMaxWidth()
                     .padding(top = 10.dp)
                     .padding(horizontal = 12.dp),
-                text = castMember.realName,
+                text = castMemberNew.person.name,
                 maxLines = 1,
                 style = MaterialTheme.typography.labelMedium,
                 overflow = TextOverflow.Ellipsis
@@ -112,7 +122,7 @@ private fun CastAndCrewItem(
         },
         subtitle = {
             Text(
-                text = castMember.characterName,
+                text = castMemberNew.character ?: castMemberNew.person.name,
                 maxLines = 1,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier
@@ -128,6 +138,17 @@ private fun CastAndCrewItem(
                     .fillMaxWidth()
                     .fillMaxHeight(0.725f)
                     .background(ourColors.random())
+            )
+            AsyncImage(
+                model = castImageUrl,
+                contentDescription = StringConstants
+                    .Composable
+                    .ContentDescription
+                    .image(castMemberNew.person.name),
+                modifier = modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.725f),
+                contentScale = ContentScale.Crop
             )
         },
         onClick = {}

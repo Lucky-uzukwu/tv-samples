@@ -66,7 +66,6 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MovieDetails(
-    movieDetails: MovieDetails,
     selectedMovie: MovieNew,
     goToMoviePlayer: () -> Unit
 ) {
@@ -224,21 +223,21 @@ private fun MovieImageWithGradients(
             drawRect(
                 Brush.verticalGradient(
                     colors = listOf(Color.Transparent, gradientColor),
-                    startY = 400f
+                    startY = 300f
                 )
             )
             drawRect(
                 Brush.horizontalGradient(
                     colors = listOf(gradientColor, Color.Transparent),
-                    endX = 1000f,
-                    startX = 300f
+                    endX = 500f,
+                    startX = 150f
                 )
             )
             drawRect(
                 Brush.linearGradient(
                     colors = listOf(gradientColor, Color.Transparent),
-                    start = Offset(x = 500f, y = 500f),
-                    end = Offset(x = 1000f, y = 0f)
+                    start = Offset(x = 250f, y = 250f),
+                    end = Offset(x = 500f, y = 0f)
                 )
             )
         }

@@ -47,6 +47,7 @@ import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.MoviesRow
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
+import com.google.jetstream.presentation.utils.getImdbRating
 
 object MovieDetailsScreen {
     const val MovieIdBundleKey = "movieId"
@@ -74,7 +75,6 @@ fun MovieDetailsScreen(
         is MovieDetailsScreenUiState.Done -> {
             if (selectedMovie != null) {
                 Details(
-                    movieDetails = s.movieDetails,
                     selectedMovie = selectedMovie,
                     goToMoviePlayer = goToMoviePlayer,
                     onBackPressed = onBackPressed,
@@ -91,7 +91,6 @@ fun MovieDetailsScreen(
 
 @Composable
 private fun Details(
-    movieDetails: MovieDetails,
     selectedMovie: MovieNew,
     goToMoviePlayer: () -> Unit,
     onBackPressed: () -> Unit,
@@ -107,7 +106,6 @@ private fun Details(
     ) {
         item {
             MovieDetails(
-                movieDetails = movieDetails,
                 selectedMovie = selectedMovie,
                 goToMoviePlayer = goToMoviePlayer
             )
@@ -115,7 +113,7 @@ private fun Details(
 
         item {
             CastAndCrewList(
-                castAndCrew = movieDetails.castAndCrew
+                castAndCrew = selectedMovie.moviePeople
             )
         }
         // TODO: Uncomment and use
@@ -130,12 +128,12 @@ private fun Details(
 //            )
 //        }
 
-        item {
-            MovieReviews(
-                modifier = Modifier.padding(top = childPadding.top),
-                reviewsAndRatings = movieDetails.reviewsAndRatings
-            )
-        }
+//        item {
+//            MovieReviews(
+//                modifier = Modifier.padding(top = childPadding.top),
+//                reviewsAndRatings = selectedMovie.getImdbRating()
+//            )
+//        }
 
         item {
             Box(
@@ -161,22 +159,12 @@ private fun Details(
                 TitleValueText(
                     modifier = itemModifier,
                     title = stringResource(R.string.status),
-                    value = movieDetails.status
+                    value = "Released"
                 )
                 TitleValueText(
                     modifier = itemModifier,
                     title = stringResource(R.string.original_language),
-                    value = movieDetails.originalLanguage
-                )
-                TitleValueText(
-                    modifier = itemModifier,
-                    title = stringResource(R.string.budget),
-                    value = movieDetails.budget
-                )
-                TitleValueText(
-                    modifier = itemModifier,
-                    title = stringResource(R.string.revenue),
-                    value = movieDetails.revenue
+                    value = selectedMovie.languages.first().englishName
                 )
             }
         }
