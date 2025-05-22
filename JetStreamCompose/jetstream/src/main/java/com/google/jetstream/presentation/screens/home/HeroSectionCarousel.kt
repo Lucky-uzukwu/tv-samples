@@ -51,17 +51,13 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -80,12 +76,16 @@ import com.google.jetstream.R
 import com.google.jetstream.data.entities.Movie
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.util.StringConstants
+import com.google.jetstream.presentation.common.DisplayMovieDescription
+import com.google.jetstream.presentation.common.DisplayMovieExtraInfo
+import com.google.jetstream.presentation.common.DisplayMovieGenericText
+import com.google.jetstream.presentation.common.DisplayMovieTitle
+import com.google.jetstream.presentation.common.IMDbLogo
 import com.google.jetstream.presentation.theme.JetStreamButtonShape
 import com.google.jetstream.presentation.theme.onPrimaryContainerLightHighContrast
-import com.google.jetstream.presentation.theme.onPrimaryLight
 import com.google.jetstream.presentation.utils.fadingEdge
-import com.google.jetstream.presentation.utils.formatDuration
 import com.google.jetstream.presentation.utils.formatVotes
+import com.google.jetstream.presentation.utils.getImdbRating
 import com.google.jetstream.presentation.utils.handleDPadKeyEvents
 
 
@@ -294,9 +294,9 @@ private fun CarouselItemForeground(
                 .padding(32.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            CarouselMovieTitle(movie)
-            CarouselMovieDescription(movie)
-            CarouselMovieExtraInfo(getYear, combinedGenre, movie)
+            DisplayMovieTitle(movie)
+            DisplayMovieDescription(movie)
+            DisplayMovieExtraInfo(getYear, combinedGenre, movie)
 
             val plotWords = movie.plot?.split(" ") ?: emptyList()
             val formattedPlot = plotWords.chunked(9).joinToString("\n") { chunk ->
@@ -314,20 +314,18 @@ private fun CarouselItemForeground(
             }
 
 
-            CarouselMovieGenericText(formattedPlot)
+            DisplayMovieGenericText(formattedPlot)
             Spacer(modifier = Modifier.height(10.dp))
 
             Row {
                 IMDbLogo()
                 Spacer(modifier = Modifier.width(8.dp))
-                CarouselMovieGenericText(
+                DisplayMovieGenericText(
                     "${
-                        getMovieRating(movie)
+                        movie.getImdbRating()
                     }/10 - ${movie.imdbVotes.toString().formatVotes()} IMDB Votes"
                 )
             }
-
-
 
             AnimatedVisibility(
                 visible = isCarouselFocused,
@@ -353,98 +351,6 @@ private fun CarouselItemForeground(
     }
 }
 
-@Composable
-private fun getMovieRating(movie: MovieNew): String? {
-    return if (movie.imdbRating?.length!! > 3) {
-        movie.imdbRating.substring(0, 3)
-    } else {
-        movie.imdbRating
-    }
-}
-
-@Composable
-private fun CarouselMovieGenericText(text: String) {
-
-    Text(
-        text = text,
-        color = onPrimaryLight,
-        style = MaterialTheme.typography.titleSmall.copy(
-            color = MaterialTheme.colorScheme.onSurface.copy(
-                alpha = 0.65f
-            ),
-            shadow = Shadow(
-                color = Color.Black.copy(alpha = 0.5f),
-                offset = Offset(x = 2f, y = 4f),
-                blurRadius = 2f
-            )
-        ),
-        maxLines = 2,
-        overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.padding(top = 8.dp)
-    )
-}
-
-@Composable
-private fun CarouselMovieExtraInfo(
-    getYear: String?,
-    combinedGenre: String,
-    movie: MovieNew
-) {
-    Text(
-        text = "$getYear - $combinedGenre - ${movie.duration?.formatDuration()}",
-        color = onPrimaryLight,
-        style = MaterialTheme.typography.titleMedium.copy(
-            color = MaterialTheme.colorScheme.onSurface.copy(
-                alpha = 0.65f
-            ),
-            shadow = Shadow(
-                color = Color.Black.copy(alpha = 0.5f),
-                offset = Offset(x = 2f, y = 4f),
-                blurRadius = 2f
-            )
-        ),
-        maxLines = 1,
-        modifier = Modifier.padding(top = 8.dp)
-    )
-}
-
-@Composable
-private fun CarouselMovieDescription(movie: MovieNew) {
-    movie.tagLine?.let {
-        Text(
-            text = it,
-            color = onPrimaryLight,
-            style = MaterialTheme.typography.titleMedium.copy(
-                color = MaterialTheme.colorScheme.onSurface.copy(
-                    alpha = 0.65f
-                ),
-                shadow = Shadow(
-                    color = Color.Black.copy(alpha = 0.5f),
-                    offset = Offset(x = 2f, y = 4f),
-                    blurRadius = 2f
-                )
-            ),
-            maxLines = 1,
-            modifier = Modifier.padding(top = 8.dp)
-        )
-    }
-}
-
-@Composable
-private fun CarouselMovieTitle(movie: MovieNew) {
-    Text(
-        text = movie.title,
-        color = onPrimaryLight,
-        style = MaterialTheme.typography.displaySmall.copy(
-            shadow = Shadow(
-                color = Color.Black.copy(alpha = 0.5f),
-                offset = Offset(x = 2f, y = 4f),
-                blurRadius = 2f
-            )
-        ),
-        maxLines = 2
-    )
-}
 
 @Composable
 private fun CarouselItemBackground(
@@ -520,24 +426,6 @@ private fun WatchNowButton(
     }
 }
 
-@Composable
-fun IMDbLogo(
-    modifier: Modifier = Modifier,
-    textColor: Color = Color(0xFF111827), // Tailwind's text-gray-950
-    backgroundColor: Color = Color(0xFFFBBF24) // Tailwind's bg-yellow-500
-) {
-
-    Text(
-        text = "IMDb",
-        modifier = modifier
-            .background(backgroundColor)
-            .padding(horizontal = 4.dp, vertical = 8.dp),
-        color = textColor,
-        style = MaterialTheme.typography.titleSmall.copy(
-            fontWeight = FontWeight.ExtraBold
-        )
-    )
-}
 
 @Composable
 private fun MoreInfoButton(

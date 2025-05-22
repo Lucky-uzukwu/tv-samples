@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import com.google.jetstream.data.network.MovieNew
 
 
 @SuppressLint("DefaultLocale")
@@ -34,3 +35,12 @@ fun Modifier.fadingEdge(brush: Brush) = this
         drawContent()
         drawRect(brush = brush, blendMode = BlendMode.DstIn)
     }
+
+
+fun MovieNew.getImdbRating(): String? {
+    return if (this.imdbRating?.length!! > 3) {
+        this.imdbRating.substring(0, 3)
+    } else {
+        this.imdbRating
+    }
+}
