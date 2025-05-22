@@ -50,7 +50,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun HomeScreen(
-    onMovieClick: (movie: Movie) -> Unit,
+    onMovieClick: (movie: MovieNew) -> Unit,
     goToVideoPlayer: (movie: Movie) -> Unit,
     selectedMovie: MovieNew? = null,
     setSelectedMovie: (movie: MovieNew) -> Unit,
@@ -68,7 +68,7 @@ fun HomeScreen(
                 featuredMoviesNew = featuredMovies,
                 catalogToMovies = s.catalogToMovies,
                 genreToMovies = s.genreToMovies,
-                onMovieClick = { },
+                onMovieClick = onMovieClick,
                 onScroll = onScroll,
                 selectedMovie = selectedMovie,
                 setSelectedMovie = setSelectedMovie,

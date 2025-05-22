@@ -46,6 +46,8 @@ class CatalogRepositoryImpl @Inject constructor(
             }
             when (loginResponse?.code()) {
                 201 -> {
+                    Logger.i { "Login successful" }
+                    Logger.i { "Fetching categories for Movie section with new token: ${loginResponse.body()!!.token}" }
                     userRepository.saveUserToken(loginResponse.body()!!.token)
                     getMovieCatalog(loginResponse.body()!!.token)
                 }

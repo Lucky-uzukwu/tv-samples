@@ -55,15 +55,19 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.jetstream.R
 import com.google.jetstream.data.entities.MovieDetails
+import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import com.google.jetstream.presentation.theme.JetStreamButtonShape
+import com.google.jetstream.presentation.utils.formatDuration
+import com.google.jetstream.presentation.utils.formatPLot
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MovieDetails(
     movieDetails: MovieDetails,
+    selectedMovie: MovieNew,
     goToMoviePlayer: () -> Unit
 ) {
     val childPadding = rememberChildPadding()
@@ -77,35 +81,37 @@ fun MovieDetails(
             .bringIntoViewRequester(bringIntoViewRequester)
     ) {
         MovieImageWithGradients(
-            movieDetails = movieDetails,
+            movie = selectedMovie,
             modifier = Modifier.fillMaxSize()
         )
 
         Column(modifier = Modifier.fillMaxWidth(0.55f)) {
-            Spacer(modifier = Modifier.height(108.dp))
+            Spacer(modifier = Modifier.height(50.dp))
             Column(
                 modifier = Modifier.padding(start = childPadding.start)
             ) {
-                MovieLargeTitle(movieTitle = movieDetails.name)
+                MovieLargeTitle(movieTitle = selectedMovie.title)
 
                 Column(
                     modifier = Modifier.alpha(0.75f)
                 ) {
-                    MovieDescription(description = movieDetails.description)
+                    MovieDescription(description = selectedMovie.plot.toString())
                     DotSeparatedRow(
                         modifier = Modifier.padding(top = 20.dp),
                         texts = listOf(
-                            movieDetails.pgRating,
-                            movieDetails.releaseDate,
-                            movieDetails.categories.joinToString(", "),
-                            movieDetails.duration
+                            (selectedMovie.releaseDate?.substring(0, 4)
+                                ?: "-") + " (${selectedMovie.countries.first().iso31661})",
+                            selectedMovie.genres.joinToString(", ") { it.name },
+                            selectedMovie.duration?.formatDuration() ?: "0h 0m"
                         )
                     )
-                    DirectorScreenplayMusicRow(
-                        director = movieDetails.director,
-                        screenplay = movieDetails.screenplay,
-                        music = movieDetails.music
-                    )
+
+                    // TODO: Maybe show streaming providers here
+//                    DirectorScreenplayMusicRow(
+//                        director = movieDetails.director,
+//                        screenplay = movieDetails.screenplay,
+//                        music = movieDetails.music
+//                    )
                 }
                 WatchTrailerButton(
                     modifier = Modifier.onFocusChanged {
@@ -137,7 +143,7 @@ private fun WatchTrailerButton(
         )
         Spacer(Modifier.size(8.dp))
         Text(
-            text = stringResource(R.string.watch_trailer),
+            text = "Watch Now",
             style = MaterialTheme.typography.titleSmall
         )
     }
@@ -183,7 +189,7 @@ private fun MovieDescription(description: String) {
             fontWeight = FontWeight.Normal
         ),
         modifier = Modifier.padding(top = 8.dp),
-        maxLines = 2
+//        maxLines = 4
     )
 }
 
@@ -200,24 +206,25 @@ private fun MovieLargeTitle(movieTitle: String) {
 
 @Composable
 private fun MovieImageWithGradients(
-    movieDetails: MovieDetails,
+    movie: MovieNew,
     modifier: Modifier = Modifier,
     gradientColor: Color = MaterialTheme.colorScheme.surface,
 ) {
+    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.posterImagePath
     AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current).data(movieDetails.posterUri)
+        model = ImageRequest.Builder(LocalContext.current).data(imageUrl)
             .crossfade(true).build(),
         contentDescription = StringConstants
             .Composable
             .ContentDescription
-            .moviePoster(movieDetails.name),
+            .moviePoster(movie.title),
         contentScale = ContentScale.Crop,
         modifier = modifier.drawWithContent {
             drawContent()
             drawRect(
                 Brush.verticalGradient(
                     colors = listOf(Color.Transparent, gradientColor),
-                    startY = 600f
+                    startY = 400f
                 )
             )
             drawRect(

@@ -36,6 +36,24 @@ fun Modifier.fadingEdge(brush: Brush) = this
         drawRect(brush = brush, blendMode = BlendMode.DstIn)
     }
 
+fun MovieNew.formatPLot(): String {
+    val plotWords = this.plot?.split(" ") ?: emptyList()
+    val formattedPlot = plotWords.chunked(9).joinToString("\n") { chunk ->
+        // Ensure the second line (and subsequent lines) are not more than 9 words
+        if (chunk.size > 9) chunk.take(9).joinToString(" ") + "..."
+        else chunk.joinToString(" ")
+    }.let {
+        // Ensure the ellipsis is added correctly if the original plot was truncated.
+        // and the original plot had more words than what's displayed (2 lines * 9 words = 18 words approx)
+        // and the current formatted plot doesn't already end with an ellipsis
+        if (plotWords.size > 18 && !it.endsWith("...")) {
+            // Trim potentially added newlines if ellipsis is added at the end of everything
+            it.trimEnd() + "..."
+        } else it
+    }
+    return formattedPlot
+}
+
 
 fun MovieNew.getImdbRating(): String? {
     return if (this.imdbRating?.length!! > 3) {

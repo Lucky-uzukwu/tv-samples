@@ -41,6 +41,7 @@ import androidx.tv.material3.MaterialTheme
 import com.google.jetstream.R
 import com.google.jetstream.data.entities.Movie
 import com.google.jetstream.data.entities.MovieDetails
+import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
@@ -56,7 +57,8 @@ fun MovieDetailsScreen(
     goToMoviePlayer: () -> Unit,
     onBackPressed: () -> Unit,
     refreshScreenWithNewMovie: (Movie) -> Unit,
-    movieDetailsScreenViewModel: MovieDetailsScreenViewModel = hiltViewModel()
+    movieDetailsScreenViewModel: MovieDetailsScreenViewModel = hiltViewModel(),
+    selectedMovie: MovieNew? = null
 ) {
     val uiState by movieDetailsScreenViewModel.uiState.collectAsStateWithLifecycle()
 
@@ -70,15 +72,19 @@ fun MovieDetailsScreen(
         }
 
         is MovieDetailsScreenUiState.Done -> {
-            Details(
-                movieDetails = s.movieDetails,
-                goToMoviePlayer = goToMoviePlayer,
-                onBackPressed = onBackPressed,
-                refreshScreenWithNewMovie = refreshScreenWithNewMovie,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .animateContentSize()
-            )
+            if (selectedMovie != null) {
+                Details(
+                    movieDetails = s.movieDetails,
+                    selectedMovie = selectedMovie,
+                    goToMoviePlayer = goToMoviePlayer,
+                    onBackPressed = onBackPressed,
+                    refreshScreenWithNewMovie = refreshScreenWithNewMovie,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .animateContentSize()
+                )
+            }
+
         }
     }
 }
@@ -86,6 +92,7 @@ fun MovieDetailsScreen(
 @Composable
 private fun Details(
     movieDetails: MovieDetails,
+    selectedMovie: MovieNew,
     goToMoviePlayer: () -> Unit,
     onBackPressed: () -> Unit,
     refreshScreenWithNewMovie: (Movie) -> Unit,
@@ -101,6 +108,7 @@ private fun Details(
         item {
             MovieDetails(
                 movieDetails = movieDetails,
+                selectedMovie = selectedMovie,
                 goToMoviePlayer = goToMoviePlayer
             )
         }
