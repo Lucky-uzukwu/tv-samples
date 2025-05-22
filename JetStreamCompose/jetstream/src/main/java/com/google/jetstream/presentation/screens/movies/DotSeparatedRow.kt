@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
@@ -43,6 +44,8 @@ fun DotSeparatedRow(
         texts.forEachIndexed { index, text ->
             Text(
                 text = text,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White.copy(alpha = 0.9f),
                 style = MaterialTheme.typography.titleSmall.copy(
                     fontWeight = FontWeight.Normal
                 )

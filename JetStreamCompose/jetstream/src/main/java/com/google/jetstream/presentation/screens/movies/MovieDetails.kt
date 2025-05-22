@@ -138,7 +138,8 @@ private fun WatchTrailerButton(
         Spacer(Modifier.size(8.dp))
         Text(
             text = "Watch Now",
-            style = MaterialTheme.typography.titleSmall
+            style = MaterialTheme.typography.titleSmall,
+            color = Color.White
         )
     }
 }
@@ -155,7 +156,8 @@ private fun DirectorScreenplayMusicRow(
                 .padding(end = 32.dp)
                 .weight(1f),
             title = stringResource(R.string.director),
-            value = director
+            value = director,
+            valueColor = Color.White.copy(alpha = 0.9f)
         )
 
         TitleValueText(
@@ -163,13 +165,15 @@ private fun DirectorScreenplayMusicRow(
                 .padding(end = 32.dp)
                 .weight(1f),
             title = stringResource(R.string.screenplay),
-            value = screenplay
+            value = screenplay,
+            valueColor = Color.White.copy(alpha = 0.9f)
         )
 
         TitleValueText(
             modifier = Modifier.weight(1f),
             title = stringResource(R.string.music),
-            value = music
+            value = music,
+            valueColor = Color.White.copy(alpha = 0.9f)
         )
     }
 }
@@ -180,7 +184,8 @@ private fun MovieDescription(description: String) {
         text = description,
         style = MaterialTheme.typography.titleSmall.copy(
             fontSize = 15.sp,
-            fontWeight = FontWeight.Normal
+            fontWeight = FontWeight.SemiBold,
+            color = Color.White.copy(alpha = 0.9f)
         ),
         modifier = Modifier.padding(top = 8.dp),
 //        maxLines = 4
@@ -192,7 +197,8 @@ private fun MovieLargeTitle(movieTitle: String) {
     Text(
         text = movieTitle,
         style = MaterialTheme.typography.displayMedium.copy(
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = Color.White.copy(alpha = 0.9f)
         ),
         maxLines = 1
     )

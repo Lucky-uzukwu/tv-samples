@@ -248,8 +248,7 @@ private fun Body(
         composable(Screens.Home()) {
             HomeScreen(
                 onMovieClick = { selectedMovie ->
-//                    openMovieDetailsScreen(selectedMovie.id)
-                    openMovieDetailsScreen("8daa7d22d13a9")
+                    openMovieDetailsScreen(selectedMovie.id.toString())
                 },
                 goToVideoPlayer = openVideoPlayer,
                 onScroll = updateTopBarVisibility,

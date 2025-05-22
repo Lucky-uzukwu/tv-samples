@@ -32,6 +32,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.DrawModifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -99,11 +100,14 @@ private fun Details(
 ) {
     val childPadding = rememberChildPadding()
 
-    MovieImageWithGradients(
-        movie = selectedMovie,
-        modifier = Modifier
-            .fillMaxSize()
-    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        MovieImageWithGradients(
+            movie = selectedMovie,
+            modifier = Modifier.fillMaxSize()
+        )
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f)))
+    }
+
 
     BackHandler(onBack = onBackPressed)
     LazyColumn(
@@ -165,12 +169,14 @@ private fun Details(
                 TitleValueText(
                     modifier = itemModifier,
                     title = stringResource(R.string.status),
-                    value = "Released"
+                    value = "Released",
+                    valueColor = Color.White
                 )
                 TitleValueText(
                     modifier = itemModifier,
                     title = stringResource(R.string.original_language),
-                    value = selectedMovie.languages.first().englishName
+                    value = selectedMovie.languages.first().englishName,
+                    valueColor = Color.White
                 )
             }
         }
