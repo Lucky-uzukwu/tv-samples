@@ -19,10 +19,12 @@ package com.google.jetstream.presentation.screens.movies
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.jetstream.data.entities.MovieDetails
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.UserRepository
+import com.google.jetstream.presentation.screens.home.pagingsources.MoviesPagingSources
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,7 +36,7 @@ import kotlinx.coroutines.flow.stateIn
 @HiltViewModel
 class MovieDetailsScreenViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    repository: MovieRepository,
+    movieRepository: MovieRepository,
     userRepository: UserRepository,
 ) : ViewModel() {
     val uiState: StateFlow<MovieDetailsScreenUiState> = combine(
@@ -45,21 +47,51 @@ class MovieDetailsScreenViewModel @Inject constructor(
         if (movieId == null || userToken == null) {
             MovieDetailsScreenUiState.Error
         } else {
-            val details = repository.getMovieDetailsNew(
+            val details = movieRepository.getMovieDetailsNew(
                 movieId = movieId,
                 token = userToken
             ).firstOrNull() ?: return@combine MovieDetailsScreenUiState.Error
-            MovieDetailsScreenUiState.Done(movie = details)
+
+            val similarMovies = fetchMoviesByGenre(
+                genreId = details.genres.first().id,
+                movieRepository = movieRepository,
+                userRepository = userRepository
+            )
+            MovieDetailsScreenUiState.Done(
+                similarMovies = similarMovies,
+                movie = details
+            )
         }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = MovieDetailsScreenUiState.Loading
     )
+
+
+    private fun fetchMoviesByGenre(
+        movieRepository: MovieRepository,
+        genreId: Int,
+        userRepository: UserRepository
+    ): StateFlow<PagingData<MovieNew>> {
+        return MoviesPagingSources().getMoviesGenrePagingSource(
+            genreId = genreId,
+            movieRepository = movieRepository,
+            userRepository = userRepository
+        ).cachedIn(viewModelScope).stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            PagingData.empty()
+        )
+    }
 }
+
 
 sealed class MovieDetailsScreenUiState {
     data object Loading : MovieDetailsScreenUiState()
     data object Error : MovieDetailsScreenUiState()
-    data class Done(val movie: MovieNew) : MovieDetailsScreenUiState()
+    data class Done(
+        val movie: MovieNew,
+        val similarMovies: StateFlow<PagingData<MovieNew>>
+    ) : MovieDetailsScreenUiState()
 }

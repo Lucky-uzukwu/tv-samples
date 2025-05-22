@@ -73,7 +73,6 @@ import androidx.tv.material3.Text
 import co.touchlab.kermit.Logger
 import coil.compose.AsyncImage
 import com.google.jetstream.R
-import com.google.jetstream.data.entities.Movie
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.common.DisplayMovieDescription
@@ -93,10 +92,9 @@ import com.google.jetstream.presentation.utils.handleDPadKeyEvents
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun HeroSectionCarousel(
-    movies: List<Movie>,
-    moviesNew: LazyPagingItems<MovieNew>,
-    goToVideoPlayer: (movie: Movie) -> Unit,
-    goToMoreInfo: (movie: Movie) -> Unit,
+    movies: LazyPagingItems<MovieNew>,
+    goToVideoPlayer: (movie: MovieNew) -> Unit,
+    goToMoreInfo: (movie: MovieNew) -> Unit,
     setSelectedMovie: (MovieNew) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -112,10 +110,10 @@ fun HeroSectionCarousel(
         derivedStateOf { currentPage * itemsPerPage }
     }
     val endIndex by remember {
-        derivedStateOf { minOf(startIndex + itemsPerPage - 1, moviesNew.itemCount - 1) }
+        derivedStateOf { minOf(startIndex + itemsPerPage - 1, movies.itemCount - 1) }
     }
     val currentItemCount by remember {
-        derivedStateOf { if (moviesNew.itemCount > 0) (endIndex - startIndex + 1) else 0 }
+        derivedStateOf { if (movies.itemCount > 0) (endIndex - startIndex + 1) else 0 }
     }
 
     val watchNowButtonFocusRequester = remember { FocusRequester() }
@@ -141,11 +139,11 @@ fun HeroSectionCarousel(
                     onRight = {
                         if (currentMovieIndex < currentItemCount - 1) {
                             currentMovieIndex += 1
-                        } else if (startIndex + itemsPerPage < moviesNew.itemCount) {
+                        } else if (startIndex + itemsPerPage < movies.itemCount) {
                             currentPage += 1
                             currentMovieIndex += 1
                             // Trigger pagination safely
-                            moviesNew.loadState.append is LoadState.NotLoading || moviesNew.get(
+                            movies.loadState.append is LoadState.NotLoading || movies.get(
                                 startIndex + itemsPerPage
                             ) != null
                         }
@@ -184,7 +182,7 @@ fun HeroSectionCarousel(
                 .togetherWith(fadeOut(tween(durationMillis = 1000))),
             content = { idx ->
                 val movieIndex = startIndex + idx
-                val movieNew = moviesNew[movieIndex]
+                val movieNew = movies[movieIndex]
 
                 // Only render if the item is loaded
                 if (movieNew != null) {
@@ -198,20 +196,21 @@ fun HeroSectionCarousel(
                         isCarouselFocused = isCarouselFocused,
                         modifier = Modifier.fillMaxSize(),
                         onWatchNowClick = {
-                            movies.getOrNull(movieIndex)?.let { goToVideoPlayer(it) }
+                            movies.itemSnapshotList.items.get(movieIndex)
+                                .let { goToVideoPlayer(it) }
                         },
                         onMoreInfoClick = {
-                            movies.getOrNull(movieIndex)?.let { goToMoreInfo(it) }
+                            movies.itemSnapshotList.items.get(movieIndex).let { goToMoreInfo(it) }
                         },
                         watchNowButtonFocusRequester = watchNowButtonFocusRequester,
                         moreInfoButtonFocusRequester = moreInfoButtonFocusRequester,
                         onInnerElementRight = {
                             if (currentMovieIndex < currentItemCount - 1) {
                                 currentMovieIndex += 1
-                            } else if (startIndex + itemsPerPage < moviesNew.itemCount) {
+                            } else if (startIndex + itemsPerPage < movies.itemCount) {
                                 currentPage += 1
                                 currentMovieIndex = 0
-                                moviesNew.loadState.append is LoadState.NotLoading || moviesNew.get(
+                                movies.loadState.append is LoadState.NotLoading || movies.get(
                                     startIndex + itemsPerPage
                                 ) != null
                             }

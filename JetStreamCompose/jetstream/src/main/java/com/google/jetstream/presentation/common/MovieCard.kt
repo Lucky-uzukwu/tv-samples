@@ -37,7 +37,7 @@ fun MovieCard(
 ) {
     StandardCardContainer(
         modifier = modifier,
-        title = title,
+        title = { },
         imageCard = {
             Surface(
                 onClick = onClick,

@@ -4,7 +4,6 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.google.jetstream.data.network.Catalog
-import com.google.jetstream.data.network.Genre
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.UserRepository
@@ -12,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 
 private const val NETWORK_PAGE_SIZE = 30
 
-class HomeScreenPagingSources {
+class MoviesPagingSources {
 
 
     fun getMoviesCatalogPagingSource(
@@ -37,7 +36,7 @@ class HomeScreenPagingSources {
     }
 
     fun getMoviesGenrePagingSource(
-        genre: Genre,
+        genreId: Int,
         movieRepository: MovieRepository,
         userRepository: UserRepository
     ): Flow<PagingData<MovieNew>> {
@@ -52,7 +51,7 @@ class HomeScreenPagingSources {
             MoviesGenrePagingSource(
                 movieRepository,
                 userRepository,
-                genre.id
+                genreId
             )
         }.flow
     }

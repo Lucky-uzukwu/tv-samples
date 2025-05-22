@@ -51,7 +51,7 @@ import kotlinx.coroutines.flow.StateFlow
 @Composable
 fun HomeScreen(
     onMovieClick: (movie: MovieNew) -> Unit,
-    goToVideoPlayer: (movie: Movie) -> Unit,
+    goToVideoPlayer: (movie: MovieNew) -> Unit,
     selectedMovie: MovieNew? = null,
     setSelectedMovie: (movie: MovieNew) -> Unit,
     onScroll: (isTopBarVisible: Boolean) -> Unit,
@@ -91,7 +91,7 @@ private fun Catalog(
     genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>,
     onMovieClick: (movie: MovieNew) -> Unit,
     onScroll: (isTopBarVisible: Boolean) -> Unit,
-    goToVideoPlayer: (movie: Movie) -> Unit,
+    goToVideoPlayer: (movie: MovieNew) -> Unit,
     modifier: Modifier = Modifier,
     selectedMovie: MovieNew? = null,
     setSelectedMovie: (movie: MovieNew) -> Unit,
@@ -127,8 +127,7 @@ private fun Catalog(
         ) {
             item(contentType = "HeroSectionCarousel") {
                 HeroSectionCarousel(
-                    movies = featuredMovies,
-                    moviesNew = featuredMoviesNew,
+                    movies = featuredMoviesNew,
                     goToVideoPlayer = goToVideoPlayer,
                     goToMoreInfo = {},
                     setSelectedMovie = setSelectedMovie,

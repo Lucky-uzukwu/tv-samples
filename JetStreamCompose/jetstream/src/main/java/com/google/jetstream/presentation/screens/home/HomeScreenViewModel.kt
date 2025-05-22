@@ -30,7 +30,7 @@ import com.google.jetstream.data.repositories.CatalogRepository
 import com.google.jetstream.data.repositories.GenreRepository
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.UserRepository
-import com.google.jetstream.presentation.screens.home.pagingsources.HomeScreenPagingSources
+import com.google.jetstream.presentation.screens.home.pagingsources.MoviesPagingSources
 import com.google.jetstream.presentation.screens.home.pagingsources.MoviesHeroSectionPagingSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -106,7 +106,7 @@ class HomeScreeViewModel @Inject constructor(
     ): Map<Catalog, StateFlow<PagingData<MovieNew>>> {
         val catalogs = catalogRepository.getMovieCatalog(token).firstOrNull() ?: emptyList()
         val catalogToMovies = catalogs.associateWith { catalog ->
-            HomeScreenPagingSources().getMoviesCatalogPagingSource(
+            MoviesPagingSources().getMoviesCatalogPagingSource(
                 catalog = catalog,
                 movieRepository = movieRepository,
                 userRepository = userRepository
@@ -125,9 +125,9 @@ class HomeScreeViewModel @Inject constructor(
         userRepository: UserRepository
     ): Map<Genre, StateFlow<PagingData<MovieNew>>> {
         val genres = genreRepository.getMovieGenre(token).firstOrNull() ?: emptyList()
-        val genreToMovies = genres.associateWith { catalog ->
-            HomeScreenPagingSources().getMoviesGenrePagingSource(
-                genre = catalog,
+        val genreToMovies = genres.associateWith { genre ->
+            MoviesPagingSources().getMoviesGenrePagingSource(
+                genreId = genre.id,
                 movieRepository = movieRepository,
                 userRepository = userRepository
             ).cachedIn(viewModelScope).stateIn(

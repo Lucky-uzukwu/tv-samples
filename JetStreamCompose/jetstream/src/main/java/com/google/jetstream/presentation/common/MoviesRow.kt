@@ -56,11 +56,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.paging.PagingData
+import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
+import kotlinx.coroutines.flow.StateFlow
 
 enum class ItemDirection(val aspectRatio: Float) {
     Vertical(10.5f / 16f),
@@ -70,7 +73,7 @@ enum class ItemDirection(val aspectRatio: Float) {
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MoviesRow(
-    movieList: MovieListNew,
+    similarMovies: StateFlow<PagingData<MovieNew>>,
     modifier: Modifier = Modifier,
     itemDirection: ItemDirection = ItemDirection.Vertical,
     startPadding: Dp = rememberChildPadding().start,
@@ -93,15 +96,19 @@ fun MoviesRow(
             Text(
                 text = title,
                 style = titleStyle,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White.copy(alpha = 0.9f),
                 modifier = Modifier
                     .alpha(1f)
                     .padding(start = startPadding, top = 16.dp, bottom = 16.dp)
             )
         }
         AnimatedContent(
-            targetState = movieList,
+            targetState = similarMovies,
             label = "",
         ) { movieState ->
+            val similarMoviesAsLazyItems = movieState.collectAsLazyPagingItems()
+            val similarMovies = similarMoviesAsLazyItems.itemSnapshotList.items
             LazyRow(
                 contentPadding = PaddingValues(
                     start = startPadding,
@@ -114,7 +121,7 @@ fun MoviesRow(
                         firstItem
                     }
             ) {
-                itemsIndexed(movieState, key = { _, movie -> movie.id }) { index, movie ->
+                itemsIndexed(similarMovies, key = { _, movie -> movie.id }) { index, movie ->
                     val itemModifier = if (index == 0) {
                         Modifier.focusRequester(firstItem)
                     } else {
@@ -323,7 +330,8 @@ private fun MoviesRowItemText(
             label = "",
         )
         Text(
-            text = movieTitle,
+            text = if (movieTitle.length > 14) movieTitle.take(14) + "..." else movieTitle,
+            color = Color.White.copy(alpha = 0.9f),
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontWeight = FontWeight.SemiBold
             ),

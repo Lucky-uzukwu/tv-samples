@@ -32,7 +32,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.DrawModifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -40,19 +39,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.PagingData
 import androidx.tv.material3.MaterialTheme
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.jetstream.R
 import com.google.jetstream.data.entities.Movie
-import com.google.jetstream.data.entities.MovieDetails
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.MoviesRow
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
-import com.google.jetstream.presentation.utils.getImdbRating
+import kotlinx.coroutines.flow.StateFlow
 
 object MovieDetailsScreen {
     const val MovieIdBundleKey = "movieId"
@@ -62,7 +61,7 @@ object MovieDetailsScreen {
 fun MovieDetailsScreen(
     goToMoviePlayer: () -> Unit,
     onBackPressed: () -> Unit,
-    refreshScreenWithNewMovie: (Movie) -> Unit,
+    refreshScreenWithNewMovie: (MovieNew) -> Unit,
     movieDetailsScreenViewModel: MovieDetailsScreenViewModel = hiltViewModel(),
 ) {
     val uiState by movieDetailsScreenViewModel.uiState.collectAsStateWithLifecycle()
@@ -79,6 +78,7 @@ fun MovieDetailsScreen(
         is MovieDetailsScreenUiState.Done -> {
             Details(
                 selectedMovie = s.movie,
+                similarMovies = s.similarMovies,
                 goToMoviePlayer = goToMoviePlayer,
                 onBackPressed = onBackPressed,
                 refreshScreenWithNewMovie = refreshScreenWithNewMovie,
@@ -93,9 +93,10 @@ fun MovieDetailsScreen(
 @Composable
 private fun Details(
     selectedMovie: MovieNew,
+    similarMovies: StateFlow<PagingData<MovieNew>>,
     goToMoviePlayer: () -> Unit,
     onBackPressed: () -> Unit,
-    refreshScreenWithNewMovie: (Movie) -> Unit,
+    refreshScreenWithNewMovie: (MovieNew) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val childPadding = rememberChildPadding()
@@ -111,7 +112,7 @@ private fun Details(
 
     BackHandler(onBack = onBackPressed)
     LazyColumn(
-        contentPadding = PaddingValues(bottom = 135.dp),
+        contentPadding = PaddingValues(bottom = 100.dp),
         modifier = modifier,
     ) {
         item {
@@ -126,17 +127,16 @@ private fun Details(
                 castAndCrew = selectedMovie.moviePeople
             )
         }
-        // TODO: Uncomment and use
-//        item {
-//            MoviesRow(
-//                title = StringConstants
-//                    .Composable
-//                    .movieDetailsScreenSimilarTo(movieDetails.name),
-//                titleStyle = MaterialTheme.typography.titleMedium,
-//                movieList = movieDetails.similarMovies,
-//                onMovieSelected = refreshScreenWithNewMovie
-//            )
-//        }
+        item {
+            MoviesRow(
+                title = StringConstants
+                    .Composable
+                    .movieDetailsScreenSimilarTo(selectedMovie.title),
+                titleStyle = MaterialTheme.typography.titleMedium,
+                similarMovies = similarMovies,
+                onMovieSelected = refreshScreenWithNewMovie
+            )
+        }
 
 //        item {
 //            MovieReviews(
