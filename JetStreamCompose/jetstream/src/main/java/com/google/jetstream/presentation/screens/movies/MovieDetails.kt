@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material.icons.Icons
@@ -33,6 +34,7 @@ import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithContent
@@ -44,6 +46,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Button
@@ -57,10 +60,15 @@ import com.google.jetstream.R
 import com.google.jetstream.data.entities.MovieDetails
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.util.StringConstants
+import com.google.jetstream.presentation.common.DisplayMovieGenericText
+import com.google.jetstream.presentation.common.IMDbLogo
+import com.google.jetstream.presentation.common.StreamingProviderIcon
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import com.google.jetstream.presentation.theme.JetStreamButtonShape
 import com.google.jetstream.presentation.utils.formatDuration
 import com.google.jetstream.presentation.utils.formatPLot
+import com.google.jetstream.presentation.utils.formatVotes
+import com.google.jetstream.presentation.utils.getImdbRating
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -85,11 +93,13 @@ fun MovieDetails(
                 modifier = Modifier.padding(start = childPadding.start)
             ) {
                 MovieLargeTitle(movieTitle = selectedMovie.title)
+                if (selectedMovie.tagLine != null) {
+                    MovieTagLine(movieTagline = selectedMovie.tagLine)
+                }
 
                 Column(
                     modifier = Modifier.alpha(0.75f)
                 ) {
-                    MovieDescription(description = selectedMovie.plot.toString())
                     DotSeparatedRow(
                         modifier = Modifier.padding(top = 20.dp),
                         texts = listOf(
@@ -99,13 +109,33 @@ fun MovieDetails(
                             selectedMovie.duration?.formatDuration() ?: "0h 0m"
                         )
                     )
+                    MovieDescription(description = selectedMovie.plot.toString())
+                    Spacer(modifier = Modifier.height(10.dp))
 
-                    // TODO: Maybe show streaming providers here
-//                    DirectorScreenplayMusicRow(
-//                        director = movieDetails.director,
-//                        screenplay = movieDetails.screenplay,
-//                        music = movieDetails.music
-//                    )
+                    Row {
+                        IMDbLogo()
+                        Spacer(modifier = Modifier.width(8.dp))
+                        DisplayMovieGenericText(
+                            "${
+                                selectedMovie.getImdbRating()
+                            }/10 - ${selectedMovie.imdbVotes.toString().formatVotes()} IMDB Votes"
+                        )
+                    }
+
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        selectedMovie.streamingProviders.take(5).forEach { streamingProvider ->
+                            if (streamingProvider.logoPath != null) {
+                                StreamingProviderIcon(
+                                    modifier = Modifier.padding(top = 16.dp),
+                                    logoPath = streamingProvider.logoPath,
+                                    contentDescription = "Prime Video",
+                                )
+                                Spacer(Modifier.width(16.dp))
+                            }
+
+                        }
+                    }
                 }
                 WatchTrailerButton(
                     modifier = Modifier.onFocusChanged {
@@ -188,7 +218,8 @@ private fun MovieDescription(description: String) {
             color = Color.White.copy(alpha = 0.9f)
         ),
         modifier = Modifier.padding(top = 8.dp),
-//        maxLines = 4
+        maxLines = 3,
+        overflow = TextOverflow.Ellipsis
     )
 }
 
@@ -198,6 +229,18 @@ private fun MovieLargeTitle(movieTitle: String) {
         text = movieTitle,
         style = MaterialTheme.typography.displayMedium.copy(
             fontWeight = FontWeight.Bold,
+            color = Color.White.copy(alpha = 0.9f)
+        ),
+        maxLines = 1
+    )
+}
+
+@Composable
+private fun MovieTagLine(movieTagline: String) {
+    Text(
+        text = movieTagline,
+        style = MaterialTheme.typography.bodyMedium.copy(
+            fontWeight = FontWeight.Medium,
             color = Color.White.copy(alpha = 0.9f)
         ),
         maxLines = 1

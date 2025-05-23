@@ -55,7 +55,7 @@ fun DotSeparatedRow(
                     modifier = Modifier
                         .padding(horizontal = 8.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 1f))
+                        .background(Color.White)
                         .size(4.dp)
                 )
             }
