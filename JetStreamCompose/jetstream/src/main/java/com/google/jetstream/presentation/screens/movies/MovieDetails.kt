@@ -169,7 +169,6 @@ private fun WatchTrailerButton(
         Text(
             text = "Watch Now",
             style = MaterialTheme.typography.titleSmall,
-            color = Color.White
         )
     }
 }

@@ -106,7 +106,7 @@ private fun CastAndCrewItem(
             focusedBorder = Border(
                 border = BorderStroke(
                     width = JetStreamBorderWidth,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color.White
                 ),
                 shape = JetStreamCardShape
             )

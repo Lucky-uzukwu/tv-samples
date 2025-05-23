@@ -18,6 +18,8 @@ package com.google.jetstream.presentation.common
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,11 +60,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.tv.material3.Border
+import androidx.tv.material3.CardDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
+import com.google.jetstream.presentation.theme.JetStreamBorderWidth
+import com.google.jetstream.presentation.theme.JetStreamCardShape
 import kotlinx.coroutines.flow.StateFlow
 
 enum class ItemDirection(val aspectRatio: Float) {
@@ -248,6 +254,9 @@ private fun MoviesRowItem(
             )
         },
         modifier = Modifier
+            .border(
+                width = JetStreamBorderWidth, color = if (isFocused) Color.White else Color.Transparent, shape = JetStreamCardShape
+            )
             .onFocusChanged {
                 isFocused = it.isFocused
                 if (it.isFocused) {
