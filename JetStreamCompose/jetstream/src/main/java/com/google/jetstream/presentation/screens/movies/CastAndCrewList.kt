@@ -64,9 +64,7 @@ fun CastAndCrewList(
 ) {
     val childPadding = rememberChildPadding()
 
-    Column(
-//        modifier = Modifier.padding(top = childPadding.top),
-    ) {
+    Column{
         Text(
             text = stringResource(R.string.cast_and_crew),
             fontWeight = FontWeight.SemiBold,

@@ -87,7 +87,7 @@ fun rememberChildPadding(direction: LayoutDirection = LocalLayoutDirection.curre
 fun DashboardScreen(
     openCategoryMovieList: (categoryId: String) -> Unit = {},
     openMovieDetailsScreen: (movieId: String) -> Unit = {},
-    openVideoPlayer: (MovieNew) -> Unit = {},
+    openVideoPlayer: (movieId: String) -> Unit = {},
     isComingBackFromDifferentScreen: Boolean,
     selectedMovie: MovieNew? = null,
     setSelectedMovie: (movie: MovieNew) -> Unit,
@@ -229,7 +229,7 @@ private fun BackPressHandledArea(
 private fun Body(
     openCategoryMovieList: (categoryId: String) -> Unit,
     openMovieDetailsScreen: (movieId: String) -> Unit,
-    openVideoPlayer: (MovieNew) -> Unit,
+    openVideoPlayer: (movieId: String) -> Unit,
     updateTopBarVisibility: (Boolean) -> Unit,
     selectedMovie: MovieNew? = null,
     setSelectedMovie: (movie: MovieNew) -> Unit,
@@ -250,7 +250,9 @@ private fun Body(
                 onMovieClick = { selectedMovie ->
                     openMovieDetailsScreen(selectedMovie.id.toString())
                 },
-                goToVideoPlayer = openVideoPlayer,
+                goToVideoPlayer = { selectedMovie ->
+                    openVideoPlayer(selectedMovie.id.toString())
+                },
                 onScroll = updateTopBarVisibility,
                 isTopBarVisible = isTopBarVisible,
                 selectedMovie = selectedMovie,

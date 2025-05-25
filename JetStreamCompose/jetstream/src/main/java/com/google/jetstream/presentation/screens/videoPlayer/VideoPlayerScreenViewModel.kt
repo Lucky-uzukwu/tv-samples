@@ -20,38 +20,83 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.google.jetstream.data.entities.MovieDetails
+import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.repositories.MovieRepository
+import com.google.jetstream.data.repositories.UserRepository
+import com.google.jetstream.presentation.screens.home.pagingsources.MoviesPagingSources
+import com.google.jetstream.presentation.screens.movies.MovieDetailsScreen
+import com.google.jetstream.presentation.screens.movies.MovieDetailsScreenUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class VideoPlayerScreenViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    repository: MovieRepository,
+    movieRepository: MovieRepository,
+    userRepository: UserRepository,
 ) : ViewModel() {
-    val uiState = savedStateHandle
-        .getStateFlow<String?>(VideoPlayerScreen.MovieIdBundleKey, null)
-        .map { id ->
-            if (id == null) {
-                VideoPlayerScreenUiState.Error
-            } else {
-                val details = repository.getMovieDetails(movieId = id)
-                VideoPlayerScreenUiState.Done(movieDetails = details)
-            }
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = VideoPlayerScreenUiState.Loading
+    val uiState: StateFlow<VideoPlayerScreenUiState> = combine(
+        savedStateHandle
+            .getStateFlow<String?>(VideoPlayerScreen.MovieIdBundleKey, null),
+        userRepository.userToken,
+    ) { movieId, userToken ->
+        if (movieId == null || userToken == null) {
+            VideoPlayerScreenUiState.Error
+        } else {
+            val details = movieRepository.getMovieDetailsNew(
+                movieId = movieId,
+                token = userToken
+            ).firstOrNull() ?: return@combine VideoPlayerScreenUiState.Error
+
+            val similarMovies = fetchMoviesByGenre(
+                genreId = details.genres.first().id,
+                movieRepository = movieRepository,
+                userRepository = userRepository
+            )
+            VideoPlayerScreenUiState.Done(
+                similarMovies = similarMovies,
+                movie = details
+            )
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = VideoPlayerScreenUiState.Loading
+    )
+
+    private fun fetchMoviesByGenre(
+        movieRepository: MovieRepository,
+        genreId: Int,
+        userRepository: UserRepository
+    ): StateFlow<PagingData<MovieNew>> {
+        return MoviesPagingSources().getMoviesGenrePagingSource(
+            genreId = genreId,
+            movieRepository = movieRepository,
+            userRepository = userRepository
+        ).cachedIn(viewModelScope).stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            PagingData.empty()
         )
+    }
 }
+
 
 @Immutable
 sealed class VideoPlayerScreenUiState {
     data object Loading : VideoPlayerScreenUiState()
     data object Error : VideoPlayerScreenUiState()
-    data class Done(val movieDetails: MovieDetails) : VideoPlayerScreenUiState()
+    data class Done(
+        val movie: MovieNew,
+        val similarMovies: StateFlow<PagingData<MovieNew>>
+    ) : VideoPlayerScreenUiState()
 }

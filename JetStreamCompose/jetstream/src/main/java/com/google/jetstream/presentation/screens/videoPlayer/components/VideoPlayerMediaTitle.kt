@@ -43,58 +43,36 @@ enum class VideoPlayerMediaTitleType { AD, LIVE, DEFAULT }
 @Composable
 fun VideoPlayerMediaTitle(
     title: String,
-    secondaryText: String,
-    tertiaryText: String,
+    secondaryText: String?,
+    tertiaryText: String?,
     modifier: Modifier = Modifier,
     type: VideoPlayerMediaTitleType = VideoPlayerMediaTitleType.DEFAULT
 ) {
     val subTitle = buildString {
         append(secondaryText)
-        if (secondaryText.isNotEmpty() && tertiaryText.isNotEmpty()) append(" • ")
+        if (!secondaryText.isNullOrEmpty() && tertiaryText.isNullOrEmpty()) append(" • ")
         append(tertiaryText)
     }
     Column(modifier.fillMaxWidth()) {
         Text(title, style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(4.dp))
-        Row {
-            // TODO: Replaced with Badge component once developed
-            when (type) {
-                VideoPlayerMediaTitleType.AD -> {
-                    Text(
-                        text = stringResource(R.string.ad),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = Color.Black,
-                        modifier = Modifier
-                            .background(Color(0xFFFBC02D), shape = RoundedCornerShape(12.dp))
-                            .padding(horizontal = 8.dp, vertical = 2.dp)
-                            .alignByBaseline()
-                    )
-                    Spacer(Modifier.width(8.dp))
-                }
+        Text(
+            text = stringResource(R.string.live),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.inverseSurface,
+            modifier = Modifier
+                .background(Color(0xFFCC0000), shape = RoundedCornerShape(12.dp))
+                .padding(horizontal = 8.dp, vertical = 2.dp)
+//                .alignByBaseline()
+        )
 
-                VideoPlayerMediaTitleType.LIVE -> {
-                    Text(
-                        text = stringResource(R.string.live),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.inverseSurface,
-                        modifier = Modifier
-                            .background(Color(0xFFCC0000), shape = RoundedCornerShape(12.dp))
-                            .padding(horizontal = 8.dp, vertical = 2.dp)
-                            .alignByBaseline()
-                    )
+        Spacer(Modifier.width(8.dp))
 
-                    Spacer(Modifier.width(8.dp))
-                }
-
-                VideoPlayerMediaTitleType.DEFAULT -> {}
-            }
-
-            Text(
-                text = subTitle,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.alignByBaseline()
-            )
-        }
+        Text(
+            text = subTitle,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier
+        )
     }
 }
 

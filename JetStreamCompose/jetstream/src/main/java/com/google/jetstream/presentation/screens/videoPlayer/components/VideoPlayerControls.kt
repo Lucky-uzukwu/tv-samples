@@ -30,12 +30,13 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import com.google.jetstream.data.entities.MovieDetails
+import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.util.StringConstants
 
 @Composable
 fun VideoPlayerControls(
     player: Player,
-    movieDetails: MovieDetails,
+    movie: MovieNew,
     focusRequester: FocusRequester,
     onShowControls: () -> Unit = {},
 ) {
@@ -44,9 +45,9 @@ fun VideoPlayerControls(
     VideoPlayerMainFrame(
         mediaTitle = {
             VideoPlayerMediaTitle(
-                title = movieDetails.name,
-                secondaryText = movieDetails.releaseDate,
-                tertiaryText = movieDetails.director,
+                title = movie.title,
+                secondaryText = movie.releaseDate?.substring(0, 4),
+                tertiaryText = if (movie.streamingProviders.isNotEmpty()) movie.streamingProviders.first().name else null,
                 type = VideoPlayerMediaTitleType.DEFAULT
             )
         },
@@ -72,21 +73,21 @@ fun VideoPlayerControls(
                     icon = Icons.Default.AutoAwesomeMotion,
                     isPlaying = isPlaying,
                     contentDescription =
-                    StringConstants.Composable.VideoPlayerControlPlaylistButton,
+                        StringConstants.Composable.VideoPlayerControlPlaylistButton,
                     onShowControls = onShowControls
                 )
                 VideoPlayerControlsIcon(
                     icon = Icons.Default.ClosedCaption,
                     isPlaying = isPlaying,
                     contentDescription =
-                    StringConstants.Composable.VideoPlayerControlClosedCaptionsButton,
+                        StringConstants.Composable.VideoPlayerControlClosedCaptionsButton,
                     onShowControls = onShowControls
                 )
                 VideoPlayerControlsIcon(
                     icon = Icons.Default.Settings,
                     isPlaying = isPlaying,
                     contentDescription =
-                    StringConstants.Composable.VideoPlayerControlSettingsButton,
+                        StringConstants.Composable.VideoPlayerControlSettingsButton,
                     onShowControls = onShowControls
                 )
             }

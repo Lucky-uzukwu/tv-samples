@@ -32,15 +32,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.C
-import androidx.media3.common.MediaItem
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
+import androidx.paging.PagingData
 import com.google.jetstream.data.entities.Movie
 import com.google.jetstream.data.entities.MovieDetails
+import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.screens.videoPlayer.components.VideoPlayerControls
@@ -54,6 +52,13 @@ import com.google.jetstream.presentation.screens.videoPlayer.components.remember
 import com.google.jetstream.presentation.screens.videoPlayer.components.rememberVideoPlayerPulseState
 import com.google.jetstream.presentation.screens.videoPlayer.components.rememberVideoPlayerState
 import com.google.jetstream.presentation.utils.handleDPadKeyEvents
+import kotlinx.coroutines.flow.StateFlow
+import androidx.core.net.toUri
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
+import co.touchlab.kermit.Logger
 
 object VideoPlayerScreen {
     const val MovieIdBundleKey = "movieId"
@@ -84,7 +89,8 @@ fun VideoPlayerScreen(
 
         is VideoPlayerScreenUiState.Done -> {
             VideoPlayerScreenContent(
-                movieDetails = s.movieDetails,
+                selectedMovie = s.movie,
+                similarMovies = s.similarMovies,
                 onBackPressed = onBackPressed
             )
         }
@@ -93,7 +99,11 @@ fun VideoPlayerScreen(
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun VideoPlayerScreenContent(movieDetails: MovieDetails, onBackPressed: () -> Unit) {
+fun VideoPlayerScreenContent(
+    selectedMovie: MovieNew,
+    similarMovies: StateFlow<PagingData<MovieNew>>,
+    onBackPressed: () -> Unit
+) {
     val context = LocalContext.current
     val exoPlayer = rememberPlayer(context)
 
@@ -101,12 +111,13 @@ fun VideoPlayerScreenContent(movieDetails: MovieDetails, onBackPressed: () -> Un
         hideSeconds = 4,
     )
 
-    LaunchedEffect(exoPlayer, movieDetails) {
-        exoPlayer.addMediaItem(movieDetails.intoMediaItem())
-        movieDetails.similarMovies.forEach {
-            exoPlayer.addMediaItem(it.intoMediaItem())
-        }
-        exoPlayer.prepare()
+    LaunchedEffect(selectedMovie) {
+            Logger.i("Selected Movie: ${selectedMovie.title}, with video: ${selectedMovie.video?.hlsPlaylistUrl}")
+            exoPlayer.addMediaItem(MediaItem.fromUri(selectedMovie.video?.hlsPlaylistUrl.toString()))
+            exoPlayer.setMediaItem(MediaItem.fromUri(selectedMovie.video?.hlsPlaylistUrl.toString()))
+            exoPlayer.prepare()
+        // TODO Add similar movies to the exoPlayer
+
     }
 
     BackHandler(onBack = onBackPressed)
@@ -143,7 +154,7 @@ fun VideoPlayerScreenContent(movieDetails: MovieDetails, onBackPressed: () -> Un
             controls = {
                 VideoPlayerControls(
                     player = exoPlayer,
-                    movieDetails = movieDetails,
+                    movie = selectedMovie,
                     focusRequester = focusRequester,
                     onShowControls = { videoPlayerState.showControls(exoPlayer.isPlaying) },
                 )
@@ -193,7 +204,14 @@ private fun MovieDetails.intoMediaItem(): MediaItem {
                         .build()
                 )
             }
-        ).build()
+        )
+        .build()
+}
+
+private fun MovieNew.intoMediaItem(): MediaItem {
+    return MediaItem.Builder()
+        .setUri(video?.hlsPlaylistUrl?.toUri())
+        .build()
 }
 
 private fun Movie.intoMediaItem(): MediaItem {

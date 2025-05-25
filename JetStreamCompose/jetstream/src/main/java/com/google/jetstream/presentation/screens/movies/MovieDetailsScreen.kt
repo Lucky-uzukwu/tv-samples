@@ -59,7 +59,7 @@ object MovieDetailsScreen {
 
 @Composable
 fun MovieDetailsScreen(
-    goToMoviePlayer: () -> Unit,
+    openVideoPlayer: (movieId: String) -> Unit,
     onBackPressed: () -> Unit,
     refreshScreenWithNewMovie: (MovieNew) -> Unit,
     movieDetailsScreenViewModel: MovieDetailsScreenViewModel = hiltViewModel(),
@@ -79,7 +79,7 @@ fun MovieDetailsScreen(
             Details(
                 selectedMovie = s.movie,
                 similarMovies = s.similarMovies,
-                goToMoviePlayer = goToMoviePlayer,
+                openVideoPlayer = openVideoPlayer,
                 onBackPressed = onBackPressed,
                 refreshScreenWithNewMovie = refreshScreenWithNewMovie,
                 modifier = Modifier
@@ -94,7 +94,7 @@ fun MovieDetailsScreen(
 private fun Details(
     selectedMovie: MovieNew,
     similarMovies: StateFlow<PagingData<MovieNew>>,
-    goToMoviePlayer: () -> Unit,
+    openVideoPlayer: (movieId: String) -> Unit,
     onBackPressed: () -> Unit,
     refreshScreenWithNewMovie: (MovieNew) -> Unit,
     modifier: Modifier = Modifier,
@@ -118,7 +118,7 @@ private fun Details(
         item {
             MovieDetails(
                 selectedMovie = selectedMovie,
-                goToMoviePlayer = goToMoviePlayer
+                openVideoPlayer = openVideoPlayer
             )
         }
 

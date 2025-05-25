@@ -113,8 +113,8 @@ fun App(
                 )
             ) {
                 MovieDetailsScreen(
-                    goToMoviePlayer = {
-                        navController.navigate(Screens.VideoPlayer())
+                    openVideoPlayer = { movieId ->
+                        navController.navigate(Screens.VideoPlayer.withArgs(movieId))
                     },
                     refreshScreenWithNewMovie = { movie ->
                         navController.navigate(
@@ -144,8 +144,8 @@ fun App(
                             Screens.MovieDetails.withArgs(movieId)
                         )
                     },
-                    openVideoPlayer = {
-                        navController.navigate(Screens.VideoPlayer())
+                    openVideoPlayer = { movieId ->
+                        navController.navigate(Screens.VideoPlayer.withArgs(movieId))
                     },
                     onBackPressed = onBackPressed,
                     isComingBackFromDifferentScreen = isComingBackFromDifferentScreen,
