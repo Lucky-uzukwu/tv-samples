@@ -17,6 +17,7 @@
 package com.google.jetstream.presentation.screens.movies
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -84,6 +85,7 @@ fun MovieDetails(
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .focusable()
             .height(432.dp)
             .bringIntoViewRequester(bringIntoViewRequester)
     ) {

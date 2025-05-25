@@ -3,6 +3,8 @@ package com.google.jetstream.presentation.common
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -27,6 +29,7 @@ fun StreamingProviderIcon(
     modifier: Modifier = Modifier,
     borderColor: Color? = null,
     borderWidth: Dp = 1.dp,
+    onClick: (() -> Unit)? = null,
     placeholder: @Composable (() -> Unit)? = {
         // Default placeholder: a simple spinning indicator
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -50,7 +53,13 @@ fun StreamingProviderIcon(
                 } else {
                     Modifier
                 }
-            )
+            ).then(
+                if (onClick != null) {
+                    Modifier.clickable(onClick = onClick)
+                } else {
+                    Modifier
+                }
+            ),
     ) {
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
