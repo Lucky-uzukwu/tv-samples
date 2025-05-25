@@ -46,26 +46,6 @@ class MovieRepositoryImpl @Inject constructor(
     private val userRepository: UserRepository
 ) : MovieRepository {
 
-    override fun getFeaturedMovies() = flow {
-        val list = movieDataSource.getFeaturedMovieList()
-        emit(list)
-    }
-
-    override fun getTrendingMovies(): Flow<MovieList> = flow {
-        val list = movieDataSource.getTrendingMovieList()
-        emit(list)
-    }
-
-    override fun getTop10Movies(): Flow<MovieList> = flow {
-        val list = movieDataSource.getTop10MovieList()
-        emit(list)
-    }
-
-    override fun getNowPlayingMovies(): Flow<MovieList> = flow {
-        val list = movieDataSource.getNowPlayingMovieList()
-        emit(list)
-    }
-
     override fun getMovieCategories() = flow {
         val list = movieCategoryDataSource.getMovieCategoryList()
         emit(list)
@@ -135,11 +115,6 @@ class MovieRepositoryImpl @Inject constructor(
 
     override fun getMoviesWithLongThumbnail() = flow {
         val list = movieDataSource.getMovieList(ThumbnailType.Long)
-        emit(list)
-    }
-
-    override fun getMovies(): Flow<MovieList> = flow {
-        val list = movieDataSource.getMovieList()
         emit(list)
     }
 

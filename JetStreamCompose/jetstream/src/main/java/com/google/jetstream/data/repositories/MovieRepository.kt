@@ -25,15 +25,10 @@ import com.google.jetstream.data.network.MovieResponse
 import kotlinx.coroutines.flow.Flow
 
 interface MovieRepository {
-    fun getFeaturedMovies(): Flow<MovieList>
-    fun getTrendingMovies(): Flow<MovieList>
-    fun getTop10Movies(): Flow<MovieList>
-    fun getNowPlayingMovies(): Flow<MovieList>
     fun getMovieCategories(): Flow<MovieCategoryList>
     suspend fun getMovieCategoryDetails(categoryId: String): MovieCategoryDetails
     suspend fun searchMovies(query: String): MovieList
     fun getMoviesWithLongThumbnail(): Flow<MovieList>
-    fun getMovies(): Flow<MovieList>
     fun getPopularFilmsThisWeek(): Flow<MovieList>
     fun getTVShows(): Flow<MovieList>
     fun getBingeWatchDramas(): Flow<MovieList>
