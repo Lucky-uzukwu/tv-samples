@@ -34,6 +34,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
@@ -51,7 +52,7 @@ fun RowScope.VideoPlayerControllerIndicator(
     val isFocused by interactionSource.collectIsFocusedAsState()
     val color by rememberUpdatedState(
         newValue = if (isSelected) MaterialTheme.colorScheme.primary
-        else MaterialTheme.colorScheme.onSurface
+        else Color.White
     )
     val animatedIndicatorHeight by animateDpAsState(
         targetValue = 4.dp.times((if (isFocused) 2.5f else 1f))

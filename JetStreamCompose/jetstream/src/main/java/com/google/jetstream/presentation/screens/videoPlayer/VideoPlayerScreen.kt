@@ -112,12 +112,10 @@ fun VideoPlayerScreenContent(
     )
 
     LaunchedEffect(selectedMovie) {
-            Logger.i("Selected Movie: ${selectedMovie.title}, with video: ${selectedMovie.video?.hlsPlaylistUrl}")
-            exoPlayer.addMediaItem(MediaItem.fromUri(selectedMovie.video?.hlsPlaylistUrl.toString()))
-            exoPlayer.setMediaItem(MediaItem.fromUri(selectedMovie.video?.hlsPlaylistUrl.toString()))
-            exoPlayer.prepare()
-        // TODO Add similar movies to the exoPlayer
-
+        Logger.i("Selected Movie: ${selectedMovie.title}, with video: ${selectedMovie.video?.hlsPlaylistUrl}")
+        exoPlayer.addMediaItem(MediaItem.fromUri(selectedMovie.video?.hlsPlaylistUrl.toString()))
+        exoPlayer.setMediaItem(MediaItem.fromUri(selectedMovie.video?.hlsPlaylistUrl.toString()))
+        exoPlayer.prepare()
     }
 
     BackHandler(onBack = onBackPressed)

@@ -46,9 +46,8 @@ fun VideoPlayerControls(
         mediaTitle = {
             VideoPlayerMediaTitle(
                 title = movie.title,
-                secondaryText = movie.releaseDate?.substring(0, 4),
+                secondaryText = movie.releaseDate?.substring(0, 4) + " ",
                 tertiaryText = if (movie.streamingProviders.isNotEmpty()) movie.streamingProviders.first().name else null,
-                type = VideoPlayerMediaTitleType.DEFAULT
             )
         },
         mediaActions = {
