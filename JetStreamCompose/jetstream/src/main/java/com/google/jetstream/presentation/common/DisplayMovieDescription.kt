@@ -25,6 +25,7 @@ fun DisplayMovieDescription(
                 text = it,
                 style = style,
                 maxLines = 1,
+                color = Color.White,
 //                modifier = modifier.padding(top = 8.dp)
             )
         }
@@ -32,7 +33,7 @@ fun DisplayMovieDescription(
         movie.tagLine?.let {
             Text(
                 text = it,
-                color = onPrimaryLight,
+                color = Color.White,
                 style = MaterialTheme.typography.titleMedium.copy(
                     color = MaterialTheme.colorScheme.onSurface.copy(
                         alpha = 0.65f

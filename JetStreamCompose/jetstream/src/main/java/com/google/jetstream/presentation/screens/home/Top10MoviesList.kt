@@ -76,7 +76,7 @@ fun Top10MoviesList(
     sectionTitle: String? = stringResource(R.string.top_10_movies_title),
     modifier: Modifier = Modifier,
     setSelectedMovie: (MovieNew) -> Unit,
-    gradientColor: Color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+    gradientColor: Color = Color.Black.copy(alpha = 0.7f),
     onMovieClick: (movie: MovieNew) -> Unit
 ) {
     var isListFocused by remember { mutableStateOf(false) }
@@ -213,6 +213,7 @@ private fun MovieDescription(
                 }/10 - ${movie.imdbVotes.toString().formatVotes()} IMDB Votes",
                 style = MaterialTheme.typography.titleSmall,
                 maxLines = 1,
+                color = Color.White,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 8.dp)
             )

@@ -19,12 +19,13 @@ fun DisplayMovieTitle(
         Text(
             text = movie.title,
             maxLines = 2,
+            color = Color.White,
             style = style
         )
     } else {
         Text(
             text = movie.title,
-            color = onPrimaryLight,
+            color = Color.White,
             style = MaterialTheme.typography.displaySmall.copy(
                 shadow = Shadow(
                     color = Color.Black.copy(alpha = 0.5f),

@@ -25,12 +25,13 @@ fun DisplayMovieExtraInfo(
         Text(
             text = "$getYear - $combinedGenre - ${movie.duration?.formatDuration()}",
             style = style,
+            color = Color.White,
             maxLines = 1,
         )
     } else {
         Text(
             text = "$getYear - $combinedGenre - ${movie.duration?.formatDuration()}",
-            color = onPrimaryLight,
+            color = Color.White,
             style = MaterialTheme.typography.titleMedium.copy(
                 color = MaterialTheme.colorScheme.onSurface.copy(
                     alpha = 0.65f
