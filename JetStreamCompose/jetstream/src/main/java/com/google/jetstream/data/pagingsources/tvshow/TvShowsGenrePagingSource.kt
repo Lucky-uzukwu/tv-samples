@@ -1,20 +1,22 @@
-package com.google.jetstream.data.pagingsources
+package com.google.jetstream.data.pagingsources.tvshow
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.data.network.MovieResponse
-import com.google.jetstream.data.repositories.MovieRepository
+import com.google.jetstream.data.network.TvShowsResponse
+import com.google.jetstream.data.repositories.TvShowsRepository
 import com.google.jetstream.data.repositories.UserRepository
 import kotlinx.coroutines.flow.firstOrNull
 
-class MoviesGenrePagingSource(
-    private val movieRepository: MovieRepository,
+class TvShowsGenrePagingSource(
+    private val tvShowsRepository: TvShowsRepository,
     private val userRepository: UserRepository,
     private val genreId: Int
-) : PagingSource<Int, MovieNew>() {
+) : PagingSource<Int, TvShow>() {
 
-    override fun getRefreshKey(state: PagingState<Int, MovieNew>): Int? {
+    override fun getRefreshKey(state: PagingState<Int, TvShow>): Int? {
         return state.anchorPosition?.let { anchorPosition ->
             state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
                 ?: state.closestPageToPosition(anchorPosition)?.nextKey?.minus(1)
@@ -22,19 +24,19 @@ class MoviesGenrePagingSource(
     }
 
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MovieNew> {
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, TvShow> {
         return try {
             val token = userRepository.userToken.firstOrNull()
                 ?: return LoadResult.Error(Exception("No token"))
             val currentPage = params.key ?: 1
             val pageSize = params.loadSize
             // Fetch all catalogs
-            val movies: MovieResponse = movieRepository.getMoviesToShowInGenreSection(
+            val movies: TvShowsResponse = tvShowsRepository.getTvShowsToShowInGenreSection(
                 token = token,
                 genreId = genreId,
                 page = currentPage,
                 itemsPerPage = pageSize
-            ).firstOrNull() ?: MovieResponse(member = emptyList())
+            ).firstOrNull() ?: TvShowsResponse(member = emptyList())
 
             LoadResult.Page(
                 data = movies.member, // List<MovieNew>

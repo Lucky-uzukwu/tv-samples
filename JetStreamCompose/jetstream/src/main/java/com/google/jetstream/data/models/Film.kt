@@ -57,7 +57,7 @@ data class MovieNew(
 ) : Film
 
 
-data class TvShows(
+data class TvShow(
     override val id: Int,
     override val title: String,
     override val tagLine: String?,

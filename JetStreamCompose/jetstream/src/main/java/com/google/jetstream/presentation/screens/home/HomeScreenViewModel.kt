@@ -32,8 +32,8 @@ import com.google.jetstream.data.repositories.GenreRepository
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.StreamingProvidersRepository
 import com.google.jetstream.data.repositories.UserRepository
-import com.google.jetstream.data.pagingsources.MoviesPagingSources
-import com.google.jetstream.data.pagingsources.MoviesHeroSectionPagingSource
+import com.google.jetstream.data.pagingsources.movie.MoviesPagingSources
+import com.google.jetstream.data.pagingsources.movie.MoviesHeroSectionPagingSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

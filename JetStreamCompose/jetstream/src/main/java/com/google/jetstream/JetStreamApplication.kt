@@ -28,6 +28,8 @@ import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.MovieRepositoryImpl
 import com.google.jetstream.data.repositories.StreamingProvidersRepository
 import com.google.jetstream.data.repositories.StreamingProvidersRepositoryImpl
+import com.google.jetstream.data.repositories.TvShowsRepository
+import com.google.jetstream.data.repositories.TvShowsRepositoryImpl
 import com.google.jetstream.data.repositories.UserRepository
 import dagger.Binds
 import dagger.Module
@@ -49,6 +51,16 @@ abstract class MovieRepositoryModule {
     abstract fun bindMovieRepository(
         movieRepositoryImpl: MovieRepositoryImpl
     ): MovieRepository
+}
+
+@InstallIn(SingletonComponent::class)
+@Module
+abstract class TvShowsRepositoryModule {
+
+    @Binds
+    abstract fun bindTvShowsRepository(
+        tvShowsRepositoryImpl: TvShowsRepositoryImpl
+    ): TvShowsRepository
 }
 
 @InstallIn(SingletonComponent::class)
