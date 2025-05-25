@@ -52,7 +52,6 @@ import kotlinx.coroutines.flow.StateFlow
 fun HomeScreen(
     onMovieClick: (movie: MovieNew) -> Unit,
     goToVideoPlayer: (movie: MovieNew) -> Unit,
-    selectedMovie: MovieNew? = null,
     setSelectedMovie: (movie: MovieNew) -> Unit,
     onScroll: (isTopBarVisible: Boolean) -> Unit,
     isTopBarVisible: Boolean,
@@ -64,13 +63,11 @@ fun HomeScreen(
     when (val s = uiState) {
         is HomeScreenUiState.Ready -> {
             Catalog(
-                featuredMovies = s.featuredMovieList,
                 featuredMoviesNew = featuredMovies,
                 catalogToMovies = s.catalogToMovies,
                 genreToMovies = s.genreToMovies,
                 onMovieClick = onMovieClick,
                 onScroll = onScroll,
-                selectedMovie = selectedMovie,
                 setSelectedMovie = setSelectedMovie,
                 goToVideoPlayer = goToVideoPlayer,
                 isTopBarVisible = isTopBarVisible,
@@ -85,7 +82,6 @@ fun HomeScreen(
 
 @Composable
 private fun Catalog(
-    featuredMovies: MovieList,
     featuredMoviesNew: LazyPagingItems<MovieNew>,
     catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
     genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>,
@@ -93,7 +89,6 @@ private fun Catalog(
     onScroll: (isTopBarVisible: Boolean) -> Unit,
     goToVideoPlayer: (movie: MovieNew) -> Unit,
     modifier: Modifier = Modifier,
-    selectedMovie: MovieNew? = null,
     setSelectedMovie: (movie: MovieNew) -> Unit,
     isTopBarVisible: Boolean = true,
 ) {
@@ -151,7 +146,7 @@ private fun Catalog(
                     movieList = movieList,
                     sectionTitle = catalog.name,
                     onMovieClick = onMovieClick,
-                    setSelectedMovie =setSelectedMovie ,
+                    setSelectedMovie = setSelectedMovie,
                     modifier = Modifier.onFocusChanged {
                         immersiveListHasFocus = it.hasFocus
                     },
@@ -178,7 +173,7 @@ private fun Catalog(
                     movieList = movieList,
                     sectionTitle = genre.name,
                     onMovieClick = onMovieClick,
-                    setSelectedMovie =setSelectedMovie ,
+                    setSelectedMovie = setSelectedMovie,
                     modifier = Modifier.onFocusChanged {
                         immersiveListHasFocus = it.hasFocus
                     },

@@ -122,7 +122,7 @@ fun HeroSectionCarousel(
         Brush.verticalGradient(
             0f to Color.Transparent,
             0.1f to Color.Red,
-            1f to Color.Red,
+            0.7f to Color.Red,
             1f to Color.Transparent,
         )
 
@@ -176,8 +176,8 @@ fun HeroSectionCarousel(
                 )
             },
             autoScrollDurationMillis = 5000,
-            contentTransformStartToEnd = fadeIn(tween(durationMillis = 1000))
-                .togetherWith(fadeOut(tween(durationMillis = 1000))),
+            contentTransformStartToEnd = fadeIn(tween(durationMillis = 5000))
+                .togetherWith(fadeOut(tween(durationMillis = 5000))),
             contentTransformEndToStart = fadeIn(tween(durationMillis = 1000))
                 .togetherWith(fadeOut(tween(durationMillis = 1000))),
             content = { idx ->
@@ -232,7 +232,7 @@ private fun BoxScope.CarouselIndicator(
 ) {
     Box(
         modifier = modifier
-            .padding(top = 64.dp)
+            .padding(bottom = 64.dp)
             .graphicsLayer {
                 clip = true
                 shape = ShapeDefaults.ExtraSmall

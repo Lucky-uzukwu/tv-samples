@@ -199,7 +199,6 @@ fun DashboardScreen(
             isTopBarVisible = isTopBarVisible,
             navController = navController,
             modifier = Modifier.offset(y = navHostTopPaddingDp),
-            selectedMovie = selectedMovie,
             setSelectedMovie = setSelectedMovie
         )
     }
@@ -231,7 +230,6 @@ private fun Body(
     openMovieDetailsScreen: (movieId: String) -> Unit,
     openVideoPlayer: (movieId: String) -> Unit,
     updateTopBarVisibility: (Boolean) -> Unit,
-    selectedMovie: MovieNew? = null,
     setSelectedMovie: (movie: MovieNew) -> Unit,
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
@@ -255,7 +253,6 @@ private fun Body(
                 },
                 onScroll = updateTopBarVisibility,
                 isTopBarVisible = isTopBarVisible,
-                selectedMovie = selectedMovie,
                 setSelectedMovie = setSelectedMovie
             )
         }
