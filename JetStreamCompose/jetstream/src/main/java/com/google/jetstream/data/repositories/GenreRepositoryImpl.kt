@@ -18,7 +18,8 @@ class GenreRepositoryImpl @Inject constructor(
         Logger.i { "Fetching genres for Movie section with token: $token" }
         val user = userRepository.getUser() ?: return@flow
         val response = genreService.getGenres(
-            authToken = "Bearer $token"
+            authToken = "Bearer $token",
+            isMovieGenre = 1
         )
 
         if (response.isSuccessful) {
@@ -46,6 +47,49 @@ class GenreRepositoryImpl @Inject constructor(
                 201 -> {
                     userRepository.saveUserToken(loginResponse.body()!!.token)
                     getMovieGenre(loginResponse.body()!!.token)
+                }
+
+                else -> {
+                    Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+                }
+            }
+        }
+
+    }
+
+    override fun getTvShowsGenre(token: String): Flow<List<Genre>> = flow {
+        Logger.i { "Fetching genres for Movie section with token: $token" }
+        val user = userRepository.getUser() ?: return@flow
+        val response = genreService.getGenres(
+            authToken = "Bearer $token",
+            isTvShowGenre = 1
+        )
+
+        if (response.isSuccessful) {
+            val genres = response.body()
+            Logger.i { "API Response: $genres" }
+            Logger.i { "Successfully fetched ${genres?.member?.size} genres for movie section." }
+            if (genres != null) {
+                emit(genres.member)
+            }
+        } else {
+            // Handle HTTP error codes
+            val errorBody =
+                response.errorBody()?.string() // Get error message from server if available
+            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
+            val loginResponse = user.password?.let {
+                customerRepository.login(
+                    deviceMacAddress = user.deviceMacAddress,
+                    clientIp = user.clientIp,
+                    deviceName = user.deviceName,
+                    identifier = user.accessCode,
+                    password = it
+                )
+            }
+            when (loginResponse?.code()) {
+                201 -> {
+                    userRepository.saveUserToken(loginResponse.body()!!.token)
+                    getTvShowsGenre(loginResponse.body()!!.token)
                 }
 
                 else -> {

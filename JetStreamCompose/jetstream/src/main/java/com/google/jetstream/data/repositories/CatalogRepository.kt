@@ -21,4 +21,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface CatalogRepository {
     fun getMovieCatalog(token: String): Flow<List<Catalog>>
+    fun getTvShowCatalog(token: String): Flow<List<Catalog>>
 }

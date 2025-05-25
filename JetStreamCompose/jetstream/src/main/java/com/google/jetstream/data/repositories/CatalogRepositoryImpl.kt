@@ -56,9 +56,52 @@ class CatalogRepositoryImpl @Inject constructor(
                     Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
                 }
             }
-
-//            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
         }
 
+    }
+
+    override fun getTvShowCatalog(token: String): Flow<List<Catalog>> = flow {
+        Logger.i { "Fetching categories for Movie section with token: $token" }
+        val user = userRepository.getUser() ?: return@flow
+        val response = catalogService.getCatalogs(
+            authToken = "Bearer $token",
+            type = "App\\Models\\TvShow"
+        )
+
+        if (response.isSuccessful) {
+            val categories = response.body()
+            Logger.i { "API Response: $categories" }
+            Logger.i { "Successfully fetched ${categories?.member?.size} categories for movie section." }
+            if (categories != null) {
+                emit(categories.member)
+            }
+        } else {
+            // Handle HTTP error codes
+            val errorBody =
+                response.errorBody()?.string() // Get error message from server if available
+            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
+            val loginResponse = user.password?.let {
+                customerRepository.login(
+                    deviceMacAddress = user.deviceMacAddress,
+                    clientIp = user.clientIp,
+                    deviceName = user.deviceName,
+                    identifier = user.accessCode,
+                    password = it
+                )
+            }
+            when (loginResponse?.code()) {
+                201 -> {
+                    Logger.i { "Login successful" }
+                    Logger.i { "Fetching categories for Movie section with new token: ${loginResponse.body()!!.token}" }
+                    userRepository.saveUserToken(loginResponse.body()!!.token)
+                    getTvShowCatalog(loginResponse.body()!!.token)
+                }
+
+                else -> {
+                    Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+                }
+            }
+
+        }
     }
 }

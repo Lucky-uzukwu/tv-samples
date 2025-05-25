@@ -15,7 +15,7 @@ private const val NETWORK_PAGE_SIZE = 30
 class TvShowPagingSources {
     fun getTvShowsCatalogPagingSource(
         catalog: Catalog,
-        tvShowsRepository: TvShowsRepository,
+        tvShowRepository: TvShowsRepository,
         userRepository: UserRepository
     ): Flow<PagingData<TvShow>> {
 
@@ -27,7 +27,7 @@ class TvShowPagingSources {
             )
         ) {
             TvShowsCatalogPagingSource(
-                tvShowsRepository,
+                tvShowRepository,
                 userRepository,
                 catalog.id
             )
@@ -36,7 +36,7 @@ class TvShowPagingSources {
 
     fun getTvShowsGenrePagingSource(
         genreId: Int,
-        tvShowsRepository: TvShowsRepository,
+        tvShowRepository: TvShowsRepository,
         userRepository: UserRepository
     ): Flow<PagingData<TvShow>> {
 
@@ -48,7 +48,7 @@ class TvShowPagingSources {
             )
         ) {
             TvShowsGenrePagingSource(
-                tvShowsRepository,
+                tvShowRepository,
                 userRepository,
                 genreId
             )

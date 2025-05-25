@@ -12,7 +12,8 @@ interface GenreService {
     suspend fun getGenres(
         @Header("Authorization") authToken: String,
         @Header("Accept") accept: String = "application/ld+json",
-        @Query("is_movie_genre") isMovieGenre: Int = 1,
+        @Query("is_movie_genre") isMovieGenre: Int? = null,
+        @Query("is_tv_show_genre") isTvShowGenre: Int? = null,
     ): Response<GenreResponse>
 }
 

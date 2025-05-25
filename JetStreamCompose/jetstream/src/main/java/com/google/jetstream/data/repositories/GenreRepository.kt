@@ -5,4 +5,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface GenreRepository {
     fun getMovieGenre(token: String): Flow<List<Genre>>
+    fun getTvShowsGenre(token: String): Flow<List<Genre>>
 }

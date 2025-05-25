@@ -18,7 +18,6 @@ package com.google.jetstream.presentation.screens.shows
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
@@ -32,9 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.jetstream.data.entities.Movie
 import com.google.jetstream.data.entities.MovieList
-import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.common.Loading
-import com.google.jetstream.presentation.common.MoviesRow
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import com.google.jetstream.presentation.screens.movies.MoviesScreenMovieList
 
@@ -43,15 +40,15 @@ fun ShowsScreen(
     onTVShowClick: (movie: Movie) -> Unit,
     onScroll: (isTopBarVisible: Boolean) -> Unit,
     isTopBarVisible: Boolean,
-    showScreenViewModel: ShowScreenViewModel = hiltViewModel(),
+    tvShowScreenViewModel: TvShowScreenViewModel = hiltViewModel(),
 ) {
-    val uiState = showScreenViewModel.uiState.collectAsStateWithLifecycle()
+    val uiState = tvShowScreenViewModel.uiState.collectAsStateWithLifecycle()
     when (val currentState = uiState.value) {
-        is ShowScreenUiState.Loading -> {
+        is TvShowScreenUiState.Loading -> {
             Loading(modifier = Modifier.fillMaxSize())
         }
 
-        is ShowScreenUiState.Ready -> {
+        is TvShowScreenUiState.Ready -> {
             Catalog(
                 tvShowList = currentState.tvShowList,
                 bingeWatchDramaList = currentState.bingeWatchDramaList,
