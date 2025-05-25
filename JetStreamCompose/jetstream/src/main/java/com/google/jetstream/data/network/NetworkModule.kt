@@ -46,6 +46,12 @@ class NetworkModule {
 
     @Provides
     @Singleton
+    fun StreamingProviderService(retrofit: Retrofit): StreamingProviderService {
+        return retrofit.create(StreamingProviderService::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun CatalogService(retrofit: Retrofit): CatalogService {
         return retrofit.create(CatalogService::class.java)
     }

@@ -26,9 +26,11 @@ import com.google.jetstream.data.entities.MovieList
 import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.data.network.Genre
 import com.google.jetstream.data.network.MovieNew
+import com.google.jetstream.data.network.StreamingProvider
 import com.google.jetstream.data.repositories.CatalogRepository
 import com.google.jetstream.data.repositories.GenreRepository
 import com.google.jetstream.data.repositories.MovieRepository
+import com.google.jetstream.data.repositories.StreamingProvidersRepository
 import com.google.jetstream.data.repositories.UserRepository
 import com.google.jetstream.presentation.screens.home.pagingsources.MoviesPagingSources
 import com.google.jetstream.presentation.screens.home.pagingsources.MoviesHeroSectionPagingSource
@@ -46,7 +48,8 @@ class HomeScreeViewModel @Inject constructor(
     private val movieRepository: MovieRepository,
     userRepository: UserRepository,
     catalogRepository: CatalogRepository,
-    genreRepository: GenreRepository
+    genreRepository: GenreRepository,
+    streamingProvidersRepository: StreamingProvidersRepository
 ) : ViewModel() {
 
     // Paginated flows for movie lists
@@ -83,13 +86,17 @@ class HomeScreeViewModel @Inject constructor(
                     userRepository
                 )
 
+                val streamingProviders =
+                    streamingProvidersRepository.getStreamingProviders(token).firstOrNull()
+
                 HomeScreenUiState.Ready(
                     featuredMovieList = featuredMovieList,
                     trendingMovieList = trendingMovieList,
                     top10MovieList = top10MovieList,
                     nowPlayingMovieList = nowPlayingMovieList,
                     catalogToMovies = catalogToMovies,
-                    genreToMovies = genreToMovies
+                    genreToMovies = genreToMovies,
+                    streamingProviders = streamingProviders ?: emptyList()
                 )
             }
         }
@@ -149,6 +156,7 @@ sealed interface HomeScreenUiState {
         val top10MovieList: MovieList,
         val nowPlayingMovieList: MovieList,
         val catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
-        val genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>
+        val genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>,
+        val streamingProviders: List<StreamingProvider>
     ) : HomeScreenUiState
 }

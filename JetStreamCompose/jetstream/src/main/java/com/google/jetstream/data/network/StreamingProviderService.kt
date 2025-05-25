@@ -1,0 +1,26 @@
+package com.google.jetstream.data.network
+
+import retrofit2.Response
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.Query
+
+interface StreamingProviderService {
+
+    @GET("api/streaming_providers")
+    suspend fun getStreamingProviders(
+        @Header("Authorization") authToken: String,
+        @Header("Accept") accept: String = "application/ld+json",
+        @Query("page") page: Int? = 1,
+        @Query("itemsPerPage") itemsPerPage: Int? = 15,
+    ): Response<StreamingProviderResponse>
+}
+
+data class StreamingProviderResponse(
+    val member: List<StreamingProvider>,
+    val totalItems: Int? = null,
+    val viewDetails: ViewDetails? = null,
+//    val itemsPerPage: Int? = null
+)
+
+
