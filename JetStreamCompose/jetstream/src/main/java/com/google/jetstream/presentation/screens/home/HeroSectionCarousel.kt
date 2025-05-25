@@ -120,6 +120,9 @@ fun HeroSectionCarousel(
     val moreInfoButtonFocusRequester = remember { FocusRequester() }
     val topBottomFade =
         Brush.verticalGradient(
+            // Create a gradient that starts from transparent, goes to red (or any visible color),
+            // stays red for a while, and then fades back to transparent.
+            // This creates a fading effect at the top and bottom of the Carousel.
             0f to Color.Transparent,
             0.1f to Color.Red,
             0.7f to Color.Red,
@@ -131,12 +134,14 @@ fun HeroSectionCarousel(
             modifier = Modifier
                 .fadingEdge(topBottomFade)
                 .onFocusChanged { isCarouselFocused = it.hasFocus }
+                // Semantics for accessibility: describes the Carousel.
                 .semantics {
                     contentDescription =
                         StringConstants.Composable.ContentDescription.MoviesCarousel
                 }
                 .handleDPadKeyEvents(
                     onRight = {
+                        // Handle right D-pad key press: move to the next movie or page.
                         if (currentMovieIndex < currentItemCount - 1) {
                             currentMovieIndex += 1
                         } else if (startIndex + itemsPerPage < movies.itemCount) {
@@ -149,10 +154,11 @@ fun HeroSectionCarousel(
                         }
                     },
                     onLeft = {
-                        Logger.i("onLeft triggered")
+                        // Handle left D-pad key press: move to the previous movie or page.
                         if (currentMovieIndex > 0 && currentPage == 0) {
                             currentMovieIndex -= 1
                         } else {
+                            // Check if currentPage is greater than 0 and currentMovieIndex is at the beginning of a page
                             if (currentPage > 0 && currentMovieIndex >= startIndex + itemsPerPage) { // Log entering the else if block
                                 currentPage -= 1 // Log after decrementing currentPage
                                 currentMovieIndex -= 1
@@ -166,7 +172,10 @@ fun HeroSectionCarousel(
                             }
                         }
                     },
-                    onDown = { isWatchNowFocused = true }
+                    onDown = {
+                        // Handle down D-pad key press: focus the "Watch Now" button.
+                        isWatchNowFocused = true
+                    }
                 ),
             itemCount = currentItemCount,
             carouselIndicator = {
@@ -174,8 +183,9 @@ fun HeroSectionCarousel(
                     itemCount = currentItemCount,
                     activeItemIndex = currentMovieIndex,
                 )
-            },
-            autoScrollDurationMillis = 5000,
+            }, // Display carousel indicators (dots).
+            autoScrollDurationMillis = 5000, // Auto-scroll every 5 seconds.
+            // Define transitions for content changes.
             contentTransformStartToEnd = fadeIn(tween(durationMillis = 5000))
                 .togetherWith(fadeOut(tween(durationMillis = 5000))),
             contentTransformEndToStart = fadeIn(tween(durationMillis = 1000))
@@ -183,7 +193,7 @@ fun HeroSectionCarousel(
             content = { idx ->
                 val movieIndex = startIndex + idx
                 val movieNew = movies[movieIndex]
-
+                currentMovieIndex = idx
                 // Only render if the item is loaded
                 if (movieNew != null) {
                     setSelectedMovie(movieNew)
@@ -209,6 +219,7 @@ fun HeroSectionCarousel(
                                 currentMovieIndex += 1
                             } else if (startIndex + itemsPerPage < movies.itemCount) {
                                 currentPage += 1
+                                // Reset currentMovieIndex to 0 when moving to a new page
                                 currentMovieIndex = 0
                                 movies.loadState.append is LoadState.NotLoading || movies.get(
                                     startIndex + itemsPerPage
