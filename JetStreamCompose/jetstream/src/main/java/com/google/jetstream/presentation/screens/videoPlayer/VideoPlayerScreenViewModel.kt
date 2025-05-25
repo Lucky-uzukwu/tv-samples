@@ -22,20 +22,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.google.jetstream.data.entities.MovieDetails
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.UserRepository
-import com.google.jetstream.presentation.screens.home.pagingsources.MoviesPagingSources
-import com.google.jetstream.presentation.screens.movies.MovieDetailsScreen
-import com.google.jetstream.presentation.screens.movies.MovieDetailsScreenUiState
+import com.google.jetstream.data.pagingsources.MoviesPagingSources
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel

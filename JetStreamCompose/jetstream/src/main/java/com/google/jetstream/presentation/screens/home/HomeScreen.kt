@@ -50,8 +50,10 @@ import com.google.jetstream.data.network.Genre
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.network.StreamingProvider
 import com.google.jetstream.presentation.common.Error
+import com.google.jetstream.presentation.common.HeroSectionCarousel
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.StreamingProviderIcon
+import com.google.jetstream.presentation.common.Top10MoviesList
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable

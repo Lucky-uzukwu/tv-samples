@@ -1,4 +1,4 @@
-package com.google.jetstream.presentation.screens.home.pagingsources
+package com.google.jetstream.data.pagingsources
 
 import androidx.paging.Pager
 import androidx.paging.PagingConfig

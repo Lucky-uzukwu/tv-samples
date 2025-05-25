@@ -24,7 +24,7 @@ import androidx.paging.cachedIn
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.UserRepository
-import com.google.jetstream.presentation.screens.home.pagingsources.MoviesPagingSources
+import com.google.jetstream.data.pagingsources.MoviesPagingSources
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted

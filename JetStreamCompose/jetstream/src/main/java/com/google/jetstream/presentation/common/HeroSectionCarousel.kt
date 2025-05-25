@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.jetstream.presentation.screens.home
+package com.google.jetstream.presentation.common
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -75,11 +75,6 @@ import coil.compose.AsyncImage
 import com.google.jetstream.R
 import com.google.jetstream.data.network.MovieNew
 import com.google.jetstream.data.util.StringConstants
-import com.google.jetstream.presentation.common.DisplayMovieDescription
-import com.google.jetstream.presentation.common.DisplayMovieExtraInfo
-import com.google.jetstream.presentation.common.DisplayMovieGenericText
-import com.google.jetstream.presentation.common.DisplayMovieTitle
-import com.google.jetstream.presentation.common.IMDbLogo
 import com.google.jetstream.presentation.theme.JetStreamButtonShape
 import com.google.jetstream.presentation.theme.onPrimaryContainerLightHighContrast
 import com.google.jetstream.presentation.utils.fadingEdge

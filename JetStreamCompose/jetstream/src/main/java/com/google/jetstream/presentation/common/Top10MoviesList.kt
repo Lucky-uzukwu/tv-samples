@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.jetstream.presentation.screens.home
+package com.google.jetstream.presentation.common
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -46,9 +45,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
@@ -56,16 +53,7 @@ import androidx.tv.material3.Text
 import com.google.jetstream.R
 import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.network.MovieNew
-import com.google.jetstream.presentation.common.DisplayMovieDescription
-import com.google.jetstream.presentation.common.DisplayMovieExtraInfo
-import com.google.jetstream.presentation.common.DisplayMovieGenericText
-import com.google.jetstream.presentation.common.DisplayMovieTitle
-import com.google.jetstream.presentation.common.IMDbLogo
-import com.google.jetstream.presentation.common.ImmersiveListMoviesRow
-import com.google.jetstream.presentation.common.ItemDirection
-import com.google.jetstream.presentation.common.PosterImage
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
-import com.google.jetstream.presentation.theme.onPrimaryLight
 import com.google.jetstream.presentation.utils.bringIntoViewIfChildrenAreFocused
 import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.getImdbRating
