@@ -10,27 +10,26 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.google.jetstream.data.models.MovieNew
-import com.google.jetstream.presentation.theme.onPrimaryLight
+import com.google.jetstream.data.models.Film
 import com.google.jetstream.presentation.utils.formatDuration
 
 @Composable
-fun DisplayMovieExtraInfo(
+fun DisplayFilmExtraInfo(
     getYear: String?,
     combinedGenre: String,
-    movie: MovieNew,
+    film: Film,
     style: TextStyle? = null,
 ) {
     if (style != null) {
         Text(
-            text = "$getYear - $combinedGenre - ${movie.duration?.formatDuration()}",
+            text = "$getYear - $combinedGenre - ${film.duration?.formatDuration()}",
             style = style,
             color = Color.White,
             maxLines = 1,
         )
     } else {
         Text(
-            text = "$getYear - $combinedGenre - ${movie.duration?.formatDuration()}",
+            text = "$getYear - $combinedGenre - ${film.duration?.formatDuration()}",
             color = Color.White,
             style = MaterialTheme.typography.titleMedium.copy(
                 color = MaterialTheme.colorScheme.onSurface.copy(

@@ -49,8 +49,10 @@ object StringConstants {
     object Composable {
         object ContentDescription {
             fun moviePoster(movieName: String) = "Movie poster of $movieName"
+            fun showPoster(showName: String) = "TvShow  poster of $showName"
             fun image(imageName: String) = "image of $imageName"
             const val MoviesCarousel = "Movies Carousel"
+            const val ShowsCarousel = "Shows Carousel"
             const val UserAvatar = "User Profile Button"
             const val DashboardSearchButton = "Dashboard Search Button"
             const val BrandLogoImage = "Brand Logo Image"

@@ -1,6 +1,5 @@
 package com.google.jetstream.presentation.common
 
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -11,16 +10,15 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.google.jetstream.data.models.MovieNew
-import com.google.jetstream.presentation.theme.onPrimaryLight
+import com.google.jetstream.data.models.Film
 
 @Composable
-fun DisplayMovieDescription(
-    movie: MovieNew,
+fun DisplayFilmDescription(
+    film: Film,
     style: TextStyle? = null
 ) {
     if (style != null) {
-        movie.tagLine?.let {
+        film.tagLine?.let {
             Text(
                 text = it,
                 style = style,
@@ -30,7 +28,7 @@ fun DisplayMovieDescription(
             )
         }
     } else {
-        movie.tagLine?.let {
+        film.tagLine?.let {
             Text(
                 text = it,
                 color = Color.White,

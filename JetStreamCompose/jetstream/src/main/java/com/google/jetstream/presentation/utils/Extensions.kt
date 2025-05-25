@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import com.google.jetstream.data.models.Film
 import com.google.jetstream.data.models.MovieNew
 
 
@@ -36,7 +37,7 @@ fun Modifier.fadingEdge(brush: Brush) = this
         drawRect(brush = brush, blendMode = BlendMode.DstIn)
     }
 
-fun MovieNew.formatPLot(): String {
+fun Film.formatPLot(): String {
     val plotWords = this.plot?.split(" ") ?: emptyList()
     val formattedPlot = plotWords.chunked(9).joinToString("\n") { chunk ->
         // Ensure the second line (and subsequent lines) are not more than 9 words
@@ -54,10 +55,18 @@ fun MovieNew.formatPLot(): String {
     return formattedPlot
 }
 
+data class ListBPosition(val page: Int, val position: Int)
 
-fun MovieNew.getImdbRating(): String? {
+fun getListBPosition(listAIndex: Int, pageSize: Int = 5): ListBPosition {
+    require(listAIndex >= 0) { "listAIndex must be non-negative" }
+    val page = listAIndex / pageSize
+    val position = listAIndex % pageSize
+    return ListBPosition(page, position)
+}
+
+fun Film.getImdbRating(): String? {
     return if (this.imdbRating?.length!! > 3) {
-        this.imdbRating.substring(0, 3)
+        this.imdbRating!!.substring(0, 3)
     } else {
         this.imdbRating
     }

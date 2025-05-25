@@ -7,24 +7,23 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.TextStyle
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.google.jetstream.data.models.MovieNew
-import com.google.jetstream.presentation.theme.onPrimaryLight
+import com.google.jetstream.data.models.Film
 
 @Composable
-fun DisplayMovieTitle(
-    movie: MovieNew,
+fun DisplayFilmTitle(
+    film: Film,
     style: TextStyle? = null
 ) {
     if (style != null) {
         Text(
-            text = movie.title,
+            text = film.title,
             maxLines = 2,
             color = Color.White,
             style = style
         )
     } else {
         Text(
-            text = movie.title,
+            text = film.title,
             color = Color.White,
             style = MaterialTheme.typography.displaySmall.copy(
                 shadow = Shadow(

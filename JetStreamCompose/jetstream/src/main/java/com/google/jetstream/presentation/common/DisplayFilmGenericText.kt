@@ -13,7 +13,7 @@ import androidx.tv.material3.Text
 import com.google.jetstream.presentation.theme.onPrimaryLight
 
 @Composable
-fun DisplayMovieGenericText(text: String) {
+fun DisplayFilmGenericText(text: String) {
 
     Text(
         text = text,

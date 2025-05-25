@@ -72,6 +72,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.jetstream.R
 import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.theme.IconSize
@@ -95,6 +96,7 @@ fun DashboardTopBar(
     selectedTabIndex: Int,
     screens: List<Screens> = TopBarTabs,
     selectedMovie: MovieNew?,
+    selectedTvShow: TvShow?,
     focusRequesters: List<FocusRequester> = remember { TopBarFocusRequesters },
     onScreenSelection: (screen: Screens) -> Unit
 ) {
@@ -103,6 +105,35 @@ fun DashboardTopBar(
     if (selectedMovie != null) {
         val imageUrl =
             "https://stage.nortv.xyz/" + "storage/" + selectedMovie.backdropImagePath
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = "Movie background",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .drawWithContent {
+                    drawContent()
+                    drawRect(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.9f),
+                                Color.Transparent
+                            ),
+                            startX = 0f,
+                            endX = size.width * 0.8f // Stretch the gradient to 80% of the width
+                        )
+                    )
+                }
+        )
+        rememberAsyncImagePainter = rememberAsyncImagePainter(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(imageUrl)
+                .build(),
+            contentScale = ContentScale.Crop
+        )
+    } else if (selectedTvShow != null) {
+        val imageUrl =
+            "https://stage.nortv.xyz/" + "storage/" + selectedTvShow.backdropImagePath
         AsyncImage(
             model = imageUrl,
             contentDescription = "Movie background",
@@ -142,22 +173,6 @@ fun DashboardTopBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp)
-//                .background(
-//                    brush = Brush.linearGradient(
-//                        colors = listOf(
-//                            Color.Black.copy(alpha = 0.4f),
-//                            Color.Black.copy(alpha = 0.4f)
-//                        )
-//                    )) // Semi-transparent overlay for readability
-                .drawBehind {
-                    // Draw the movie image as the Row's background
-//                    if (selectedMovie != null) {
-//                        val painter = rememberAsyncImagePainter!!
-//                        with(painter) {
-//                            draw(size = size, alpha = 0.6f)
-//                        }
-//                    }
-                }
                 .focusRestorer(),
             verticalAlignment = Alignment.CenterVertically
         ) {

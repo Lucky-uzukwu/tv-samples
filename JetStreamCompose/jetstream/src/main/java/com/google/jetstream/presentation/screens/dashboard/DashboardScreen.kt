@@ -56,8 +56,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.google.jetstream.data.entities.Movie
 import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.screens.categories.CategoriesScreen
 import com.google.jetstream.presentation.screens.favourites.FavouritesScreen
@@ -65,7 +65,7 @@ import com.google.jetstream.presentation.screens.home.HomeScreen
 import com.google.jetstream.presentation.screens.movies.MoviesScreen
 import com.google.jetstream.presentation.screens.profile.ProfileScreen
 import com.google.jetstream.presentation.screens.search.SearchScreen
-import com.google.jetstream.presentation.screens.shows.ShowsScreen
+import com.google.jetstream.presentation.screens.shows.TVShowScreen
 import com.google.jetstream.presentation.theme.AppTheme
 import com.google.jetstream.presentation.utils.Padding
 
@@ -91,6 +91,8 @@ fun DashboardScreen(
     isComingBackFromDifferentScreen: Boolean,
     selectedMovie: MovieNew? = null,
     setSelectedMovie: (movie: MovieNew) -> Unit,
+    selectedTvShow: TvShow? = null,
+    setSelectedTvShow: (tvShow: TvShow) -> Unit,
     resetIsComingBackFromDifferentScreen: () -> Unit = {},
     onBackPressed: () -> Unit = {}
 ) {
@@ -183,7 +185,8 @@ fun DashboardScreen(
                     bottom = ParentPadding.calculateBottomPadding()
                 ),
             selectedTabIndex = currentTopBarSelectedTabIndex,
-            selectedMovie = selectedMovie
+            selectedMovie = selectedMovie,
+            selectedTvShow = selectedTvShow,
         ) { screen ->
             navController.navigate(screen()) {
                 if (screen == TopBarTabs[0]) popUpTo(TopBarTabs[0].invoke())
@@ -199,7 +202,8 @@ fun DashboardScreen(
             isTopBarVisible = isTopBarVisible,
             navController = navController,
             modifier = Modifier.offset(y = navHostTopPaddingDp),
-            setSelectedMovie = setSelectedMovie
+            setSelectedMovie = setSelectedMovie,
+            setSelectedTvShow = setSelectedTvShow
         )
     }
 }
@@ -231,6 +235,7 @@ private fun Body(
     openVideoPlayer: (movieId: String) -> Unit,
     updateTopBarVisibility: (Boolean) -> Unit,
     setSelectedMovie: (movie: MovieNew) -> Unit,
+    setSelectedTvShow: (tvShow: TvShow) -> Unit,
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     isTopBarVisible: Boolean = true,
@@ -270,10 +275,14 @@ private fun Body(
             )
         }
         composable(Screens.Shows()) {
-            ShowsScreen(
-                onTVShowClick = { movie -> openMovieDetailsScreen(movie.id) },
+            TVShowScreen(
+                onTVShowClick = { show -> openMovieDetailsScreen(show.id.toString()) },
                 onScroll = updateTopBarVisibility,
-                isTopBarVisible = isTopBarVisible
+                isTopBarVisible = isTopBarVisible,
+                goToVideoPlayer = { selectedMovie ->
+                    openVideoPlayer(selectedMovie.id.toString())
+                },
+                setSelectedTvShow = setSelectedTvShow
             )
         }
         composable(Screens.Favourites()) {
@@ -299,7 +308,9 @@ fun DashboardScreenPreview() {
         DashboardScreen(
             isComingBackFromDifferentScreen = false,
             selectedMovie = null,
-            setSelectedMovie = {}
+            setSelectedMovie = {},
+            selectedTvShow = null,
+            setSelectedTvShow = {}
         )
     }
 }

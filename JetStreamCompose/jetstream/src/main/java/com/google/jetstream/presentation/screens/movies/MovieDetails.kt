@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -38,13 +37,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,19 +49,14 @@ import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.google.jetstream.R
-import com.google.jetstream.data.entities.MovieDetails
 import com.google.jetstream.data.models.MovieNew
-import com.google.jetstream.data.util.StringConstants
-import com.google.jetstream.presentation.common.DisplayMovieGenericText
+import com.google.jetstream.presentation.common.DisplayFilmGenericText
 import com.google.jetstream.presentation.common.IMDbLogo
 import com.google.jetstream.presentation.common.StreamingProviderIcon
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import com.google.jetstream.presentation.theme.JetStreamButtonShape
 import com.google.jetstream.presentation.utils.formatDuration
-import com.google.jetstream.presentation.utils.formatPLot
 import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.getImdbRating
 import kotlinx.coroutines.launch
@@ -117,7 +106,7 @@ fun MovieDetails(
                     Row {
                         IMDbLogo()
                         Spacer(modifier = Modifier.width(8.dp))
-                        DisplayMovieGenericText(
+                        DisplayFilmGenericText(
                             "${
                                 selectedMovie.getImdbRating()
                             }/10 - ${selectedMovie.imdbVotes.toString().formatVotes()} IMDB Votes"

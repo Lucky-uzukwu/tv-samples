@@ -33,6 +33,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import co.touchlab.kermit.Logger
 import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.screens.categories.CategoryMovieListScreen
 import com.google.jetstream.presentation.screens.dashboard.DashboardScreen
@@ -54,6 +55,7 @@ fun App(
         if (userState.user?.token !== null) Screens.Dashboard() else Screens.AuthScreen()
 
     val selectedMovie = remember { mutableStateOf<MovieNew?>(null) }
+    val selectedTvShow = remember { mutableStateOf<TvShow?>(null) }
 
     NavHost(
         navController = navController,
@@ -155,6 +157,12 @@ fun App(
                     selectedMovie = selectedMovie.value,
                     setSelectedMovie = {
                         selectedMovie.value = it
+                        selectedTvShow.value = null
+                    },
+                    selectedTvShow = selectedTvShow.value,
+                    setSelectedTvShow = {
+                        selectedTvShow.value = it
+                        selectedMovie.value = null
                     }
                 )
             }

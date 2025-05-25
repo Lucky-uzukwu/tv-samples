@@ -187,8 +187,8 @@ private fun MovieDescription(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        DisplayMovieTitle(movie, style = MaterialTheme.typography.displaySmall)
-        DisplayMovieDescription(
+        DisplayFilmTitle(movie, style = MaterialTheme.typography.displaySmall)
+        DisplayFilmDescription(
             movie,
             style = MaterialTheme.typography.bodyLarge,
         )
@@ -206,7 +206,7 @@ private fun MovieDescription(
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
-        DisplayMovieExtraInfo(
+        DisplayFilmExtraInfo(
             getYear,
             combinedGenre,
             movie,

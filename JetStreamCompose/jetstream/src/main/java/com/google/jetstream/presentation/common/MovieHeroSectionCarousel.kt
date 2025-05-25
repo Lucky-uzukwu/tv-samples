@@ -81,12 +81,13 @@ import com.google.jetstream.presentation.utils.fadingEdge
 import com.google.jetstream.presentation.utils.formatPLot
 import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.getImdbRating
+import com.google.jetstream.presentation.utils.getListBPosition
 import com.google.jetstream.presentation.utils.handleDPadKeyEvents
 
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-fun HeroSectionCarousel(
+fun MovieHeroSectionCarousel(
     movies: LazyPagingItems<MovieNew>,
     goToVideoPlayer: (movie: MovieNew) -> Unit,
     goToMoreInfo: (movie: MovieNew) -> Unit,
@@ -300,22 +301,22 @@ private fun CarouselItemForeground(
                 .padding(32.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            DisplayMovieTitle(movie)
-            DisplayMovieDescription(
-                movie = movie,
+            DisplayFilmTitle(movie)
+            DisplayFilmDescription(
+                film = movie,
             )
-            DisplayMovieExtraInfo(getYear, combinedGenre, movie)
+            DisplayFilmExtraInfo(getYear, combinedGenre, movie)
 
             val formattedPlot = movie.formatPLot()
 
 
-            DisplayMovieGenericText(formattedPlot)
+            DisplayFilmGenericText(formattedPlot)
             Spacer(modifier = Modifier.height(10.dp))
 
             Row {
                 IMDbLogo()
                 Spacer(modifier = Modifier.width(8.dp))
-                DisplayMovieGenericText(
+                DisplayFilmGenericText(
                     "${
                         movie.getImdbRating()
                     }/10 - ${movie.imdbVotes.toString().formatVotes()} IMDB Votes"
@@ -455,13 +456,4 @@ private fun MoreInfoButton(
             style = MaterialTheme.typography.titleSmall
         )
     }
-}
-
-data class ListBPosition(val page: Int, val position: Int)
-
-fun getListBPosition(listAIndex: Int, pageSize: Int = 5): ListBPosition {
-    require(listAIndex >= 0) { "listAIndex must be non-negative" }
-    val page = listAIndex / pageSize
-    val position = listAIndex % pageSize
-    return ListBPosition(page, position)
 }

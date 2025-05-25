@@ -50,7 +50,7 @@ import com.google.jetstream.data.models.Genre
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.presentation.common.Error
-import com.google.jetstream.presentation.common.HeroSectionCarousel
+import com.google.jetstream.presentation.common.MovieHeroSectionCarousel
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.StreamingProviderIcon
 import com.google.jetstream.presentation.common.Top10MoviesList
@@ -131,7 +131,7 @@ private fun Catalog(
             modifier = modifier,
         ) {
             item(contentType = "HeroSectionCarousel") {
-                HeroSectionCarousel(
+                MovieHeroSectionCarousel(
                     movies = featuredMoviesNew,
                     goToVideoPlayer = goToVideoPlayer,
                     goToMoreInfo = {},
