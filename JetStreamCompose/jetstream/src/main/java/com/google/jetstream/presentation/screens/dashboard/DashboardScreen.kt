@@ -57,7 +57,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.jetstream.data.entities.Movie
-import com.google.jetstream.data.network.MovieNew
+import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.screens.categories.CategoriesScreen
 import com.google.jetstream.presentation.screens.favourites.FavouritesScreen

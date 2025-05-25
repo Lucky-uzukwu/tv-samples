@@ -20,7 +20,7 @@ import com.google.jetstream.data.entities.MovieCategoryDetails
 import com.google.jetstream.data.entities.MovieCategoryList
 import com.google.jetstream.data.entities.MovieDetails
 import com.google.jetstream.data.entities.MovieList
-import com.google.jetstream.data.network.MovieNew
+import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.network.MovieResponse
 import kotlinx.coroutines.flow.Flow
 

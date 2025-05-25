@@ -1,5 +1,7 @@
 package com.google.jetstream.data.network
 
+import com.google.jetstream.data.models.StreamingProvider
+import com.google.jetstream.data.models.ViewDetails
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Header

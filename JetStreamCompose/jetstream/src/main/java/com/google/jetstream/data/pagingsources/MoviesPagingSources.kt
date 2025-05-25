@@ -4,7 +4,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.google.jetstream.data.network.Catalog
-import com.google.jetstream.data.network.MovieNew
+import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.UserRepository
 import kotlinx.coroutines.flow.Flow

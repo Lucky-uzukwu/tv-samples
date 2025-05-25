@@ -71,7 +71,7 @@ import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.jetstream.R
-import com.google.jetstream.data.network.MovieNew
+import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.theme.IconSize

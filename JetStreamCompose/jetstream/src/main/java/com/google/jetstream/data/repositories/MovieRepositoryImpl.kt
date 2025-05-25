@@ -22,7 +22,7 @@ import com.google.jetstream.data.entities.MovieDetails
 import com.google.jetstream.data.entities.MovieList
 import com.google.jetstream.data.entities.MovieReviewsAndRatings
 import com.google.jetstream.data.entities.ThumbnailType
-import com.google.jetstream.data.network.MovieNew
+import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.network.MovieResponse
 import com.google.jetstream.data.network.MovieService
 import com.google.jetstream.data.util.StringConstants

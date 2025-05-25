@@ -2,7 +2,7 @@ package com.google.jetstream.data.pagingsources
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.google.jetstream.data.network.MovieNew
+import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.network.MovieResponse
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.UserRepository

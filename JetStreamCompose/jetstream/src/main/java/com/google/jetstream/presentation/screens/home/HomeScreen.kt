@@ -46,9 +46,9 @@ import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.google.jetstream.data.network.Catalog
-import com.google.jetstream.data.network.Genre
-import com.google.jetstream.data.network.MovieNew
-import com.google.jetstream.data.network.StreamingProvider
+import com.google.jetstream.data.models.Genre
+import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.HeroSectionCarousel
 import com.google.jetstream.presentation.common.Loading

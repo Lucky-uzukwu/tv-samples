@@ -59,7 +59,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.jetstream.R
 import com.google.jetstream.data.entities.MovieDetails
-import com.google.jetstream.data.network.MovieNew
+import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.common.DisplayMovieGenericText
 import com.google.jetstream.presentation.common.IMDbLogo

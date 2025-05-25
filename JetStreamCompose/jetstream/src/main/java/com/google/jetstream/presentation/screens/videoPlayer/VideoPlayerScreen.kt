@@ -38,7 +38,7 @@ import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.paging.PagingData
 import com.google.jetstream.data.entities.Movie
 import com.google.jetstream.data.entities.MovieDetails
-import com.google.jetstream.data.network.MovieNew
+import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.screens.videoPlayer.components.VideoPlayerControls

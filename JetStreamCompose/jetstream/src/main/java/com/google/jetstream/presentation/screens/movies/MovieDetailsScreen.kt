@@ -45,7 +45,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.jetstream.R
 import com.google.jetstream.data.entities.Movie
-import com.google.jetstream.data.network.MovieNew
+import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading

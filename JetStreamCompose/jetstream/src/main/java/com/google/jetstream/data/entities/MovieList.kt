@@ -16,7 +16,8 @@
 
 package com.google.jetstream.data.entities
 
-import com.google.jetstream.data.network.MovieNew
+import com.google.jetstream.data.models.MovieNew
+
 
 typealias MovieList = List<Movie>
 typealias MovieListNew = List<MovieNew>

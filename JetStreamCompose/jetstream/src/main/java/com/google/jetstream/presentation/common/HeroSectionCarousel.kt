@@ -73,7 +73,7 @@ import androidx.tv.material3.Text
 import co.touchlab.kermit.Logger
 import coil.compose.AsyncImage
 import com.google.jetstream.R
-import com.google.jetstream.data.network.MovieNew
+import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.theme.JetStreamButtonShape
 import com.google.jetstream.presentation.theme.onPrimaryContainerLightHighContrast

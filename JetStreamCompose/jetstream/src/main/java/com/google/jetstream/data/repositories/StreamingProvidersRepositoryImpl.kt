@@ -1,7 +1,7 @@
 package com.google.jetstream.data.repositories
 
 import co.touchlab.kermit.Logger
-import com.google.jetstream.data.network.StreamingProvider
+import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.network.StreamingProviderService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

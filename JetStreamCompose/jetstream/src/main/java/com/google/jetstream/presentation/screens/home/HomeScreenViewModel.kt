@@ -24,9 +24,9 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.google.jetstream.data.entities.MovieList
 import com.google.jetstream.data.network.Catalog
-import com.google.jetstream.data.network.Genre
-import com.google.jetstream.data.network.MovieNew
-import com.google.jetstream.data.network.StreamingProvider
+import com.google.jetstream.data.models.Genre
+import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.repositories.CatalogRepository
 import com.google.jetstream.data.repositories.GenreRepository
 import com.google.jetstream.data.repositories.MovieRepository

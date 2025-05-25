@@ -1,7 +1,7 @@
 package com.google.jetstream.data.repositories
 
 import co.touchlab.kermit.Logger
-import com.google.jetstream.data.network.Genre
+import com.google.jetstream.data.models.Genre
 import com.google.jetstream.data.network.GenreService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
