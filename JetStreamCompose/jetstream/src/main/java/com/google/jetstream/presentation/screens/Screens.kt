@@ -20,7 +20,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.google.jetstream.presentation.screens.categories.CategoryMovieListScreen
-import com.google.jetstream.presentation.screens.movies.MovieDetailsScreen
+import com.google.jetstream.presentation.screens.moviedetails.MovieDetailsScreen
+import com.google.jetstream.presentation.screens.tvshowsdetails.TvShowDetailsScreen
 import com.google.jetstream.presentation.screens.videoPlayer.VideoPlayerScreen
 
 enum class Screens(
@@ -40,6 +41,7 @@ enum class Screens(
     Search(isTabItem = true, tabIcon = Icons.Default.Search),
     CategoryMovieList(listOf(CategoryMovieListScreen.CategoryIdBundleKey)),
     MovieDetails(listOf(MovieDetailsScreen.MovieIdBundleKey)),
+    TvShowDetails(listOf(TvShowDetailsScreen.TvShowIdBundleKey)),
     Dashboard,
     VideoPlayer(listOf(VideoPlayerScreen.MovieIdBundleKey));
 

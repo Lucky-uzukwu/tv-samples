@@ -150,6 +150,81 @@ fun MoviesRow(
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
+fun TvShowsRow(
+    tvShows: StateFlow<PagingData<TvShow>>,
+    modifier: Modifier = Modifier,
+    itemDirection: ItemDirection = ItemDirection.Vertical,
+    startPadding: Dp = rememberChildPadding().start,
+    endPadding: Dp = rememberChildPadding().end,
+    title: String? = null,
+    titleStyle: TextStyle = MaterialTheme.typography.headlineLarge.copy(
+        fontWeight = FontWeight.Medium,
+        fontSize = 30.sp
+    ),
+    showItemTitle: Boolean = true,
+    showIndexOverImage: Boolean = false,
+    onMovieSelected: (movie: TvShow) -> Unit = {}
+) {
+    val (lazyRow, firstItem) = remember { FocusRequester.createRefs() }
+
+    Column(
+        modifier = modifier.focusGroup()
+    ) {
+        if (title != null) {
+            Text(
+                text = title,
+                style = titleStyle,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White.copy(alpha = 0.9f),
+                modifier = Modifier
+                    .alpha(1f)
+                    .padding(start = startPadding, top = 16.dp, bottom = 16.dp)
+            )
+        }
+        AnimatedContent(
+            targetState = tvShows,
+            label = "",
+        ) { movieState ->
+            val similarMoviesAsLazyItems = movieState.collectAsLazyPagingItems()
+            val similarMovies = similarMoviesAsLazyItems.itemSnapshotList.items
+            LazyRow(
+                contentPadding = PaddingValues(
+                    start = startPadding,
+                    end = endPadding,
+                ),
+                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                modifier = Modifier
+                    .focusRequester(lazyRow)
+                    .focusRestorer {
+                        firstItem
+                    }
+            ) {
+                itemsIndexed(similarMovies, key = { _, movie -> movie.id }) { index, tvShow ->
+                    val itemModifier = if (index == 0) {
+                        Modifier.focusRequester(firstItem)
+                    } else {
+                        Modifier
+                    }
+                    TvShowRowItem(
+                        modifier = itemModifier.weight(1f),
+                        index = index,
+                        itemDirection = itemDirection,
+                        onTvShowSelected = {
+                            lazyRow.saveFocusedChild()
+                            onMovieSelected(it)
+                        },
+                        tvShow = tvShow,
+                        showItemTitle = showItemTitle,
+                        showIndexOverImage = showIndexOverImage
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
 fun ImmersiveListMoviesRow(
     movieList: List<MovieNew>,
     modifier: Modifier = Modifier,
@@ -418,6 +493,66 @@ private fun MoviesRowItem(
         )
     }
 }
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+private fun TvShowRowItem(
+    index: Int,
+    tvShow: TvShow,
+    onTvShowSelected: (TvShow) -> Unit,
+    showItemTitle: Boolean,
+    showIndexOverImage: Boolean,
+    modifier: Modifier = Modifier,
+    itemDirection: ItemDirection = ItemDirection.Vertical,
+    onTvShowFocused: (TvShow) -> Unit = {},
+) {
+    var isFocused by remember { mutableStateOf(false) }
+    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + tvShow.posterImagePath
+
+    MovieCard(
+        onClick = { onTvShowSelected(tvShow) },
+        title = {
+            tvShow.title?.let {
+                MoviesRowItemText(
+                    showItemTitle = showItemTitle,
+                    isItemFocused = isFocused,
+                    movieTitle = it
+                )
+            }
+        },
+        modifier = Modifier
+            .border(
+                width = JetStreamBorderWidth,
+                color = if (isFocused) Color.White else Color.Transparent,
+                shape = JetStreamCardShape
+            )
+            .onFocusChanged {
+                isFocused = it.isFocused
+                if (it.isFocused) {
+                    onTvShowFocused(tvShow)
+                }
+            }
+            .focusProperties {
+                left = if (index == 0) {
+                    FocusRequester.Cancel
+                } else {
+                    FocusRequester.Default
+                }
+            }
+            .then(modifier)
+    ) {
+        tvShow.title?.let {
+            MoviesRowItemImage(
+                modifier = Modifier.aspectRatio(itemDirection.aspectRatio),
+                showIndexOverImage = showIndexOverImage,
+                movieTitle = it,
+                movieUri = imageUrl,
+                index = index
+            )
+        }
+    }
+}
+
 
 @Composable
 private fun MoviesRowItemImage(

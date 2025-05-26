@@ -1,4 +1,4 @@
-package com.google.jetstream.presentation.screens.shows
+package com.google.jetstream.presentation.screens.tvshows
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

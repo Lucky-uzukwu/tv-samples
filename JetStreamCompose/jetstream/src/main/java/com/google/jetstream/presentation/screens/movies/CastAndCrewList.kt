@@ -47,7 +47,7 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import com.google.jetstream.R
-import com.google.jetstream.data.models.MoviePerson
+import com.google.jetstream.data.models.Person
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import com.google.jetstream.presentation.theme.JetStreamBorderWidth
@@ -57,11 +57,11 @@ import com.google.jetstream.presentation.utils.ourColors
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun CastAndCrewList(
-    castAndCrew: List<MoviePerson>,
+    castAndCrew: List<Person>,
 ) {
     val childPadding = rememberChildPadding()
 
-    Column{
+    Column {
         Text(
             text = stringResource(R.string.cast_and_crew),
             fontWeight = FontWeight.SemiBold,
@@ -87,10 +87,10 @@ fun CastAndCrewList(
 
 @Composable
 private fun CastAndCrewItem(
-    castMemberNew: MoviePerson,
+    castMember: Person,
     modifier: Modifier = Modifier,
 ) {
-    val castImageUrl = "https://stage.nortv.xyz/" + "storage/" + castMemberNew.person.profilePath
+    val castImageUrl = "https://stage.nortv.xyz/" + "storage/" + castMember.profilePath
     ClassicCard(
         modifier = modifier
             .padding(end = 20.dp, bottom = 16.dp)
@@ -112,7 +112,7 @@ private fun CastAndCrewItem(
                     .fillMaxWidth()
                     .padding(top = 10.dp)
                     .padding(horizontal = 12.dp),
-                text = castMemberNew.person.name,
+                text = castMember.name,
                 maxLines = 1,
                 style = MaterialTheme.typography.labelMedium,
                 overflow = TextOverflow.Ellipsis
@@ -120,7 +120,7 @@ private fun CastAndCrewItem(
         },
         subtitle = {
             Text(
-                text = castMemberNew.character ?: castMemberNew.person.name,
+                text = castMember.name,
                 maxLines = 1,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier
@@ -142,7 +142,7 @@ private fun CastAndCrewItem(
                 contentDescription = StringConstants
                     .Composable
                     .ContentDescription
-                    .image(castMemberNew.person.name),
+                    .image(castMember.name),
                 modifier = modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.725f),

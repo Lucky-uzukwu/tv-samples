@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.jetstream.presentation.screens.movies
+package com.google.jetstream.presentation.screens.moviedetails
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
@@ -50,6 +50,9 @@ import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.MoviesRow
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
+import com.google.jetstream.presentation.screens.movies.CastAndCrewList
+import com.google.jetstream.presentation.screens.movies.MovieDetails
+import com.google.jetstream.presentation.screens.movies.TitleValueText
 import kotlinx.coroutines.flow.StateFlow
 
 object MovieDetailsScreen {
@@ -105,9 +108,11 @@ private fun Details(
             movie = selectedMovie,
             modifier = Modifier.fillMaxSize()
         )
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.5f)))
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f))
+        )
     }
 
 
@@ -118,14 +123,25 @@ private fun Details(
     ) {
         item {
             MovieDetails(
-                selectedMovie = selectedMovie,
-                openVideoPlayer = openVideoPlayer
+                openVideoPlayer = openVideoPlayer,
+                id = selectedMovie.id,
+                title = selectedMovie.title,
+                tagLine = selectedMovie.tagLine,
+                releaseDate = selectedMovie.releaseDate,
+                countries = selectedMovie.countries,
+                genres = selectedMovie.genres,
+                duration = selectedMovie.duration,
+                plot = selectedMovie.plot,
+                imdbRating = selectedMovie.imdbRating,
+                imdbVotes = selectedMovie.imdbVotes,
+                streamingProviders = selectedMovie.streamingProviders,
+                video = selectedMovie.video
             )
         }
 
         item {
             CastAndCrewList(
-                castAndCrew = selectedMovie.moviePeople
+                castAndCrew = selectedMovie.moviePeople.map { it.person }
             )
         }
         item {

@@ -35,21 +35,23 @@ import androidx.tv.material3.Text
 @Composable
 fun DotSeparatedRow(
     modifier: Modifier = Modifier,
-    texts: List<String>
+    texts: List<String?>
 ) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
         texts.forEachIndexed { index, text ->
-            Text(
-                text = text,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White.copy(alpha = 0.9f),
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.Normal
+            text?.let {
+                Text(
+                    text = it,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White.copy(alpha = 0.9f),
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.Normal
+                    )
                 )
-            )
+            }
             if (index != texts.lastIndex) {
                 Box(
                     modifier = Modifier

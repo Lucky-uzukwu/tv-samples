@@ -65,7 +65,7 @@ import com.google.jetstream.presentation.screens.home.HomeScreen
 import com.google.jetstream.presentation.screens.movies.MoviesScreen
 import com.google.jetstream.presentation.screens.profile.ProfileScreen
 import com.google.jetstream.presentation.screens.search.SearchScreen
-import com.google.jetstream.presentation.screens.shows.TVShowScreen
+import com.google.jetstream.presentation.screens.tvshows.TVShowScreen
 import com.google.jetstream.presentation.theme.AppTheme
 import com.google.jetstream.presentation.utils.Padding
 
@@ -87,6 +87,7 @@ fun rememberChildPadding(direction: LayoutDirection = LocalLayoutDirection.curre
 fun DashboardScreen(
     openCategoryMovieList: (categoryId: String) -> Unit = {},
     openMovieDetailsScreen: (movieId: String) -> Unit = {},
+    openTvShowDetailsScreen: (tvShowId: String) -> Unit = {},
     openVideoPlayer: (movieId: String) -> Unit = {},
     isComingBackFromDifferentScreen: Boolean,
     selectedMovie: MovieNew? = null,
@@ -203,8 +204,9 @@ fun DashboardScreen(
             navController = navController,
             modifier = Modifier.offset(y = navHostTopPaddingDp),
             setSelectedMovie = setSelectedMovie,
-            setSelectedTvShow = setSelectedTvShow
-        )
+            setSelectedTvShow = setSelectedTvShow,
+            openTvShowDetailsScreen = openTvShowDetailsScreen
+            )
     }
 }
 
@@ -232,6 +234,7 @@ private fun BackPressHandledArea(
 private fun Body(
     openCategoryMovieList: (categoryId: String) -> Unit,
     openMovieDetailsScreen: (movieId: String) -> Unit,
+    openTvShowDetailsScreen: (tvShowId: String) -> Unit,
     openVideoPlayer: (movieId: String) -> Unit,
     updateTopBarVisibility: (Boolean) -> Unit,
     setSelectedMovie: (movie: MovieNew) -> Unit,
@@ -276,7 +279,7 @@ private fun Body(
         }
         composable(Screens.Shows()) {
             TVShowScreen(
-                onTVShowClick = { show -> openMovieDetailsScreen(show.id.toString()) },
+                onTVShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) },
                 onScroll = updateTopBarVisibility,
                 isTopBarVisible = isTopBarVisible,
                 goToVideoPlayer = { selectedMovie ->

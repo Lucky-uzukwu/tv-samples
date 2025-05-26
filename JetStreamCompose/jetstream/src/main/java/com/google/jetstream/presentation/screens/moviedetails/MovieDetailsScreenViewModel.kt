@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.jetstream.presentation.screens.movies
+package com.google.jetstream.presentation.screens.moviedetails
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

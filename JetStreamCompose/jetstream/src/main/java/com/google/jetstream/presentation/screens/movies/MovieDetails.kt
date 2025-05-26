@@ -39,7 +39,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -49,8 +48,8 @@ import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.google.jetstream.R
-import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.models.Country
+import com.google.jetstream.data.models.Genre
 import com.google.jetstream.presentation.common.DisplayFilmGenericText
 import com.google.jetstream.presentation.common.IMDbLogo
 import com.google.jetstream.presentation.common.StreamingProviderIcon
@@ -59,12 +58,25 @@ import com.google.jetstream.presentation.theme.JetStreamButtonShape
 import com.google.jetstream.presentation.utils.formatDuration
 import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.getImdbRating
+import com.google.jetstream.data.models.StreamingProvider
+import com.google.jetstream.data.models.Video
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MovieDetails(
-    selectedMovie: MovieNew,
+    id: Int,
+    title: String?,
+    tagLine: String?,
+    releaseDate: String?,
+    countries: List<Country>?,
+    genres: List<Genre>?,
+    duration: Int?,
+    plot: String?,
+    imdbRating: String?,
+    imdbVotes: Int?,
+    streamingProviders: List<StreamingProvider>?,
+    video: Video?,
     openVideoPlayer: (movieId: String) -> Unit,
 ) {
     val childPadding = rememberChildPadding()
@@ -83,9 +95,9 @@ fun MovieDetails(
             Column(
                 modifier = Modifier.padding(start = childPadding.start)
             ) {
-                MovieLargeTitle(movieTitle = selectedMovie.title)
-                if (selectedMovie.tagLine != null) {
-                    MovieTagLine(movieTagline = selectedMovie.tagLine)
+                title?.let { MovieLargeTitle(movieTitle = it) }
+                if (tagLine != null) {
+                    MovieTagLine(movieTagline = tagLine)
                 }
 
                 Column(
@@ -94,28 +106,27 @@ fun MovieDetails(
                     DotSeparatedRow(
                         modifier = Modifier.padding(top = 20.dp),
                         texts = listOf(
-                            (selectedMovie.releaseDate?.substring(0, 4)
-                                ?: "-") + " (${selectedMovie.countries.first().iso31661})",
-                            selectedMovie.genres.joinToString(", ") { it.name },
-                            selectedMovie.duration?.formatDuration() ?: "0h 0m"
+                            (releaseDate?.substring(0, 4)
+                                ?: "-") + " (${countries?.first()?.iso31661})",
+                            genres?.joinToString(", ") { it.name },
+                            duration?.formatDuration() ?: "0h 0m"
                         )
                     )
-                    MovieDescription(description = selectedMovie.plot.toString())
+                    plot?.let { MovieDescription(description = it) }
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Row {
                         IMDbLogo()
                         Spacer(modifier = Modifier.width(8.dp))
                         DisplayFilmGenericText(
-                            "${
-                                selectedMovie.imdbRating.getImdbRating()
-                            }/10 - ${selectedMovie.imdbVotes.toString().formatVotes()} IMDB Votes"
+                            "${imdbRating.getImdbRating()}/10 - " +
+                                    "${imdbVotes.toString().formatVotes()} IMDB Votes"
                         )
                     }
 
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        selectedMovie.streamingProviders.take(5).forEach { streamingProvider ->
+                        streamingProviders?.take(5)?.forEach { streamingProvider ->
                             if (streamingProvider.logoPath != null) {
                                 StreamingProviderIcon(
                                     modifier = Modifier.padding(top = 16.dp),
@@ -129,7 +140,7 @@ fun MovieDetails(
                     }
                 }
 
-                if (selectedMovie.video != null) {
+                if (video != null) {
                     WatchTrailerButton(
                         modifier = Modifier.onFocusChanged {
                             if (it.isFocused) {
@@ -137,7 +148,7 @@ fun MovieDetails(
                             }
                         },
                         openVideoPlayer = openVideoPlayer,
-                        selectedMovie = selectedMovie
+                        filmId = id
                     )
                 }
             }
@@ -148,11 +159,11 @@ fun MovieDetails(
 @Composable
 private fun WatchTrailerButton(
     modifier: Modifier = Modifier,
-    selectedMovie: MovieNew,
+    filmId: Int,
     openVideoPlayer: (movieId: String) -> Unit,
 ) {
     Button(
-        onClick = { openVideoPlayer(selectedMovie.id.toString()) },
+        onClick = { openVideoPlayer(filmId.toString()) },
         modifier = modifier.padding(top = 24.dp),
         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
         shape = ButtonDefaults.shape(shape = JetStreamButtonShape)
@@ -165,40 +176,6 @@ private fun WatchTrailerButton(
         Text(
             text = "Watch Now",
             style = MaterialTheme.typography.titleSmall,
-        )
-    }
-}
-
-@Composable
-private fun DirectorScreenplayMusicRow(
-    director: String,
-    screenplay: String,
-    music: String
-) {
-    Row(modifier = Modifier.padding(top = 32.dp)) {
-        TitleValueText(
-            modifier = Modifier
-                .padding(end = 32.dp)
-                .weight(1f),
-            title = stringResource(R.string.director),
-            value = director,
-            valueColor = Color.White.copy(alpha = 0.9f)
-        )
-
-        TitleValueText(
-            modifier = Modifier
-                .padding(end = 32.dp)
-                .weight(1f),
-            title = stringResource(R.string.screenplay),
-            value = screenplay,
-            valueColor = Color.White.copy(alpha = 0.9f)
-        )
-
-        TitleValueText(
-            modifier = Modifier.weight(1f),
-            title = stringResource(R.string.music),
-            value = music,
-            valueColor = Color.White.copy(alpha = 0.9f)
         )
     }
 }

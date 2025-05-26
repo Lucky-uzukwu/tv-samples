@@ -37,7 +37,8 @@ import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.screens.categories.CategoryMovieListScreen
 import com.google.jetstream.presentation.screens.dashboard.DashboardScreen
-import com.google.jetstream.presentation.screens.movies.MovieDetailsScreen
+import com.google.jetstream.presentation.screens.moviedetails.MovieDetailsScreen
+import com.google.jetstream.presentation.screens.tvshowsdetails.TvShowDetailsScreen
 import com.google.jetstream.presentation.screens.videoPlayer.VideoPlayerScreen
 import com.google.jetstream.state.UserStateHolder
 
@@ -134,11 +135,44 @@ fun App(
                     }
                 )
             }
+            composable(
+                route = Screens.TvShowDetails(),
+                arguments = listOf(
+                    navArgument(TvShowDetailsScreen.TvShowIdBundleKey) {
+                        type = NavType.StringType
+                    }
+                )
+            ) {
+                TvShowDetailsScreen(
+                    openVideoPlayer = { tvShowId ->
+                        navController.navigate(Screens.VideoPlayer.withArgs(tvShowId))
+                    },
+                    onNewTvShowSelected = { tvShow ->
+                        navController.navigate(
+                            Screens.TvShowDetails.withArgs(tvShow.id)
+                        ) {
+                            popUpTo(Screens.TvShowDetails()) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onBackPressed = {
+                        if (navController.navigateUp()) {
+                            isComingBackFromDifferentScreen = true
+                        }
+                    }
+                )
+            }
             composable(route = Screens.Dashboard()) {
                 DashboardScreen(
                     openCategoryMovieList = { categoryId ->
                         navController.navigate(
                             Screens.CategoryMovieList.withArgs(categoryId)
+                        )
+                    },
+                    openTvShowDetailsScreen = { tvShowId ->
+                        navController.navigate(
+                            Screens.TvShowDetails.withArgs(tvShowId)
                         )
                     },
                     openMovieDetailsScreen = { movieId ->

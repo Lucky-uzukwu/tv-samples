@@ -1,4 +1,4 @@
-package com.google.jetstream.presentation.screens.shows
+package com.google.jetstream.presentation.screens.tvshows
 
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
