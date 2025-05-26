@@ -285,7 +285,7 @@ private fun CarouselItemForeground(
     onButtonFocus: (Int) -> Unit
 ) {
 
-    val combinedGenre = tvShow.genres.joinToString(" ") { genre -> genre.name }
+    val combinedGenre = tvShow.genres?.joinToString(" ") { genre -> genre.name }
     val getYear = tvShow.releaseDate?.substring(0, 4)
     Box(
         modifier = modifier,

@@ -185,7 +185,7 @@ private fun TvShowDescription(
     tvShow: TvShow,
     modifier: Modifier = Modifier,
 ) {
-    val combinedGenre = tvShow.genres.joinToString(" ") { genre -> genre.name }
+    val combinedGenre = tvShow.genres?.joinToString(" ") { genre -> genre.name }
     val getYear = tvShow.releaseDate?.substring(0, 4)
 
     Column(

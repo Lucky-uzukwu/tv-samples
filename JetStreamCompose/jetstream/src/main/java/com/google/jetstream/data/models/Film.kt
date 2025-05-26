@@ -47,36 +47,61 @@ data class TvShow(
     val isAdultContent: Boolean,
     val isKidsContent: Boolean,
     val views: Int?,
+    val priority: Any?,
     val active: Boolean,
     val showInHeroSection: Boolean,
     val tvShowPeopleCount: Int?,
     val seasonsCount: Int?,
-    val genres: List<Genre>,
-    val countries: List<Country>,
-    val languages: List<Language>,
-    val streamingProviders: List<StreamingProvider>,
-    val tvShowPerson: List<TvShowPerson>,
-    val priority: Any?,
-    val seasons: List<Season>,
+    val tvShowPeople: List<TvShowPerson>?,
+    val seasons: List<Season>?,
+    val genres: List<Genre>?,
+    val countries: List<Country>?,
+    val languages: List<Language>?,
+    val streamingProviders: List<StreamingProvider>?,
+    val catalogs: List<Any>?
 )
 
 data class Season(
     val id: Int,
     val tvShowId: Int,
-    val number: Int?, // Or Int if you're sure it's always an integer
+    val number: Int?,
     val tagLine: String?,
-    val plot: String?, // Nullable
-    val releaseDate: String?, // Nullable
-    val imdbRating: Double?, // Can be Double or Int, using Double to handle both
-    val imdbVotes: String?, // Nullable, as it's null in your JSON
-    val backdropImagePath: String?, // Nullable
-    val posterImagePath: String?, // Nullable
-    val youtubeTrailerUrl: String?, // Nullable
-    val contentRating: String?, // Nullable
+    val plot: String?,
+    val releaseDate: String?,
+    val imdbRating: Double?,
+    val imdbVotes: String?,
+    val backdropImagePath: String?,
+    val posterImagePath: String?,
+    val youtubeTrailerUrl: String?,
+    val contentRating: String?,
     val views: Int?,
     val priority: Int?,
     val active: Boolean,
-    val episodesCount: Int?
+    val episodesCount: Int?,
+    val episodes: List<Episode>?
+)
+
+data class Episode(
+    val id: Int,
+    val title: String,
+    val tagLine: String?,
+    val plot: String?,
+    val releaseDate: String?,
+    val duration: Int?,
+    val imdbRating: String?,
+    val imdbVotes: Int?,
+    val backdropImagePath: String?,
+    val posterImagePath: String?,
+    val youtubeTrailerUrl: String?,
+    val contentRating: String?,
+    val isAdultContent: Boolean,
+    val isKidsContent: Boolean,
+    val views: Int?,
+    val active: Boolean,
+    val showInHeroSection: Boolean,
+    val tvShowSeasonId: Int?,
+    val tvShowSeasonPriority: Int?,
+    val video: Video?,
 )
 
 data class MoviePerson(
@@ -159,7 +184,7 @@ data class Language(
     val id: Int,
     val iso6391: String,
     val englishName: String,
-    val name: String? // Assuming 'name' can sometimes be null based on the JSON
+    val name: String?
 )
 
 data class ViewDetails(

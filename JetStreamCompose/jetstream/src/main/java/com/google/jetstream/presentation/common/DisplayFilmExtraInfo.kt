@@ -15,7 +15,7 @@ import com.google.jetstream.presentation.utils.formatDuration
 @Composable
 fun DisplayFilmExtraInfo(
     getYear: String?,
-    combinedGenre: String,
+    combinedGenre: String?,
     duration: Int?,
     style: TextStyle? = null,
 ) {

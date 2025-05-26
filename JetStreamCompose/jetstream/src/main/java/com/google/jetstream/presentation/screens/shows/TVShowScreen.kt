@@ -177,24 +177,25 @@ private fun Catalog(
             }
 
             // Loop through genreList to display each catalog and its movies
-//            items(
-//                items = genreToTvShows.keys.toList(),
-//                key = { genre -> genre.id }, // Use catalog ID as unique key
-//                contentType = { "MoviesRow" }
-//            ) { genre ->
-//                val tvShowsAsLazy = genreToTvShows[genre]?.collectAsLazyPagingItems()
-//                val tvShows = tvShowsAsLazy?.itemSnapshotList?.items ?: emptyList()
-//
-//                ImmersiveShowsList(
-//                    tvShows = tvShows,
-//                    sectionTitle = genre.name,
-//                    onTvShowClick = onTVShowClick,
-//                    setSelectedTvShow = setSelectedTvShow,
-//                    modifier = Modifier.onFocusChanged {
-//                        immersiveListHasFocus = it.hasFocus
-//                    },
-//                )
-//            }
+            items(
+                items = genreToTvShows.keys.toList(),
+                key = { genre -> genre.id }, // Use catalog ID as unique key
+                contentType = { "MoviesRow" }
+            ) { genre ->
+                val tvShowsAsLazy = genreToTvShows[genre]?.collectAsLazyPagingItems()
+                val tvShows = tvShowsAsLazy?.itemSnapshotList?.items ?: emptyList()
+                if (tvShows.isNotEmpty()) {
+                    ImmersiveShowsList(
+                        tvShows = tvShows,
+                        sectionTitle = genre.name,
+                        onTvShowClick = onTVShowClick,
+                        setSelectedTvShow = setSelectedTvShow,
+                        modifier = Modifier.onFocusChanged {
+                            immersiveListHasFocus = it.hasFocus
+                        },
+                    )
+                }
+            }
         }
     }
 }
