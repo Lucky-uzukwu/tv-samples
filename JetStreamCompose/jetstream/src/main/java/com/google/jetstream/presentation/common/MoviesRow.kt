@@ -396,15 +396,6 @@ private fun ShowsRowItem(
 
     MovieCard(
         onClick = { onTvShowSelected(tvShow) },
-        title = {
-            tvShow.title?.let {
-                MoviesRowItemText(
-                    showItemTitle = showItemTitle,
-                    isItemFocused = isFocused,
-                    movieTitle = it
-                )
-            }
-        },
         modifier = Modifier
             .border(
                 width = JetStreamBorderWidth,
@@ -456,13 +447,6 @@ private fun MoviesRowItem(
 
     MovieCard(
         onClick = { onMovieSelected(movie) },
-        title = {
-            MoviesRowItemText(
-                showItemTitle = showItemTitle,
-                isItemFocused = isFocused,
-                movieTitle = movie.title
-            )
-        },
         modifier = Modifier
             .border(
                 width = JetStreamBorderWidth,
@@ -496,7 +480,7 @@ private fun MoviesRowItem(
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun TvShowRowItem(
+fun TvShowRowItem(
     index: Int,
     tvShow: TvShow,
     onTvShowSelected: (TvShow) -> Unit,
@@ -511,15 +495,6 @@ private fun TvShowRowItem(
 
     MovieCard(
         onClick = { onTvShowSelected(tvShow) },
-        title = {
-            tvShow.title?.let {
-                MoviesRowItemText(
-                    showItemTitle = showItemTitle,
-                    isItemFocused = isFocused,
-                    movieTitle = it
-                )
-            }
-        },
         modifier = Modifier
             .border(
                 width = JetStreamBorderWidth,

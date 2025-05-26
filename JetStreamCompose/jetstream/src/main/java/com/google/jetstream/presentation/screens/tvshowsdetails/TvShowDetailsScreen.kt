@@ -19,8 +19,10 @@ package com.google.jetstream.presentation.screens.tvshowsdetails
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,25 +31,32 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.jetstream.R
+import com.google.jetstream.data.models.Season
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
+import com.google.jetstream.presentation.common.PosterImage
 import com.google.jetstream.presentation.common.TvShowsRow
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import com.google.jetstream.presentation.screens.movies.CastAndCrewList
@@ -140,6 +149,13 @@ private fun Details(
             )
         }
 
+        if (tvShow.seasons?.isNotEmpty() == true && tvShow.seasons.first().episodes?.isNotEmpty() == true) {
+            item {
+                TvShowSeasonsAndEpisodes(
+                    seasons = tvShow.seasons,
+                )
+            }
+        }
         if (tvShow.tvShowPeople?.isNotEmpty() == true) {
             item {
                 CastAndCrewList(
@@ -147,6 +163,8 @@ private fun Details(
                 )
             }
         }
+
+
 
         item {
             TvShowsRow(
@@ -221,6 +239,104 @@ private fun MovieImageWithGradients(
             .ContentDescription
             .moviePoster(title), modifier = modifier
     )
+}
+
+
+@Composable
+private fun TvShowSeasonsAndEpisodes(
+    seasons: List<Season>?,
+    modifier: Modifier = Modifier,
+) {
+    if (seasons.isNullOrEmpty()) {
+        return
+    }
+
+    val childPadding = rememberChildPadding()
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .focusable()
+            .padding(horizontal = childPadding.start)
+    ) {
+        Text(
+            text = "Seasons & Episodes", // Create this string resource
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
+            modifier = Modifier.padding(
+                top = childPadding.top, // Consistent top padding with other sections
+                bottom = 16.dp
+            )
+        )
+
+        seasons.forEachIndexed { seasonIndex, season ->
+            Text(
+                text = "Season " + season.number.toString(), // Create this string resource
+                style = MaterialTheme.typography.titleSmall,
+                color = Color.White,
+                modifier = Modifier.padding(
+                    top = if (seasonIndex > 0) 24.dp else 8.dp,
+                    bottom = 8.dp
+                )
+            )
+
+            if (season.episodes?.isEmpty() == true) {
+                Text(
+                    text = "No episodes listed for this season.", // Create this string resource
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White,
+                    modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
+                )
+            } else {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    season.episodes?.forEach { episode ->
+                        item {
+                            Column(
+                                modifier = Modifier
+                                    .padding(bottom = 12.dp)
+                                    .focusable()
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 2.dp),
+                                ) {
+//                                    Text(
+//                                        text = episode.title, // Create this string resource
+//                                        style = MaterialTheme.typography.bodyLarge,
+//                                        color = Color.White,
+//                                        modifier = Modifier.weight(1f)
+//                                    )
+                                }
+                                if (episode.posterImagePath != null) {
+                                    val imageUrl =
+                                        "https://stage.nortv.xyz/" + "storage/" + episode.posterImagePath
+                                    PosterImage(
+                                        movieTitle = episode.title,
+                                        movieUri = imageUrl,
+                                        modifier = Modifier // Removed the passed modifier as it's from the Column
+                                            .height(192.dp)
+                                            .width(192.dp) // Consistent width for episode posters
+                                    )
+                                }
+                                Text(
+                                    text = episode.title,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.White,
+                                    maxLines = 3,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier
+                                        .padding(start = 8.dp, top = 4.dp)
+                                        .width(100.dp) // Ensure plot text width matches image
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 

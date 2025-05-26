@@ -32,7 +32,6 @@ import com.google.jetstream.presentation.theme.JetStreamCardShape
 fun MovieCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    title: @Composable () -> Unit = {},
     image: @Composable BoxScope.() -> Unit,
 ) {
     StandardCardContainer(
