@@ -301,7 +301,7 @@ private fun CarouselItemForeground(
             DisplayFilmDescription(
                 tagLine = tvShow.tagLine,
             )
-            DisplayFilmExtraInfo(getYear, combinedGenre, tvShow.duration)
+            DisplayFilmExtraInfoWithoutDuration(getYear, combinedGenre)
 
             val formattedPlot = tvShow.plot.formatPLot()
 

@@ -45,3 +45,36 @@ fun DisplayFilmExtraInfo(
         )
     }
 }
+
+@Composable
+fun DisplayFilmExtraInfoWithoutDuration(
+    getYear: String?,
+    combinedGenre: String?,
+    style: TextStyle? = null,
+) {
+    if (style != null) {
+        Text(
+            text = "$getYear - $combinedGenre",
+            style = style,
+            color = Color.White,
+            maxLines = 1,
+        )
+    } else {
+        Text(
+            text = "$getYear - $combinedGenre",
+            color = Color.White,
+            style = MaterialTheme.typography.titleMedium.copy(
+                color = MaterialTheme.colorScheme.onSurface.copy(
+                    alpha = 0.65f
+                ),
+                shadow = Shadow(
+                    color = Color.Black.copy(alpha = 0.5f),
+                    offset = Offset(x = 2f, y = 4f),
+                    blurRadius = 2f
+                )
+            ),
+            maxLines = 1,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+    }
+}
