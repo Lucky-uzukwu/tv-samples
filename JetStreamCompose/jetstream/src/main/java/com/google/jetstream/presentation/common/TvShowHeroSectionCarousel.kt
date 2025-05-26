@@ -297,13 +297,13 @@ private fun CarouselItemForeground(
                 .padding(32.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            DisplayFilmTitle(tvShow)
+            tvShow.title?.let { DisplayFilmTitle(it) }
             DisplayFilmDescription(
-                film = tvShow,
+                tagLine = tvShow.tagLine,
             )
-            DisplayFilmExtraInfo(getYear, combinedGenre, tvShow)
+            DisplayFilmExtraInfo(getYear, combinedGenre, tvShow.duration)
 
-            val formattedPlot = tvShow.formatPLot()
+            val formattedPlot = tvShow.plot.formatPLot()
 
 
             DisplayFilmGenericText(formattedPlot)
@@ -314,7 +314,7 @@ private fun CarouselItemForeground(
                 Spacer(modifier = Modifier.width(8.dp))
                 DisplayFilmGenericText(
                     "${
-                        tvShow.getImdbRating()
+                        tvShow.imdbRating.getImdbRating()
                     }/10 - ${tvShow.imdbVotes.toString().formatVotes()} IMDB Votes"
                 )
             }
@@ -352,10 +352,12 @@ private fun CarouselItemBackground(
 
     AsyncImage(
         model = imageUrl,
-        contentDescription = StringConstants
-            .Composable
-            .ContentDescription
-            .showPoster(tvShow.title),
+        contentDescription = tvShow.title?.let {
+            StringConstants
+                .Composable
+                .ContentDescription
+                .showPoster(it)
+        },
         modifier = modifier
             .drawWithContent {
                 drawContent()

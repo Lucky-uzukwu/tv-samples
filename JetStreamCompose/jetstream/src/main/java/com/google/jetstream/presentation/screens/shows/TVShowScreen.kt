@@ -1,19 +1,3 @@
-/*
- * Copyright 2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.google.jetstream.presentation.screens.shows
 
 import androidx.compose.foundation.focusable
@@ -37,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -44,12 +29,15 @@ import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.google.jetstream.data.models.Genre
+import androidx.compose.foundation.lazy.items
+import co.touchlab.kermit.Logger
 import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.StreamingProviderIcon
+import com.google.jetstream.presentation.common.ImmersiveShowsList
 import com.google.jetstream.presentation.common.TvShowHeroSectionCarousel
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.collections.forEach
@@ -128,7 +116,7 @@ private fun Catalog(
             contentPadding = PaddingValues(bottom = 108.dp),
             modifier = modifier,
         ) {
-            item(contentType = "HeroSectionCarousel") {
+            item(contentType = "TvShowHeroSectionCarousel") {
                 TvShowHeroSectionCarousel(
                     tvShows = heroSectionTvShows,
                     goToVideoPlayer = goToVideoPlayer,
@@ -164,40 +152,44 @@ private fun Catalog(
             }
 
             // Loop through catalogList to display each catalog and its movies
-//            items(
-//                items = catalogToTvShows.keys.toList(),
-//                key = { catalog -> catalog.id }, // Use catalog ID as unique key
-//                contentType = { "MoviesRow" }
-//            ) { catalog ->
-//                val movies = catalogToTvShows[catalog]?.collectAsLazyPagingItems()
-//                val movieList = movies?.itemSnapshotList?.items ?: emptyList()
-//
-//
-//                Top10MoviesList(
-//                    movieList = movieList,
-//                    sectionTitle = catalog.name,
-//                    onMovieClick = onTVShowClick,
-//                    setSelectedMovie = setSelectedTvShow,
-//                    modifier = Modifier.onFocusChanged {
-//                        immersiveListHasFocus = it.hasFocus
-//                    },
-//                )
-//            }
-//
-//            // Loop through genreList to display each catalog and its movies
+            items(
+                items = catalogToTvShows.keys.toList(),
+                key = { catalog -> catalog.id }, // Use catalog ID as unique key
+                contentType = { "ImmersiveShowsList" },
+            ) { catalog ->
+                val tvShowsAsLazy = catalogToTvShows[catalog]?.collectAsLazyPagingItems()
+                val tvShows = tvShowsAsLazy?.itemSnapshotList?.items ?: emptyList()
+                Logger.i {
+                    "tvShows: $tvShows"
+                }
+
+                if (tvShows.isNotEmpty()) {
+                    ImmersiveShowsList(
+                        tvShows = tvShows,
+                        sectionTitle = catalog.name,
+                        onTvShowClick = onTVShowClick,
+                        setSelectedTvShow = setSelectedTvShow,
+                        modifier = Modifier.onFocusChanged {
+                            immersiveListHasFocus = it.hasFocus
+                        },
+                    )
+                }
+            }
+
+            // Loop through genreList to display each catalog and its movies
 //            items(
 //                items = genreToTvShows.keys.toList(),
 //                key = { genre -> genre.id }, // Use catalog ID as unique key
 //                contentType = { "MoviesRow" }
 //            ) { genre ->
-//                val movies = genreToTvShows[genre]?.collectAsLazyPagingItems()
-//                val movieList = movies?.itemSnapshotList?.items ?: emptyList()
+//                val tvShowsAsLazy = genreToTvShows[genre]?.collectAsLazyPagingItems()
+//                val tvShows = tvShowsAsLazy?.itemSnapshotList?.items ?: emptyList()
 //
-//                Top10MoviesList(
-//                    movieList = movieList,
+//                ImmersiveShowsList(
+//                    tvShows = tvShows,
 //                    sectionTitle = genre.name,
-//                    onMovieClick = onTVShowClick,
-//                    setSelectedMovie = setSelectedTvShow,
+//                    onTvShowClick = onTVShowClick,
+//                    setSelectedTvShow = setSelectedTvShow,
 //                    modifier = Modifier.onFocusChanged {
 //                        immersiveListHasFocus = it.hasFocus
 //                    },

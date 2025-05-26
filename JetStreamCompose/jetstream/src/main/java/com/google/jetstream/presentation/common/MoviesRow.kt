@@ -18,7 +18,6 @@ package com.google.jetstream.presentation.common
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
@@ -60,12 +59,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.tv.material3.Border
-import androidx.tv.material3.CardDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import com.google.jetstream.presentation.theme.JetStreamBorderWidth
 import com.google.jetstream.presentation.theme.JetStreamCardShape
@@ -154,7 +151,7 @@ fun MoviesRow(
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ImmersiveListMoviesRow(
-    movieList: MovieListNew,
+    movieList: List<MovieNew>,
     modifier: Modifier = Modifier,
     itemDirection: ItemDirection = ItemDirection.Vertical,
     startPadding: Dp = rememberChildPadding().start,
@@ -231,6 +228,144 @@ fun ImmersiveListMoviesRow(
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
+fun ImmersiveListShowsRow(
+    tvShows: List<TvShow>,
+    modifier: Modifier = Modifier,
+    itemDirection: ItemDirection = ItemDirection.Vertical,
+    startPadding: Dp = rememberChildPadding().start,
+    endPadding: Dp = rememberChildPadding().end,
+    title: String? = null,
+    titleStyle: TextStyle = MaterialTheme.typography.headlineLarge.copy(
+        fontWeight = FontWeight.Medium,
+        fontSize = 30.sp
+    ),
+    showItemTitle: Boolean = true,
+    isListFocused: Boolean,
+    showIndexOverImage: Boolean = false,
+    onMovieSelected: (TvShow) -> Unit = {},
+    onMovieFocused: (TvShow) -> Unit = {}
+) {
+    val (lazyRow, firstItem) = remember { FocusRequester.createRefs() }
+
+    Column(
+        modifier = modifier.focusGroup()
+    ) {
+        if (title != null) {
+            Text(
+                text = title,
+                color = if (isListFocused) Color.Black else Color.White,
+                style = titleStyle,
+                modifier = Modifier
+                    .alpha(1f)
+                    .padding(start = startPadding)
+                    .padding(vertical = 16.dp)
+            )
+        }
+        AnimatedContent(
+            targetState = tvShows,
+            label = "",
+        ) { tvShowsState ->
+            LazyRow(
+                contentPadding = PaddingValues(start = startPadding, end = endPadding),
+                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                modifier = Modifier
+                    .focusRequester(lazyRow)
+                    .focusRestorer {
+                        firstItem
+                    }
+            ) {
+                itemsIndexed(
+                    tvShowsState,
+                    key = { _, tvShow ->
+                        tvShow.id
+                    }
+                ) { index, tvShow ->
+                    val itemModifier = if (index == 0) {
+                        Modifier.focusRequester(firstItem)
+                    } else {
+                        Modifier
+                    }
+                    ShowsRowItem(
+                        modifier = itemModifier.weight(1f),
+                        index = index,
+                        itemDirection = itemDirection,
+                        onTvShowSelected = {
+                            lazyRow.saveFocusedChild()
+                            onMovieSelected(it)
+                        },
+                        onTvShowFocused = onMovieFocused,
+                        tvShow = tvShow,
+                        showItemTitle = showItemTitle,
+                        showIndexOverImage = showIndexOverImage
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+private fun ShowsRowItem(
+    index: Int,
+    tvShow: TvShow,
+    onTvShowSelected: (TvShow) -> Unit,
+    showItemTitle: Boolean,
+    showIndexOverImage: Boolean,
+    modifier: Modifier = Modifier,
+    itemDirection: ItemDirection = ItemDirection.Vertical,
+    onTvShowFocused: (TvShow) -> Unit = {},
+) {
+    var isFocused by remember { mutableStateOf(false) }
+    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + tvShow.posterImagePath
+
+    MovieCard(
+        onClick = { onTvShowSelected(tvShow) },
+        title = {
+            tvShow.title?.let {
+                MoviesRowItemText(
+                    showItemTitle = showItemTitle,
+                    isItemFocused = isFocused,
+                    movieTitle = it
+                )
+            }
+        },
+        modifier = Modifier
+            .border(
+                width = JetStreamBorderWidth,
+                color = if (isFocused) Color.White else Color.Transparent,
+                shape = JetStreamCardShape
+            )
+            .onFocusChanged {
+                isFocused = it.isFocused
+                if (it.isFocused) {
+                    onTvShowFocused(tvShow)
+                }
+            }
+            .focusProperties {
+                left = if (index == 0) {
+                    FocusRequester.Cancel
+                } else {
+                    FocusRequester.Default
+                }
+            }
+            .then(modifier)
+    ) {
+        tvShow.title?.let {
+            MoviesRowItemImage(
+                modifier = Modifier.aspectRatio(itemDirection.aspectRatio),
+                showIndexOverImage = showIndexOverImage,
+                movieTitle = it,
+                movieUri = imageUrl,
+                index = index
+            )
+        }
+    }
+}
+
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
 private fun MoviesRowItem(
     index: Int,
     movie: MovieNew,
@@ -255,7 +390,9 @@ private fun MoviesRowItem(
         },
         modifier = Modifier
             .border(
-                width = JetStreamBorderWidth, color = if (isFocused) Color.White else Color.Transparent, shape = JetStreamCardShape
+                width = JetStreamBorderWidth,
+                color = if (isFocused) Color.White else Color.Transparent,
+                shape = JetStreamCardShape
             )
             .onFocusChanged {
                 isFocused = it.isFocused

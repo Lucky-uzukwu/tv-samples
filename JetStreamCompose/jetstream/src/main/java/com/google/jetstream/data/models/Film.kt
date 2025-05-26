@@ -1,91 +1,83 @@
 package com.google.jetstream.data.models
 
-sealed interface Film {
-    val id: Int
-    val title: String
-    val tagLine: String?
-    val plot: String?
-    val releaseDate: String?
-    val duration: Int?
-    val imdbRating: String?
-    val imdbVotes: Int?
-    val backdropImagePath: String?
-    val posterImagePath: String?
-    val youtubeTrailerUrl: String?
-    val contentRating: String?
-    val isAdultContent: Boolean
-    val isKidsContent: Boolean
-    val views: Int?
-    val active: Boolean
-    val showInHeroSection: Boolean
-    val moviePeople: List<MoviePerson>
-    val genres: List<Genre>
-    val countries: List<Country>
-    val languages: List<Language>
-    val streamingProviders: List<StreamingProvider>
-    val catalogs: List<Any> // Empty list in JSON, using Any for flexibility
-}
-
 data class MovieNew(
-    override val id: Int,
-    override val title: String,
-    override val tagLine: String?,
-    override val plot: String?,
-    override val releaseDate: String?,
-    override val duration: Int?,
-    override val imdbRating: String?,
-    override val imdbVotes: Int?,
-    override val backdropImagePath: String?,
-    override val posterImagePath: String?,
-    override val youtubeTrailerUrl: String?,
-    override val contentRating: String?,
-    override val isAdultContent: Boolean,
-    override val isKidsContent: Boolean,
-    override val views: Int?,
-    override val active: Boolean,
-    override val showInHeroSection: Boolean,
+    val id: Int,
+    val title: String,
+    val tagLine: String?,
+    val plot: String?,
+    val releaseDate: String?,
+    val duration: Int?,
+    val imdbRating: String?,
+    val imdbVotes: Int?,
+    val backdropImagePath: String?,
+    val posterImagePath: String?,
+    val youtubeTrailerUrl: String?,
+    val contentRating: String?,
+    val isAdultContent: Boolean,
+    val isKidsContent: Boolean,
+    val views: Int?,
+    val active: Boolean,
+    val showInHeroSection: Boolean,
     val tvShowSeasonId: Int?,
     val tvShowSeasonPriority: Int?,
     val moviePeopleCount: Int?,
     val video: Video?,
-    override val moviePeople: List<MoviePerson>,
-    override val genres: List<Genre>,
-    override val countries: List<Country>,
-    override val languages: List<Language>,
-    override val streamingProviders: List<StreamingProvider>,
-    override val catalogs: List<Any>
-) : Film
+    val moviePeople: List<MoviePerson>,
+    val genres: List<Genre>,
+    val countries: List<Country>,
+    val languages: List<Language>,
+    val streamingProviders: List<StreamingProvider>,
+    val catalogs: List<Any>
+)
 
 
 data class TvShow(
-    override val id: Int,
-    override val title: String,
-    override val tagLine: String?,
-    override val plot: String?,
-    override val releaseDate: String?,
-    override val duration: Int?,
-    override val imdbRating: String?,
-    override val imdbVotes: Int?,
-    override val backdropImagePath: String?,
-    override val posterImagePath: String?,
-    override val youtubeTrailerUrl: String?,
-    override val contentRating: String?,
-    override val isAdultContent: Boolean,
-    override val isKidsContent: Boolean,
-    override val views: Int?,
-    override val active: Boolean,
-    override val showInHeroSection: Boolean,
+    val id: Int,
+    val title: String?,
+    val tagLine: String?,
+    val plot: String?,
+    val releaseDate: String?,
+    val duration: Int?,
+    val imdbRating: String?,
+    val imdbVotes: Int?,
+    val backdropImagePath: String?,
+    val posterImagePath: String?,
+    val youtubeTrailerUrl: String?,
+    val contentRating: String?,
+    val isAdultContent: Boolean,
+    val isKidsContent: Boolean,
+    val views: Int?,
+    val active: Boolean,
+    val showInHeroSection: Boolean,
     val tvShowPeopleCount: Int?,
     val seasonsCount: Int?,
-    override val genres: List<Genre>,
-    override val countries: List<Country>,
-    override val languages: List<Language>,
-    override val streamingProviders: List<StreamingProvider>,
-    override val moviePeople: List<MoviePerson>,
-    override val catalogs: List<Any>,
+    val genres: List<Genre>,
+    val countries: List<Country>,
+    val languages: List<Language>,
+    val streamingProviders: List<StreamingProvider>,
     val tvShowPerson: List<TvShowPerson>,
-    val priority: Any?
-) : Film
+    val priority: Any?,
+    val seasons: List<Season>,
+)
+
+data class Season(
+    val id: Int,
+    val tvShowId: Int,
+    val number: Int?, // Or Int if you're sure it's always an integer
+    val tagLine: String?,
+    val plot: String?, // Nullable
+    val releaseDate: String?, // Nullable
+    val imdbRating: Double?, // Can be Double or Int, using Double to handle both
+    val imdbVotes: String?, // Nullable, as it's null in your JSON
+    val backdropImagePath: String?, // Nullable
+    val posterImagePath: String?, // Nullable
+    val youtubeTrailerUrl: String?, // Nullable
+    val contentRating: String?, // Nullable
+    val views: Int?,
+    val priority: Int?,
+    val active: Boolean,
+    val episodesCount: Int?
+)
 
 data class MoviePerson(
     val id: Int,

@@ -108,7 +108,7 @@ fun MovieDetails(
                         Spacer(modifier = Modifier.width(8.dp))
                         DisplayFilmGenericText(
                             "${
-                                selectedMovie.getImdbRating()
+                                selectedMovie.imdbRating.getImdbRating()
                             }/10 - ${selectedMovie.imdbVotes.toString().formatVotes()} IMDB Votes"
                         )
                     }

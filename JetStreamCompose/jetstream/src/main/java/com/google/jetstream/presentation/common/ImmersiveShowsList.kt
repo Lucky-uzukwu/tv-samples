@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,42 +52,44 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.jetstream.R
-import com.google.jetstream.data.entities.MovieListNew
-import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import com.google.jetstream.presentation.utils.bringIntoViewIfChildrenAreFocused
 import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.getImdbRating
 
 @Composable
-fun Top10MoviesList(
-    movieList: MovieListNew,
+fun ImmersiveShowsList(
+    tvShows: List<TvShow>,
     sectionTitle: String? = stringResource(R.string.top_10_movies_title),
     modifier: Modifier = Modifier,
-    setSelectedMovie: (MovieNew) -> Unit,
+    setSelectedTvShow: (TvShow) -> Unit,
     gradientColor: Color = Color.Black.copy(alpha = 0.7f),
-    onMovieClick: (movie: MovieNew) -> Unit
+    onTvShowClick: (tvShow: TvShow) -> Unit
 ) {
     var isListFocused by remember { mutableStateOf(false) }
 
-    var selectedMovie by remember(movieList) {
-        mutableStateOf(movieList.firstOrNull())
+    var selectedTvShow by remember(tvShows) {
+        mutableStateOf(tvShows.firstOrNull())
     }
 
-    if (selectedMovie == null && movieList.isNotEmpty()) {
-        selectedMovie = movieList.first()
+    if (selectedTvShow == null && tvShows.isNotEmpty()) {
+        selectedTvShow = tvShows.first()
+    } else if (selectedTvShow == null) {
+        selectedTvShow = tvShows.last()
     }
+
 
     ImmersiveList(
-        selectedMovie = selectedMovie ?: return,
+        selectedTvShow = selectedTvShow!!,
         isListFocused = isListFocused,
         gradientColor = gradientColor,
-        movieList = movieList,
+        tvShows = tvShows,
         sectionTitle = sectionTitle,
-        onMovieClick = onMovieClick,
+        onMovieClick = onTvShowClick,
         onMovieFocused = {
-            selectedMovie = it
-            setSelectedMovie(it)
+            selectedTvShow = it
+            setSelectedTvShow(it)
         },
         onFocusChanged = {
             isListFocused = it.hasFocus
@@ -100,14 +103,14 @@ fun Top10MoviesList(
 
 @Composable
 private fun ImmersiveList(
-    selectedMovie: MovieNew,
+    selectedTvShow: TvShow,
     isListFocused: Boolean,
     gradientColor: Color,
-    movieList: MovieListNew,
+    tvShows: List<TvShow>,
     sectionTitle: String?,
     onFocusChanged: (FocusState) -> Unit,
-    onMovieFocused: (MovieNew) -> Unit,
-    onMovieClick: (MovieNew) -> Unit,
+    onMovieFocused: (TvShow) -> Unit,
+    onMovieClick: (TvShow) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -115,7 +118,7 @@ private fun ImmersiveList(
         modifier = modifier
     ) {
         Background(
-            movie = selectedMovie,
+            movie = selectedTvShow,
             visible = isListFocused,
             modifier = modifier
                 .height(500.dp)
@@ -124,8 +127,8 @@ private fun ImmersiveList(
         Column {
             // TODO HERE you can add more deails for each row
             if (isListFocused) {
-                MovieDescription(
-                    movie = selectedMovie,
+                TvShowDescription(
+                    tvShow = selectedTvShow,
                     modifier = Modifier.padding(
                         start = rememberChildPadding().start,
                         bottom = 10.dp
@@ -133,15 +136,15 @@ private fun ImmersiveList(
                 )
             }
 
-            ImmersiveListMoviesRow(
-                movieList = movieList,
+            ImmersiveListShowsRow(
+                tvShows = tvShows,
                 itemDirection = ItemDirection.Horizontal,
                 title = sectionTitle,
                 showItemTitle = !isListFocused,
                 showIndexOverImage = false,
                 onMovieSelected = onMovieClick,
-                onMovieFocused = onMovieFocused,
                 isListFocused = isListFocused,
+                onMovieFocused = onMovieFocused,
                 modifier = Modifier.onFocusChanged(onFocusChanged)
             )
         }
@@ -150,7 +153,7 @@ private fun ImmersiveList(
 
 @Composable
 private fun Background(
-    movie: MovieNew,
+    movie: TvShow,
     visible: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -166,30 +169,32 @@ private fun Background(
             label = "posterUriCrossfade",
 
             ) {
-            PosterImage(
-                movieTitle = it.title,
-                movieUri = imageUrl,
-                modifier = Modifier.fillMaxSize()
-            )
+            it.title?.let { movieTitle ->
+                PosterImage(
+                    movieTitle = movieTitle,
+                    movieUri = imageUrl,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun MovieDescription(
-    movie: MovieNew,
+private fun TvShowDescription(
+    tvShow: TvShow,
     modifier: Modifier = Modifier,
 ) {
-    val combinedGenre = movie.genres.joinToString(" ") { genre -> genre.name }
-    val getYear = movie.releaseDate?.substring(0, 4)
+    val combinedGenre = tvShow.genres.joinToString(" ") { genre -> genre.name }
+    val getYear = tvShow.releaseDate?.substring(0, 4)
 
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        DisplayFilmTitle(movie.title, style = MaterialTheme.typography.displaySmall)
+        tvShow.title?.let { DisplayFilmTitle(it, style = MaterialTheme.typography.displaySmall) }
         DisplayFilmDescription(
-            movie.tagLine,
+            tvShow.tagLine,
             style = MaterialTheme.typography.bodyLarge,
         )
         Row {
@@ -197,8 +202,8 @@ private fun MovieDescription(
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = "${
-                    movie.imdbRating.getImdbRating()
-                }/10 - ${movie.imdbVotes.toString().formatVotes()} IMDB Votes",
+                    tvShow.imdbRating.getImdbRating()
+                }/10 - ${tvShow.imdbVotes.toString().formatVotes()} IMDB Votes",
                 style = MaterialTheme.typography.titleSmall,
                 maxLines = 1,
                 color = Color.White,
@@ -209,7 +214,7 @@ private fun MovieDescription(
         DisplayFilmExtraInfo(
             getYear,
             combinedGenre,
-            movie.duration,
+            tvShow.duration,
             style = MaterialTheme.typography.bodyLarge,
         )
 

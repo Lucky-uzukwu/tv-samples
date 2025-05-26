@@ -10,15 +10,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.google.jetstream.data.models.Film
 
 @Composable
 fun DisplayFilmDescription(
-    film: Film,
+    tagLine: String?,
     style: TextStyle? = null
 ) {
     if (style != null) {
-        film.tagLine?.let {
+        tagLine?.let {
             Text(
                 text = it,
                 style = style,
@@ -28,7 +27,7 @@ fun DisplayFilmDescription(
             )
         }
     } else {
-        film.tagLine?.let {
+        tagLine?.let {
             Text(
                 text = it,
                 color = Color.White,

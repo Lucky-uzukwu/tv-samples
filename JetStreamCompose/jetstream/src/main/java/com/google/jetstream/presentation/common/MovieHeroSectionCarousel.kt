@@ -301,13 +301,13 @@ private fun CarouselItemForeground(
                 .padding(32.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            DisplayFilmTitle(movie)
+            DisplayFilmTitle(movie.title)
             DisplayFilmDescription(
-                film = movie,
+                tagLine = movie.tagLine,
             )
-            DisplayFilmExtraInfo(getYear, combinedGenre, movie)
+            DisplayFilmExtraInfo(getYear, combinedGenre, movie.duration)
 
-            val formattedPlot = movie.formatPLot()
+            val formattedPlot = movie.plot.formatPLot()
 
 
             DisplayFilmGenericText(formattedPlot)
@@ -318,7 +318,7 @@ private fun CarouselItemForeground(
                 Spacer(modifier = Modifier.width(8.dp))
                 DisplayFilmGenericText(
                     "${
-                        movie.getImdbRating()
+                        movie.imdbRating.getImdbRating()
                     }/10 - ${movie.imdbVotes.toString().formatVotes()} IMDB Votes"
                 )
             }

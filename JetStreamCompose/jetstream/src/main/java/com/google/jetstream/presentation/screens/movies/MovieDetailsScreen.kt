@@ -44,7 +44,6 @@ import androidx.tv.material3.MaterialTheme
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.jetstream.R
-import com.google.jetstream.data.entities.Movie
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.common.Error
@@ -106,7 +105,9 @@ private fun Details(
             movie = selectedMovie,
             modifier = Modifier.fillMaxSize()
         )
-        Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f)))
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.5f)))
     }
 
 
