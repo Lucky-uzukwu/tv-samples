@@ -56,17 +56,15 @@ class TvShowScreenViewModel @Inject constructor(
                 // Create paginated flows for each catalog
                 val catalogAndTvShows = fetchCatalogsAndTvShows(
                     catalogRepository,
-                    token,
                     userRepository
                 )
                 val genreAndTvShows = fetchTvShowsByGenre(
                     genreRepository = genreRepository,
-                    token,
                     userRepository
                 )
 
                 val streamingProviders =
-                    streamingProvidersRepository.getStreamingProviders(token).firstOrNull()
+                    streamingProvidersRepository.getStreamingProviders().firstOrNull()
 
                 TvShowScreenUiState.Ready(
                     catalogToTvShows = catalogAndTvShows,
@@ -83,10 +81,9 @@ class TvShowScreenViewModel @Inject constructor(
 
     private suspend fun fetchCatalogsAndTvShows(
         catalogRepository: CatalogRepository,
-        token: String,
         userRepository: UserRepository
     ): Map<Catalog, StateFlow<PagingData<TvShow>>> {
-        val catalogs = catalogRepository.getTvShowCatalog(token).firstOrNull() ?: emptyList()
+        val catalogs = catalogRepository.getTvShowCatalog().firstOrNull() ?: emptyList()
         val catalogToTvShowPagingSource = catalogs.associateWith { catalog ->
             TvShowPagingSources().getTvShowsCatalogPagingSource(
                 catalog = catalog,
@@ -103,10 +100,9 @@ class TvShowScreenViewModel @Inject constructor(
 
     private suspend fun fetchTvShowsByGenre(
         genreRepository: GenreRepository,
-        token: String,
         userRepository: UserRepository
     ): Map<Genre, StateFlow<PagingData<TvShow>>> {
-        val genres = genreRepository.getTvShowsGenre(token).firstOrNull() ?: emptyList()
+        val genres = genreRepository.getTvShowsGenre().firstOrNull() ?: emptyList()
         val genreToTvShowPagingData = genres.associateWith { genre ->
             TvShowPagingSources().getTvShowsGenrePagingSource(
                 genreId = genre.id,

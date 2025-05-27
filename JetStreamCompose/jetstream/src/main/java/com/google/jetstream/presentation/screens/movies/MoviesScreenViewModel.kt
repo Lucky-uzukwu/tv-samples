@@ -73,17 +73,15 @@ class MoviesScreenViewModel @Inject constructor(
                 // Create paginated flows for each catalog
                 val catalogToMovies = fetchCatalogsAndMovies(
                     catalogRepository,
-                    token,
                     userRepository
                 )
                 val genreToMovies = fetchGenresAndMovies(
                     genreRepository = genreRepository,
-                    token,
                     userRepository
                 )
 
                 val streamingProviders =
-                    streamingProvidersRepository.getStreamingProviders(token).firstOrNull()
+                    streamingProvidersRepository.getStreamingProviders().firstOrNull()
 
                 MoviesScreenUiState.Ready(
                     catalogToMovies = catalogToMovies,
@@ -100,10 +98,9 @@ class MoviesScreenViewModel @Inject constructor(
 
     private suspend fun fetchCatalogsAndMovies(
         catalogRepository: CatalogRepository,
-        token: String,
         userRepository: UserRepository
     ): Map<Catalog, StateFlow<PagingData<MovieNew>>> {
-        val catalogs = catalogRepository.getMovieCatalog(token).firstOrNull() ?: emptyList()
+        val catalogs = catalogRepository.getMovieCatalog().firstOrNull() ?: emptyList()
         val catalogToMovies = catalogs.associateWith { catalog ->
             MoviesPagingSources().getMoviesCatalogPagingSource(
                 catalog = catalog,
@@ -120,10 +117,9 @@ class MoviesScreenViewModel @Inject constructor(
 
     private suspend fun fetchGenresAndMovies(
         genreRepository: GenreRepository,
-        token: String,
         userRepository: UserRepository
     ): Map<Genre, StateFlow<PagingData<MovieNew>>> {
-        val genres = genreRepository.getMovieGenre(token).firstOrNull() ?: emptyList()
+        val genres = genreRepository.getMovieGenre().firstOrNull() ?: emptyList()
         val genreToMovies = genres.associateWith { genre ->
             MoviesPagingSources().getMoviesGenrePagingSource(
                 genreId = genre.id,
