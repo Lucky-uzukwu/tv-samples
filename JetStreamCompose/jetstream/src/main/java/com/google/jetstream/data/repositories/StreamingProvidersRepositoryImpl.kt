@@ -9,16 +9,15 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class StreamingProvidersRepositoryImpl  @Inject constructor(
+class StreamingProvidersRepositoryImpl @Inject constructor(
     private val customerRepository: CustomerRepository,
     private val userRepository: UserRepository,
     private val streamingProviderService: StreamingProviderService
 ) : StreamingProvidersRepository {
-    override fun getStreamingProviders(token: String): Flow<List<StreamingProvider>> = flow {
-        Logger.i { "Fetching genres for Movie section with token: $token" }
+    override fun getStreamingProviders(): Flow<List<StreamingProvider>> = flow {
         val user = userRepository.getUser() ?: return@flow
         val response = streamingProviderService.getStreamingProviders(
-            authToken = "Bearer $token"
+            authToken = "Bearer ${user.token}"
         )
 
         if (response.isSuccessful) {
@@ -45,7 +44,7 @@ class StreamingProvidersRepositoryImpl  @Inject constructor(
             when (loginResponse?.code()) {
                 201 -> {
                     userRepository.saveUserToken(loginResponse.body()!!.token)
-                    getStreamingProviders(loginResponse.body()!!.token)
+                    getStreamingProviders()
                 }
 
                 else -> {

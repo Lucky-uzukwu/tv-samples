@@ -14,11 +14,10 @@ class GenreRepositoryImpl @Inject constructor(
     private val customerRepository: CustomerRepository,
     private val userRepository: UserRepository
 ) : GenreRepository {
-    override fun getMovieGenre(token: String): Flow<List<Genre>> = flow {
-        Logger.i { "Fetching genres for Movie section with token: $token" }
+    override fun getMovieGenre(): Flow<List<Genre>> = flow {
         val user = userRepository.getUser() ?: return@flow
         val response = genreService.getGenres(
-            authToken = "Bearer $token",
+            authToken = "Bearer ${user.token}",
             isMovieGenre = 1
         )
 
@@ -46,7 +45,7 @@ class GenreRepositoryImpl @Inject constructor(
             when (loginResponse?.code()) {
                 201 -> {
                     userRepository.saveUserToken(loginResponse.body()!!.token)
-                    getMovieGenre(loginResponse.body()!!.token)
+                    getMovieGenre()
                 }
 
                 else -> {
@@ -57,11 +56,10 @@ class GenreRepositoryImpl @Inject constructor(
 
     }
 
-    override fun getTvShowsGenre(token: String): Flow<List<Genre>> = flow {
-        Logger.i { "Fetching genres for Movie section with token: $token" }
+    override fun getTvShowsGenre(): Flow<List<Genre>> = flow {
         val user = userRepository.getUser() ?: return@flow
         val response = genreService.getGenres(
-            authToken = "Bearer $token",
+            authToken = "Bearer $user",
             isTvShowGenre = 1
         )
 
@@ -89,7 +87,7 @@ class GenreRepositoryImpl @Inject constructor(
             when (loginResponse?.code()) {
                 201 -> {
                     userRepository.saveUserToken(loginResponse.body()!!.token)
-                    getTvShowsGenre(loginResponse.body()!!.token)
+                    getTvShowsGenre()
                 }
 
                 else -> {

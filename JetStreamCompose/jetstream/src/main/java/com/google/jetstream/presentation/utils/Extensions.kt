@@ -1,6 +1,9 @@
 package com.google.jetstream.presentation.utils
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.ContextWrapper
+import androidx.activity.ComponentActivity
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
@@ -68,4 +71,13 @@ fun String?.getImdbRating(): String? {
     } else {
         this
     }
+}
+
+fun Context.findActivity(): ComponentActivity {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is ComponentActivity) return context
+        context = context.baseContext
+    }
+    throw IllegalStateException("No ComponentActivity found")
 }

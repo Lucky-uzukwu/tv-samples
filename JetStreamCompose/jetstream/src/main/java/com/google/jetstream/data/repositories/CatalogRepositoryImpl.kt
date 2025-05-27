@@ -15,11 +15,10 @@ class CatalogRepositoryImpl @Inject constructor(
     private val customerRepository: CustomerRepository,
     private val userRepository: UserRepository
 ) : CatalogRepository {
-    override fun getMovieCatalog(token: String): Flow<List<Catalog>> = flow {
-        Logger.i { "Fetching categories for Movie section with token: $token" }
+    override fun getMovieCatalog(): Flow<List<Catalog>> = flow {
         val user = userRepository.getUser() ?: return@flow
         val response = catalogService.getCatalogs(
-            authToken = "Bearer $token",
+            authToken = "Bearer ${user.token}",
             type = "App\\Models\\Movie"
         )
 
@@ -49,7 +48,7 @@ class CatalogRepositoryImpl @Inject constructor(
                     Logger.i { "Login successful" }
                     Logger.i { "Fetching categories for Movie section with new token: ${loginResponse.body()!!.token}" }
                     userRepository.saveUserToken(loginResponse.body()!!.token)
-                    getMovieCatalog(loginResponse.body()!!.token)
+                    getMovieCatalog()
                 }
 
                 else -> {
@@ -60,11 +59,10 @@ class CatalogRepositoryImpl @Inject constructor(
 
     }
 
-    override fun getTvShowCatalog(token: String): Flow<List<Catalog>> = flow {
-        Logger.i { "Fetching categories for Movie section with token: $token" }
+    override fun getTvShowCatalog(): Flow<List<Catalog>> = flow {
         val user = userRepository.getUser() ?: return@flow
         val response = catalogService.getCatalogs(
-            authToken = "Bearer $token",
+            authToken = "Bearer ${user.token}",
             type = "App\\Models\\TvShow"
         )
 
@@ -94,7 +92,7 @@ class CatalogRepositoryImpl @Inject constructor(
                     Logger.i { "Login successful" }
                     Logger.i { "Fetching categories for Movie section with new token: ${loginResponse.body()!!.token}" }
                     userRepository.saveUserToken(loginResponse.body()!!.token)
-                    getTvShowCatalog(loginResponse.body()!!.token)
+                    getTvShowCatalog()
                 }
 
                 else -> {

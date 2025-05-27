@@ -106,7 +106,8 @@ class UserRepository @Inject constructor(
             deviceName = userDeviceName.first() ?: "",
             deviceMacAddress = userDeviceMacAddress.first() ?: "",
             profilePhotoPath = userProfilePhotoPath.first() ?: "",
-            profilePhotoUrl = userProfilePhotoUrl.first() ?: ""
+            profilePhotoUrl = userProfilePhotoUrl.first() ?: "",
+            token = userToken.first() ?: ""
         )
     }
 
