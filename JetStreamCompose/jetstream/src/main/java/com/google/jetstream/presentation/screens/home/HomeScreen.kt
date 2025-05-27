@@ -142,7 +142,7 @@ private fun Catalog(
                 )
             }
 
-            item() {
+            item {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -152,7 +152,9 @@ private fun Catalog(
                     streamingProviders.forEach { streamingProvider ->
                         if (streamingProvider.logoPath != null) {
                             StreamingProviderIcon(
-                                modifier = Modifier.padding(top = 16.dp).focusable(),
+                                modifier = Modifier
+                                    .padding(top = 16.dp)
+                                    .focusable(),
                                 logoPath = streamingProvider.logoPath,
                                 contentDescription = streamingProvider.name,
                             )
@@ -183,67 +185,7 @@ private fun Catalog(
                     },
                 )
 
-//            MoviesRow(
-//                movieList = movieList,
-//                title = catalog.name,
-//                onMovieSelected = onMovieClick,
-//                modifier = Modifier.padding(top = 16.dp),
-//            )
             }
-
-            // Loop through genreList to display each catalog and its movies
-            items(
-                items = genreToMovies.keys.toList(),
-                key = { genre -> genre.id }, // Use catalog ID as unique key
-                contentType = { "MoviesRow" }
-            ) { genre ->
-                val movies = genreToMovies[genre]?.collectAsLazyPagingItems()
-                val movieList = movies?.itemSnapshotList?.items ?: emptyList()
-
-                Top10MoviesList(
-                    movieList = movieList,
-                    sectionTitle = genre.name,
-                    onMovieClick = onMovieClick,
-                    setSelectedMovie = setSelectedMovie,
-                    modifier = Modifier.onFocusChanged {
-                        immersiveListHasFocus = it.hasFocus
-                    },
-                )
-            }
-
-
-            // Uncomment other sections as needed
-            /*
-
-            item(contentType = "Top10MoviesList") {
-                Top10MoviesList(
-                    movieList = top10Movies,
-                    sectionTitle = "Trending Movies",
-                    onMovieClick = onMovieClick,
-                    modifier = Modifier.onFocusChanged {
-                        immersiveListHasFocus = it.hasFocus
-                    },
-                )
-            }
-            item(contentType = "Top10MoviesList") {
-                Top10MoviesList(
-                    movieList = top10Movies,
-                    sectionTitle = "Action Movies",
-                    onMovieClick = onMovieClick,
-                    modifier = Modifier.onFocusChanged {
-                        immersiveListHasFocus = it.hasFocus
-                    },
-                )
-            }
-            item(contentType = "MoviesRow") {
-                MoviesRow(
-                    modifier = Modifier.padding(top = 16.dp),
-                    movieList = nowPlayingMovies,
-                    title = StringConstants.Composable.HomeScreenNowPlayingMoviesTitle,
-                    onMovieSelected = onMovieClick
-                )
-            }
-            */
         }
     }
 }
