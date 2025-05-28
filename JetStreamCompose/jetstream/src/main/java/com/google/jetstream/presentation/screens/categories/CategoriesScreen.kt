@@ -93,7 +93,7 @@ private fun Catalog(
     val shouldShowTopBar by remember {
         derivedStateOf {
             lazyGridState.firstVisibleItemIndex == 0 &&
-                lazyGridState.firstVisibleItemScrollOffset < 100
+                    lazyGridState.firstVisibleItemScrollOffset < 100
         }
     }
     LaunchedEffect(shouldShowTopBar) {
@@ -142,6 +142,7 @@ private fun Catalog(
                         }
                         Text(
                             text = movieCategory.name,
+                            color = Color.Black,
                             style = MaterialTheme.typography.titleMedium.copy(
                                 color = textColor,
                             )
