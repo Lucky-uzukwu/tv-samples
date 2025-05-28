@@ -48,31 +48,31 @@ fun AccountsSection() {
     val focusRequester = remember { FocusRequester() }
     val accountsSectionListItems = remember {
         listOf(
-            AccountsSectionData(
-                title = StringConstants.Composable.Placeholders
-                    .AccountsSelectionSwitchAccountsTitle,
-                value = StringConstants.Composable.Placeholders.AccountsSelectionSwitchAccountsEmail
-            ),
+//            AccountsSectionData(
+//                title = StringConstants.Composable.Placeholders
+//                    .AccountsSelectionSwitchAccountsTitle,
+//                value = StringConstants.Composable.Placeholders.AccountsSelectionSwitchAccountsEmail
+//            ),
             AccountsSectionData(
                 title = StringConstants.Composable.Placeholders.AccountsSelectionLogOut,
                 value = StringConstants.Composable.Placeholders.AccountsSelectionSwitchAccountsEmail
             ),
-            AccountsSectionData(
-                title = StringConstants.Composable.Placeholders
-                    .AccountsSelectionChangePasswordTitle,
-                value = StringConstants.Composable.Placeholders.AccountsSelectionChangePasswordValue
-            ),
-            AccountsSectionData(
-                title = StringConstants.Composable.Placeholders.AccountsSelectionAddNewAccountTitle,
-            ),
-            AccountsSectionData(
-                title = StringConstants.Composable.Placeholders
-                    .AccountsSelectionViewSubscriptionsTitle
-            ),
-            AccountsSectionData(
-                title = StringConstants.Composable.Placeholders.AccountsSelectionDeleteAccountTitle,
-                onClick = { showDeleteDialog = true }
-            )
+//            AccountsSectionData(
+//                title = StringConstants.Composable.Placeholders
+//                    .AccountsSelectionChangePasswordTitle,
+//                value = StringConstants.Composable.Placeholders.AccountsSelectionChangePasswordValue
+//            )
+//            AccountsSectionData(
+//                title = StringConstants.Composable.Placeholders.AccountsSelectionAddNewAccountTitle,
+//            ),
+//            AccountsSectionData(
+//                title = StringConstants.Composable.Placeholders
+//                    .AccountsSelectionViewSubscriptionsTitle
+//            ),
+//            AccountsSectionData(
+//                title = StringConstants.Composable.Placeholders.AccountsSelectionDeleteAccountTitle,
+//                onClick = { showDeleteDialog = true }
+//            )
         )
     }
 
