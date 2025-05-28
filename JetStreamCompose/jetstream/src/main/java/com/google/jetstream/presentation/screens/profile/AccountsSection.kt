@@ -42,7 +42,9 @@ data class AccountsSectionData(
 )
 
 @Composable
-fun AccountsSection() {
+fun AccountsSection(
+    userEmailAddress: String
+) {
     val childPadding = rememberChildPadding()
     var showDeleteDialog by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
@@ -55,7 +57,7 @@ fun AccountsSection() {
 //            ),
             AccountsSectionData(
                 title = StringConstants.Composable.Placeholders.AccountsSelectionLogOut,
-                value = StringConstants.Composable.Placeholders.AccountsSelectionSwitchAccountsEmail
+                value = userEmailAddress
             ),
 //            AccountsSectionData(
 //                title = StringConstants.Composable.Placeholders
