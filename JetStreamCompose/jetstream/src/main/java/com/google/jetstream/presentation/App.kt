@@ -201,6 +201,10 @@ fun App(
                     onLogOutClick = {
                         userStateHolder.clearUser()
                         navController.navigate(Screens.AuthScreen())
+                    },
+                    clearFilmSelection = {
+                        selectedMovie.value = null
+                        selectedTvShow.value = null
                     }
                 )
             }
