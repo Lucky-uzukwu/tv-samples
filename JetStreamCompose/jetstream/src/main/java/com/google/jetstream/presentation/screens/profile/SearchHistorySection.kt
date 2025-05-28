@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Button
 import androidx.tv.material3.ListItem
@@ -43,27 +44,29 @@ fun SearchHistorySection() {
                 ) {
                     Text(
                         text = SearchHistorySectionTitle,
+                        color = Color.White,
                         style = MaterialTheme.typography.headlineSmall
                     )
                     Button(onClick = { /* Clear search history */ }) {
-                        Text(text = SearchHistoryClearAll)
+                        Text(text = SearchHistoryClearAll,color = Color.White,)
                     }
                 }
             }
-            items(SampleSearchHistory.size) { index ->
-                ListItem(
-                    modifier = Modifier.padding(top = 8.dp),
-                    selected = false,
-                    onClick = {},
-                    headlineContent = {
-                        Text(
-                            text = SampleSearchHistory[index],
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    },
-                    shape = ListItemDefaults.shape(shape = JetStreamCardShape)
-                )
-            }
+//            items(SampleSearchHistory.size) { index ->
+//                ListItem(
+//                    modifier = Modifier.padding(top = 8.dp),
+//                    selected = false,
+//                    onClick = {},
+//                    headlineContent = {
+//                        Text(
+//                            text = SampleSearchHistory[index],
+//                            color = Color.White,
+//                            style = MaterialTheme.typography.titleMedium
+//                        )
+//                    },
+//                    shape = ListItemDefaults.shape(shape = JetStreamCardShape)
+//                )
+//            }
         }
     }
 }
