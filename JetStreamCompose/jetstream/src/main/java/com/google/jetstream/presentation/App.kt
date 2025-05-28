@@ -197,6 +197,10 @@ fun App(
                     setSelectedTvShow = {
                         selectedTvShow.value = it
                         selectedMovie.value = null
+                    },
+                    onLogOutClick = {
+                        userStateHolder.clearUser()
+                        navController.navigate(Screens.AuthScreen())
                     }
                 )
             }

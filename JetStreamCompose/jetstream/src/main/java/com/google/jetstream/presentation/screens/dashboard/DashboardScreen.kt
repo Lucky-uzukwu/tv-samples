@@ -95,7 +95,8 @@ fun DashboardScreen(
     selectedTvShow: TvShow? = null,
     setSelectedTvShow: (tvShow: TvShow) -> Unit,
     resetIsComingBackFromDifferentScreen: () -> Unit = {},
-    onBackPressed: () -> Unit = {}
+    onBackPressed: () -> Unit = {},
+    onLogOutClick: () -> Unit
 ) {
     val density = LocalDensity.current
     val focusManager = LocalFocusManager.current
@@ -205,8 +206,9 @@ fun DashboardScreen(
             modifier = Modifier.offset(y = navHostTopPaddingDp),
             setSelectedMovie = setSelectedMovie,
             setSelectedTvShow = setSelectedTvShow,
-            openTvShowDetailsScreen = openTvShowDetailsScreen
-            )
+            openTvShowDetailsScreen = openTvShowDetailsScreen,
+            onLogOutClick = onLogOutClick
+        )
     }
 }
 
@@ -242,6 +244,7 @@ private fun Body(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     isTopBarVisible: Boolean = true,
+    onLogOutClick: () -> Unit
 ) =
     NavHost(
         modifier = modifier,
@@ -249,7 +252,9 @@ private fun Body(
         startDestination = Screens.Home(),
     ) {
         composable(Screens.Profile()) {
-            ProfileScreen()
+            ProfileScreen(
+                logOutOnClick = onLogOutClick
+            )
         }
         composable(Screens.Home()) {
             HomeScreen(
@@ -319,7 +324,8 @@ fun DashboardScreenPreview() {
             selectedMovie = null,
             setSelectedMovie = {},
             selectedTvShow = null,
-            setSelectedTvShow = {}
+            setSelectedTvShow = {},
+            onLogOutClick = {}
         )
     }
 }

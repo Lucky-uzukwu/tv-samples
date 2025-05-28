@@ -43,7 +43,8 @@ data class AccountsSectionData(
 
 @Composable
 fun AccountsSection(
-    userEmailAddress: String
+    userEmailAddress: String,
+    logOutOnClick: () -> Unit
 ) {
     val childPadding = rememberChildPadding()
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -57,7 +58,8 @@ fun AccountsSection(
 //            ),
             AccountsSectionData(
                 title = StringConstants.Composable.Placeholders.AccountsSelectionLogOut,
-                value = userEmailAddress
+                value = userEmailAddress,
+                onClick = logOutOnClick
             ),
 //            AccountsSectionData(
 //                title = StringConstants.Composable.Placeholders

@@ -82,5 +82,8 @@ class UserStateHolder @Inject constructor(
     fun clearUser() {
         // Atomically reset
         _userState.update { UserState() }
+        viewModelScope.launch {
+            userRepository.clearUserData()
+        }
     }
 }

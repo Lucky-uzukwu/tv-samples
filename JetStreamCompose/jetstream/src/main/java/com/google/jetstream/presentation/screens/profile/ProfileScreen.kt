@@ -64,7 +64,8 @@ import com.google.jetstream.presentation.theme.AppTheme
 fun ProfileScreen(
     @FloatRange(from = 0.0, to = 1.0)
     sidebarWidthFraction: Float = 0.32f,
-    viewModel: ProfileScreenViewModel = hiltViewModel()
+    viewModel: ProfileScreenViewModel = hiltViewModel(),
+    logOutOnClick: () -> Unit
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -183,7 +184,8 @@ fun ProfileScreen(
                     builder = {
                         composable(ProfileScreens.Accounts()) {
                             AccountsSection(
-                                s.user.email
+                                userEmailAddress = s.user.email,
+                                logOutOnClick = logOutOnClick
                             )
                         }
                         composable(ProfileScreens.About()) {
@@ -223,7 +225,9 @@ fun ProfileScreen(
 fun ProfileScreenPreview() {
     AppTheme {
         Box(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
-            ProfileScreen()
+            ProfileScreen(
+                logOutOnClick = {}
+            )
         }
     }
 }
