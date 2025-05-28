@@ -1,24 +1,9 @@
-/*
- * Copyright 2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.google.jetstream.presentation.screens.dashboard
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -38,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -60,7 +46,6 @@ import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.screens.categories.CategoriesScreen
-import com.google.jetstream.presentation.screens.favourites.FavouritesScreen
 import com.google.jetstream.presentation.screens.home.HomeScreen
 import com.google.jetstream.presentation.screens.movies.MoviesScreen
 import com.google.jetstream.presentation.screens.profile.ProfileScreen
@@ -93,6 +78,7 @@ fun DashboardScreen(
     selectedMovie: MovieNew? = null,
     setSelectedMovie: (movie: MovieNew) -> Unit,
     selectedTvShow: TvShow? = null,
+    clearFilmSelection: () -> Unit,
     setSelectedTvShow: (tvShow: TvShow) -> Unit,
     resetIsComingBackFromDifferentScreen: () -> Unit = {},
     onBackPressed: () -> Unit = {},
@@ -175,8 +161,15 @@ fun DashboardScreen(
         DashboardTopBar(
             modifier = Modifier
                 .offset { IntOffset(x = 0, y = topBarYOffsetPx) }
+                .background(Color.Black)
                 .onSizeChanged { topBarHeightPx = it.height }
                 .onFocusChanged { isTopBarFocused = it.hasFocus }
+                .then(
+                    if (selectedMovie == null && selectedTvShow == null)
+                        Modifier.background(Color.Black)
+                    else
+                        Modifier
+                )
                 .padding(
                     horizontal = ParentPadding.calculateStartPadding(
                         LocalLayoutDirection.current
@@ -187,11 +180,11 @@ fun DashboardScreen(
                     bottom = ParentPadding.calculateBottomPadding()
                 ),
             selectedTabIndex = currentTopBarSelectedTabIndex,
-            selectedMovie = selectedMovie,
-            selectedTvShow = selectedTvShow,
+            clearFilmSelection = clearFilmSelection,
         ) { screen ->
             navController.navigate(screen()) {
                 if (screen == TopBarTabs[0]) popUpTo(TopBarTabs[0].invoke())
+                clearFilmSelection()
                 launchSingleTop = true
             }
         }
@@ -203,7 +196,9 @@ fun DashboardScreen(
             updateTopBarVisibility = { isTopBarVisible = it },
             isTopBarVisible = isTopBarVisible,
             navController = navController,
-            modifier = Modifier.offset(y = navHostTopPaddingDp),
+            modifier = Modifier
+                .offset(y = navHostTopPaddingDp)
+                .background(Color.Black),
             setSelectedMovie = setSelectedMovie,
             setSelectedTvShow = setSelectedTvShow,
             openTvShowDetailsScreen = openTvShowDetailsScreen,
@@ -299,13 +294,13 @@ private fun Body(
                 setSelectedTvShow = setSelectedTvShow
             )
         }
-        composable(Screens.Favourites()) {
-            FavouritesScreen(
-                onMovieClick = openMovieDetailsScreen,
-                onScroll = updateTopBarVisibility,
-                isTopBarVisible = isTopBarVisible
-            )
-        }
+//        composable(Screens.Favourites()) {
+//            FavouritesScreen(
+//                onMovieClick = openMovieDetailsScreen,
+//                onScroll = updateTopBarVisibility,
+//                isTopBarVisible = isTopBarVisible
+//            )
+//        }
         composable(Screens.Search()) {
             SearchScreen(
                 onMovieClick = { movie -> openMovieDetailsScreen(movie.id) },
@@ -325,7 +320,8 @@ fun DashboardScreenPreview() {
             setSelectedMovie = {},
             selectedTvShow = null,
             setSelectedTvShow = {},
-            onLogOutClick = {}
+            onLogOutClick = {},
+            clearFilmSelection = {}
         )
     }
 }

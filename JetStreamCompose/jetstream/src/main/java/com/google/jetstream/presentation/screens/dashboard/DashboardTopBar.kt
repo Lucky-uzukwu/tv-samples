@@ -1,17 +1,15 @@
 package com.google.jetstream.presentation.screens.dashboard
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -21,21 +19,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
@@ -43,17 +35,8 @@ import androidx.tv.material3.Tab
 import androidx.tv.material3.TabDefaults
 import androidx.tv.material3.TabRow
 import androidx.tv.material3.Text
-import co.touchlab.kermit.Logger
-import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
-import com.google.jetstream.R
-import com.google.jetstream.data.models.MovieNew
-import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.screens.Screens
-import com.google.jetstream.presentation.theme.IconSize
 import com.google.jetstream.presentation.theme.JetStreamCardShape
 import com.google.jetstream.presentation.theme.primaryLight
 import com.google.jetstream.presentation.utils.handleDPadKeyEvents
@@ -64,7 +47,7 @@ val TopBarTabs = Screens.entries.toList().filter { it.isTabItem }
 // +1 for ProfileTab
 val TopBarFocusRequesters = List(size = TopBarTabs.size + 1) { FocusRequester() }
 
-private const val PROFILE_SCREEN_INDEX = -1
+private const val PROFILE_SCREEN_INDEX = 5
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -72,77 +55,15 @@ fun DashboardTopBar(
     modifier: Modifier = Modifier,
     selectedTabIndex: Int,
     screens: List<Screens> = TopBarTabs,
-    selectedMovie: MovieNew?,
-    selectedTvShow: TvShow?,
+    clearFilmSelection: () -> Unit,
     focusRequesters: List<FocusRequester> = remember { TopBarFocusRequesters },
     onScreenSelection: (screen: Screens) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
-    var rememberAsyncImagePainter by remember { mutableStateOf<AsyncImagePainter?>(null) }
-    if (selectedMovie != null) {
-        val imageUrl =
-            "https://stage.nortv.xyz/" + "storage/" + selectedMovie.backdropImagePath
-        AsyncImage(
-            model = imageUrl,
-            contentDescription = "Movie background",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-                .drawWithContent {
-                    drawContent()
-                    drawRect(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                Color.Black.copy(alpha = 0.9f),
-                                Color.Transparent
-                            ),
-                            startX = 0f,
-                            endX = size.width * 0.8f // Stretch the gradient to 80% of the width
-                        )
-                    )
-                }
-        )
-        rememberAsyncImagePainter = rememberAsyncImagePainter(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(imageUrl)
-                .build(),
-            contentScale = ContentScale.Crop
-        )
-    } else if (selectedTvShow != null) {
-        val imageUrl =
-            "https://stage.nortv.xyz/" + "storage/" + selectedTvShow.backdropImagePath
-        AsyncImage(
-            model = imageUrl,
-            contentDescription = "Movie background",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-                .drawWithContent {
-                    drawContent()
-                    drawRect(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                Color.Black.copy(alpha = 0.9f),
-                                Color.Transparent
-                            ),
-                            startX = 0f,
-                            endX = size.width * 0.8f // Stretch the gradient to 80% of the width
-                        )
-                    )
-                }
-        )
-        rememberAsyncImagePainter = rememberAsyncImagePainter(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(imageUrl)
-                .build(),
-            contentScale = ContentScale.Crop
-        )
-    }
-
-
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .background(Color.Black)
             .wrapContentHeight()
     ) {
         // Overlay your top bar content
@@ -159,6 +80,7 @@ fun DashboardTopBar(
                 var isTabRowFocused by remember { mutableStateOf(false) }
                 TabRow(
                     modifier = Modifier.onFocusChanged {
+                        clearFilmSelection()
                         isTabRowFocused = it.isFocused || it.hasFocus
                     },
                     selectedTabIndex = selectedTabIndex,
@@ -238,30 +160,5 @@ fun DashboardTopBar(
                 onClick = { onScreenSelection(Screens.Profile) }
             )
         }
-    }
-}
-
-@Composable
-private fun JetStreamLogo(
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            Icons.Default.PlayCircle,
-            contentDescription = StringConstants.Composable
-                .ContentDescription.BrandLogoImage,
-            modifier = Modifier
-                .padding(end = 4.dp)
-                .size(IconSize)
-        )
-        Text(
-            text = stringResource(R.string.brand_logo_text),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Medium,
-            fontFamily = MaterialTheme.typography.titleSmall.fontFamily
-        )
     }
 }

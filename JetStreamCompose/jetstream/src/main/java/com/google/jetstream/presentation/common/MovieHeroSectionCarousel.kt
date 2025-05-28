@@ -125,10 +125,12 @@ fun MovieHeroSectionCarousel(
             1f to Color.Transparent,
         )
 
-    Box(modifier = modifier) {
+    Box(
+        modifier = modifier
+            .fadingEdge(topBottomFade)
+    ) {
         Carousel(
             modifier = Modifier
-                .fadingEdge(topBottomFade)
                 .onFocusChanged { isCarouselFocused = it.hasFocus }
                 // Semantics for accessibility: describes the Carousel.
                 .semantics {
