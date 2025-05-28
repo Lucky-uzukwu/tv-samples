@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
@@ -36,15 +37,18 @@ import com.google.jetstream.presentation.theme.JetStreamCardShape
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-fun HelpAndSupportSection() {
+fun HelpAndSupportSection(
+    isEnabled: Boolean = false,
+) {
     with(StringConstants.Composable.Placeholders) {
         Column(modifier = Modifier.padding(horizontal = 72.dp)) {
             Text(
                 text = HelpAndSupportSectionTitle,
+                color = Color.White,
                 style = MaterialTheme.typography.headlineSmall
             )
-            HelpAndSupportSectionItem(title = HelpAndSupportSectionFAQItem)
-            HelpAndSupportSectionItem(title = HelpAndSupportSectionPrivacyItem)
+//            HelpAndSupportSectionItem(title = HelpAndSupportSectionFAQItem)
+//            HelpAndSupportSectionItem(title = HelpAndSupportSectionPrivacyItem)
             HelpAndSupportSectionItem(
                 title = HelpAndSupportSectionContactItem,
                 value = HelpAndSupportSectionContactValue

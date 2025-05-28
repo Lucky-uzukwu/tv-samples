@@ -119,7 +119,7 @@ object StringConstants {
             const val HelpAndSupportSectionFAQItem = "FAQ's"
             const val HelpAndSupportSectionPrivacyItem = "Privacy Policy"
             const val HelpAndSupportSectionContactItem = "Contact us on"
-            const val HelpAndSupportSectionContactValue = "support@jetstream.com"
+            const val HelpAndSupportSectionContactValue = "support@nortv.com"
         }
 
         const val VideoPlayerControlPlaylistButton = "Playlist Button"
