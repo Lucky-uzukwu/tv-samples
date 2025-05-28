@@ -188,9 +188,9 @@ fun ProfileScreen(
                                 logOutOnClick = logOutOnClick
                             )
                         }
-                        composable(ProfileScreens.About()) {
-                            AboutSection()
-                        }
+//                        composable(ProfileScreens.About()) {
+//                            AboutSection()
+//                        }
                         composable(ProfileScreens.Subtitles()) {
                             SubtitlesSection(
                                 isSubtitlesChecked = isSubtitlesChecked,

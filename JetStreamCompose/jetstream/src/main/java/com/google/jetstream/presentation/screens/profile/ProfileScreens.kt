@@ -30,7 +30,7 @@ enum class ProfileScreens(
     private val title: String? = null,
 ) {
     Accounts(Icons.Default.Person),
-    About(Icons.Default.Info),
+//    About(Icons.Default.Info),
     Subtitles(Icons.Default.Subtitles),
     Language(Icons.Default.Translate),
     SearchHistory(title = "Search history", icon = Icons.Default.Search),
