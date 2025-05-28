@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ListItem
 import androidx.tv.material3.ListItemDefaults
@@ -34,21 +35,27 @@ import com.google.jetstream.presentation.theme.JetStreamCardShape
 @Composable
 fun SubtitlesSection(
     isSubtitlesChecked: Boolean,
+    isEnabled: Boolean = false,
     onSubtitleCheckChange: (isChecked: Boolean) -> Unit
 ) {
     with(StringConstants.Composable.Placeholders) {
         Column(modifier = Modifier.padding(horizontal = 72.dp)) {
             Text(
                 text = SubtitlesSectionTitle,
+                color = Color.White,
                 style = MaterialTheme.typography.headlineSmall
             )
             ListItem(
                 modifier = Modifier.padding(top = 16.dp),
                 selected = false,
-                onClick = { onSubtitleCheckChange(!isSubtitlesChecked) },
+                enabled = isEnabled,
+                onClick = {
+                    onSubtitleCheckChange(!isSubtitlesChecked)
+                },
                 trailingContent = {
                     Switch(
                         checked = isSubtitlesChecked,
+                        enabled = isEnabled,
                         onCheckedChange = onSubtitleCheckChange,
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = MaterialTheme.colorScheme.primaryContainer,
@@ -63,13 +70,15 @@ fun SubtitlesSection(
                     )
                 },
                 colors = ListItemDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
+                    containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp),
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
                 ),
                 shape = ListItemDefaults.shape(shape = JetStreamCardShape)
             )
             ListItem(
                 modifier = Modifier.padding(top = 16.dp),
                 selected = false,
+                enabled = isEnabled,
                 onClick = {},
                 trailingContent = {
                     Text(
@@ -84,7 +93,8 @@ fun SubtitlesSection(
                     )
                 },
                 colors = ListItemDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
+                    containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp),
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
                 ),
                 shape = ListItemDefaults.shape(shape = JetStreamCardShape)
             )
