@@ -70,8 +70,7 @@ fun MovieDetails(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            // TODO check here again
-//            .focusable()
+            .focusable()
             .height(432.dp)
             .bringIntoViewRequester(bringIntoViewRequester)
     ) {
@@ -142,7 +141,6 @@ fun MovieDetails(
         }
     }
 }
-
 
 
 @Composable
