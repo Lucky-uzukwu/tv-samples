@@ -17,7 +17,6 @@
 package com.google.jetstream.presentation.screens.home
 
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,7 +36,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -45,13 +47,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.data.models.Genre
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.StreamingProvider
+import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.presentation.common.Error
-import com.google.jetstream.presentation.common.MovieHeroSectionCarousel
 import com.google.jetstream.presentation.common.Loading
+import com.google.jetstream.presentation.common.MovieHeroSectionCarousel
 import com.google.jetstream.presentation.common.StreamingProviderIcon
 import com.google.jetstream.presentation.common.Top10MoviesList
 import kotlinx.coroutines.flow.StateFlow
@@ -90,6 +92,7 @@ fun HomeScreen(
 }
 
 @Composable
+@OptIn(ExperimentalComposeUiApi::class)
 private fun Catalog(
     featuredMoviesNew: LazyPagingItems<MovieNew>,
     catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
@@ -111,6 +114,7 @@ private fun Catalog(
                     lazyListState.firstVisibleItemScrollOffset < 300
         }
     }
+    val carouselFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(shouldShowTopBar) {
         onScroll(shouldShowTopBar)
@@ -123,7 +127,21 @@ private fun Catalog(
     LazyColumn(
         state = lazyListState,
         contentPadding = PaddingValues(bottom = 108.dp),
-        modifier = modifier,
+        modifier = modifier
+//            .focusable()
+//            .handleDPadKeyEvents(
+//                onDown = {
+//                    if (lazyListState.firstVisibleItemIndex == 0) {
+//                        carouselFocusRequester.requestFocus()
+//                    } else {
+//                        carouselFocusRequester.freeFocus()
+//                        focusManager.moveFocus(FocusDirection.Down)
+//                    }
+//                },
+//                onUp = {
+//                    focusManager.moveFocus(FocusDirection.Up)
+//                }
+//            ),
     ) {
         item(contentType = "HeroSectionCarousel") {
             MovieHeroSectionCarousel(
@@ -133,32 +151,32 @@ private fun Catalog(
                 setSelectedMovie = setSelectedMovie,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(400.dp),
+                    .height(400.dp)
+                    .focusRequester(carouselFocusRequester),
             )
         }
 
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 48.dp, vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                streamingProviders.forEach { streamingProvider ->
-                    if (streamingProvider.logoPath != null) {
-                        StreamingProviderIcon(
-                            modifier = Modifier
-                                .padding(top = 16.dp)
-                                .focusable(),
-                            logoPath = streamingProvider.logoPath,
-                            contentDescription = streamingProvider.name,
-                        )
-                        Spacer(Modifier.width(16.dp))
-                    }
-
-                }
-            }
-        }
+//        item {
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(horizontal = 48.dp, vertical = 16.dp),
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                streamingProviders.forEach { streamingProvider ->
+//                    if (streamingProvider.logoPath != null) {
+//                        StreamingProviderIcon(
+//                            modifier = Modifier
+//                                .padding(top = 16.dp),
+//                            logoPath = streamingProvider.logoPath,
+//                            contentDescription = streamingProvider.name,
+//                        )
+//                        Spacer(Modifier.width(16.dp))
+//                    }
+//
+//                }
+//            }
+//        }
 
         // Loop through catalogList to display each catalog and its movies
         items(
