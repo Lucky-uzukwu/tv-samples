@@ -106,95 +106,89 @@ private fun Catalog(
     }
 
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
+    LazyColumn(
+        state = lazyListState,
+        contentPadding = PaddingValues(bottom = 108.dp),
+        modifier = modifier,
     ) {
+        item(contentType = "TvShowHeroSectionCarousel") {
+            TvShowHeroSectionCarousel(
+                tvShows = heroSectionTvShows,
+                goToVideoPlayer = goToVideoPlayer,
+                goToMoreInfo = {},
+                setSelectedTvShow = setSelectedTvShow,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(400.dp),
+            )
+        }
 
-        LazyColumn(
-            state = lazyListState,
-            contentPadding = PaddingValues(bottom = 108.dp),
-            modifier = modifier,
-        ) {
-            item(contentType = "TvShowHeroSectionCarousel") {
-                TvShowHeroSectionCarousel(
-                    tvShows = heroSectionTvShows,
-                    goToVideoPlayer = goToVideoPlayer,
-                    goToMoreInfo = {},
+        item(contentType = "StreamingProviderIconTvShow") {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 48.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                streamingProviders.forEach { streamingProvider ->
+                    if (streamingProvider.logoPath != null) {
+                        StreamingProviderIcon(
+                            modifier = Modifier
+                                .padding(top = 16.dp)
+                                .focusable(),
+                            logoPath = streamingProvider.logoPath,
+                            contentDescription = streamingProvider.name,
+                        )
+                        Spacer(Modifier.width(16.dp))
+                    }
+
+                }
+            }
+        }
+
+        // Loop through catalogList to display each catalog and its movies
+        items(
+            items = catalogToTvShows.keys.toList(),
+            key = { catalog -> catalog.id }, // Use catalog ID as unique key
+            contentType = { "ImmersiveShowsList" },
+        ) { catalog ->
+            val tvShowsAsLazy = catalogToTvShows[catalog]?.collectAsLazyPagingItems()
+            val tvShows = tvShowsAsLazy?.itemSnapshotList?.items ?: emptyList()
+            Logger.i {
+                "tvShows: $tvShows"
+            }
+
+            if (tvShows.isNotEmpty()) {
+                ImmersiveShowsList(
+                    tvShows = tvShows,
+                    sectionTitle = catalog.name,
+                    onTvShowClick = onTVShowClick,
                     setSelectedTvShow = setSelectedTvShow,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(400.dp),
+                    modifier = Modifier.onFocusChanged {
+                        immersiveListHasFocus = it.hasFocus
+                    },
                 )
             }
+        }
 
-            item() {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 48.dp, vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    streamingProviders.forEach { streamingProvider ->
-                        if (streamingProvider.logoPath != null) {
-                            StreamingProviderIcon(
-                                modifier = Modifier
-                                    .padding(top = 16.dp)
-                                    .focusable(),
-                                logoPath = streamingProvider.logoPath,
-                                contentDescription = streamingProvider.name,
-                            )
-                            Spacer(Modifier.width(16.dp))
-                        }
-
-                    }
-                }
-            }
-
-            // Loop through catalogList to display each catalog and its movies
-            items(
-                items = catalogToTvShows.keys.toList(),
-                key = { catalog -> catalog.id }, // Use catalog ID as unique key
-                contentType = { "ImmersiveShowsList" },
-            ) { catalog ->
-                val tvShowsAsLazy = catalogToTvShows[catalog]?.collectAsLazyPagingItems()
-                val tvShows = tvShowsAsLazy?.itemSnapshotList?.items ?: emptyList()
-                Logger.i {
-                    "tvShows: $tvShows"
-                }
-
-                if (tvShows.isNotEmpty()) {
-                    ImmersiveShowsList(
-                        tvShows = tvShows,
-                        sectionTitle = catalog.name,
-                        onTvShowClick = onTVShowClick,
-                        setSelectedTvShow = setSelectedTvShow,
-                        modifier = Modifier.onFocusChanged {
-                            immersiveListHasFocus = it.hasFocus
-                        },
-                    )
-                }
-            }
-
-            // Loop through genreList to display each catalog and its movies
-            items(
-                items = genreToTvShows.keys.toList(),
-                key = { genre -> genre.id }, // Use catalog ID as unique key
-                contentType = { "MoviesRow" }
-            ) { genre ->
-                val tvShowsAsLazy = genreToTvShows[genre]?.collectAsLazyPagingItems()
-                val tvShows = tvShowsAsLazy?.itemSnapshotList?.items ?: emptyList()
-                if (tvShows.isNotEmpty()) {
-                    ImmersiveShowsList(
-                        tvShows = tvShows,
-                        sectionTitle = genre.name,
-                        onTvShowClick = onTVShowClick,
-                        setSelectedTvShow = setSelectedTvShow,
-                        modifier = Modifier.onFocusChanged {
-                            immersiveListHasFocus = it.hasFocus
-                        },
-                    )
-                }
+        // Loop through genreList to display each catalog and its movies
+        items(
+            items = genreToTvShows.keys.toList(),
+            key = { genre -> genre.id }, // Use catalog ID as unique key
+            contentType = { "MoviesRow" }
+        ) { genre ->
+            val tvShowsAsLazy = genreToTvShows[genre]?.collectAsLazyPagingItems()
+            val tvShows = tvShowsAsLazy?.itemSnapshotList?.items ?: emptyList()
+            if (tvShows.isNotEmpty()) {
+                ImmersiveShowsList(
+                    tvShows = tvShows,
+                    sectionTitle = genre.name,
+                    onTvShowClick = onTVShowClick,
+                    setSelectedTvShow = setSelectedTvShow,
+                    modifier = Modifier.onFocusChanged {
+                        immersiveListHasFocus = it.hasFocus
+                    },
+                )
             }
         }
     }

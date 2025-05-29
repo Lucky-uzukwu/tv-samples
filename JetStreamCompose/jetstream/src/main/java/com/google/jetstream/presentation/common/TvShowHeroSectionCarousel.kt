@@ -125,10 +125,10 @@ fun TvShowHeroSectionCarousel(
             1f to Color.Transparent,
         )
 
-    Box(modifier = modifier) {
+    Box(modifier = modifier.fadingEdge(topBottomFade)) {
         Carousel(
             modifier = Modifier
-                .fadingEdge(topBottomFade)
+
                 .onFocusChanged { isCarouselFocused = it.hasFocus }
                 // Semantics for accessibility: describes the Carousel.
                 .semantics {
@@ -181,8 +181,8 @@ fun TvShowHeroSectionCarousel(
             // Define transitions for content changes.
             contentTransformStartToEnd = fadeIn(tween(durationMillis = 5000))
                 .togetherWith(fadeOut(tween(durationMillis = 5000))),
-            contentTransformEndToStart = fadeIn(tween(durationMillis = 1000))
-                .togetherWith(fadeOut(tween(durationMillis = 1000))),
+            contentTransformEndToStart = fadeIn(tween(durationMillis = 5000))
+                .togetherWith(fadeOut(tween(durationMillis = 5000))),
             content = { idx ->
                 val tvShowIndex = startIndex + idx
                 val tvShow = tvShows[tvShowIndex]

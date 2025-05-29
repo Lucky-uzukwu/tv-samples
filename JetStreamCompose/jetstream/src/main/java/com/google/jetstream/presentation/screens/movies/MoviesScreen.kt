@@ -106,91 +106,86 @@ private fun Catalog(
     }
 
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
+    LazyColumn(
+        state = lazyListState,
+        contentPadding = PaddingValues(bottom = 108.dp),
+        modifier = modifier,
     ) {
+        item(contentType = "HeroSectionCarousel") {
+            MovieHeroSectionCarousel(
+                movies = featuredMoviesNew,
+                goToVideoPlayer = goToVideoPlayer,
+                goToMoreInfo = {},
+                setSelectedMovie = setSelectedMovie,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(400.dp),
+            )
+        }
 
-        LazyColumn(
-            state = lazyListState,
-            contentPadding = PaddingValues(bottom = 108.dp),
-            modifier = modifier,
-        ) {
-            item(contentType = "HeroSectionCarousel") {
-                MovieHeroSectionCarousel(
-                    movies = featuredMoviesNew,
-                    goToVideoPlayer = goToVideoPlayer,
-                    goToMoreInfo = {},
-                    setSelectedMovie = setSelectedMovie,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(400.dp),
-                )
-            }
-
-            item() {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 48.dp, vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    streamingProviders.forEach { streamingProvider ->
-                        if (streamingProvider.logoPath != null) {
-                            StreamingProviderIcon(
-                                modifier = Modifier
-                                    .padding(top = 16.dp)
-                                    .focusable(),
-                                logoPath = streamingProvider.logoPath,
-                                contentDescription = streamingProvider.name,
-                            )
-                            Spacer(Modifier.width(16.dp))
-                        }
-
+        item(contentType = "StreamingProviderIconMovie") {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 48.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                streamingProviders.forEach { streamingProvider ->
+                    if (streamingProvider.logoPath != null) {
+                        StreamingProviderIcon(
+                            modifier = Modifier
+                                .padding(top = 16.dp)
+                                .focusable(),
+                            logoPath = streamingProvider.logoPath,
+                            contentDescription = streamingProvider.name,
+                        )
+                        Spacer(Modifier.width(16.dp))
                     }
+
                 }
             }
+        }
 
-            // Loop through catalogList to display each catalog and its movies
-            items(
-                items = catalogToMovies.keys.toList(),
-                key = { catalog -> catalog.id }, // Use catalog ID as unique key
-                contentType = { "MoviesRow" }
-            ) { catalog ->
-                val movies = catalogToMovies[catalog]?.collectAsLazyPagingItems()
-                val movieList = movies?.itemSnapshotList?.items ?: emptyList()
+        // Loop through catalogList to display each catalog and its movies
+        items(
+            items = catalogToMovies.keys.toList(),
+            key = { catalog -> catalog.id }, // Use catalog ID as unique key
+            contentType = { "MoviesRow" }
+        ) { catalog ->
+            val movies = catalogToMovies[catalog]?.collectAsLazyPagingItems()
+            val movieList = movies?.itemSnapshotList?.items ?: emptyList()
 
 
-                Top10MoviesList(
-                    movieList = movieList,
-                    sectionTitle = catalog.name,
-                    onMovieClick = onMovieClick,
-                    setSelectedMovie = setSelectedMovie,
-                    modifier = Modifier.onFocusChanged {
-                        immersiveListHasFocus = it.hasFocus
-                    },
-                )
-            }
+            Top10MoviesList(
+                movieList = movieList,
+                sectionTitle = catalog.name,
+                onMovieClick = onMovieClick,
+                setSelectedMovie = setSelectedMovie,
+                modifier = Modifier.onFocusChanged {
+                    immersiveListHasFocus = it.hasFocus
+                },
+            )
+        }
 
-            // Loop through genreList to display each catalog and its movies
-            items(
-                items = genreToMovies.keys.toList(),
-                key = { genre -> genre.id }, // Use catalog ID as unique key
-                contentType = { "MoviesRow" }
-            ) { genre ->
-                val movies = genreToMovies[genre]?.collectAsLazyPagingItems()
-                val movieList = movies?.itemSnapshotList?.items ?: emptyList()
+        // Loop through genreList to display each catalog and its movies
+        items(
+            items = genreToMovies.keys.toList(),
+            key = { genre -> genre.id }, // Use catalog ID as unique key
+            contentType = { "MoviesRow" }
+        ) { genre ->
+            val movies = genreToMovies[genre]?.collectAsLazyPagingItems()
+            val movieList = movies?.itemSnapshotList?.items ?: emptyList()
 
-                Top10MoviesList(
-                    movieList = movieList,
-                    sectionTitle = genre.name,
-                    onMovieClick = onMovieClick,
-                    setSelectedMovie = setSelectedMovie,
-                    modifier = Modifier.onFocusChanged {
-                        immersiveListHasFocus = it.hasFocus
-                    },
-                )
-            }
+            Top10MoviesList(
+                movieList = movieList,
+                sectionTitle = genre.name,
+                onMovieClick = onMovieClick,
+                setSelectedMovie = setSelectedMovie,
+                modifier = Modifier.onFocusChanged {
+                    immersiveListHasFocus = it.hasFocus
+                },
+            )
         }
     }
+
 }

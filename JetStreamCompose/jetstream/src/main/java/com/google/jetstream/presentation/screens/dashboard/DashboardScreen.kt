@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -151,12 +152,12 @@ fun DashboardScreen(
             label = "",
         )
 
-//        LaunchedEffect(Unit) {
-//            if (!isComingBackFromDifferentScreen && !wasTopBarFocusRequestedBefore) {
-//                TopBarFocusRequesters[currentTopBarSelectedTabIndex + 1].requestFocus()
-//                wasTopBarFocusRequestedBefore = true
-//            }
-//        }
+        LaunchedEffect(Unit) {
+            if (!isComingBackFromDifferentScreen && !wasTopBarFocusRequestedBefore) {
+                TopBarFocusRequesters[currentTopBarSelectedTabIndex + 1].requestFocus()
+                wasTopBarFocusRequestedBefore = true
+            }
+        }
 
         DashboardTopBar(
             modifier = Modifier
