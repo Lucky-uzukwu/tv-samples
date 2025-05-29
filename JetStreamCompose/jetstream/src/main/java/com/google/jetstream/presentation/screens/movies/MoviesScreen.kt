@@ -22,6 +22,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -97,7 +99,7 @@ private fun Catalog(
                     lazyListState.firstVisibleItemScrollOffset < 300
         }
     }
-
+    val carouselFocusRequester = remember { FocusRequester() }
     LaunchedEffect(shouldShowTopBar) {
         onScroll(shouldShowTopBar)
     }
@@ -119,31 +121,9 @@ private fun Catalog(
                 setSelectedMovie = setSelectedMovie,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(400.dp),
+                    .height(400.dp)
+                    .focusRequester(carouselFocusRequester),
             )
-        }
-
-        item(contentType = "StreamingProviderIconMovie") {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 48.dp, vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                streamingProviders.forEach { streamingProvider ->
-                    if (streamingProvider.logoPath != null) {
-                        StreamingProviderIcon(
-                            modifier = Modifier
-                                .padding(top = 16.dp)
-                                .focusable(),
-                            logoPath = streamingProvider.logoPath,
-                            contentDescription = streamingProvider.name,
-                        )
-                        Spacer(Modifier.width(16.dp))
-                    }
-
-                }
-            }
         }
 
         // Loop through catalogList to display each catalog and its movies
