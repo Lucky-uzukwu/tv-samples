@@ -1,19 +1,3 @@
-/*
- * Copyright 2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.google.jetstream.presentation.screens.movies
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -86,7 +70,8 @@ fun MovieDetails(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .focusable()
+            // TODO check here again
+//            .focusable()
             .height(432.dp)
             .bringIntoViewRequester(bringIntoViewRequester)
     ) {
@@ -141,12 +126,14 @@ fun MovieDetails(
                 }
 
                 if (video != null) {
-                    WatchTrailerButton(
-                        modifier = Modifier.onFocusChanged {
-                            if (it.isFocused) {
-                                coroutineScope.launch { bringIntoViewRequester.bringIntoView() }
-                            }
-                        },
+                    WatchNowButton(
+                        modifier = Modifier
+                            .focusable()
+                            .onFocusChanged {
+                                if (it.isFocused) {
+                                    coroutineScope.launch { bringIntoViewRequester.bringIntoView() }
+                                }
+                            },
                         openVideoPlayer = openVideoPlayer,
                         filmId = id
                     )
@@ -156,29 +143,7 @@ fun MovieDetails(
     }
 }
 
-@Composable
-private fun WatchTrailerButton(
-    modifier: Modifier = Modifier,
-    filmId: Int,
-    openVideoPlayer: (movieId: String) -> Unit,
-) {
-    Button(
-        onClick = { openVideoPlayer(filmId.toString()) },
-        modifier = modifier.padding(top = 24.dp),
-        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-        shape = ButtonDefaults.shape(shape = JetStreamButtonShape)
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.PlayArrow,
-            contentDescription = null
-        )
-        Spacer(Modifier.size(8.dp))
-        Text(
-            text = "Watch Now",
-            style = MaterialTheme.typography.titleSmall,
-        )
-    }
-}
+
 
 @Composable
 private fun MovieDescription(description: String) {
