@@ -47,9 +47,9 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import com.google.jetstream.R
-import com.google.jetstream.data.models.Person
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
+import com.google.jetstream.presentation.screens.moviedetails.PersonToCharacter
 import com.google.jetstream.presentation.theme.JetStreamBorderWidth
 import com.google.jetstream.presentation.theme.JetStreamCardShape
 import com.google.jetstream.presentation.utils.ourColors
@@ -57,7 +57,7 @@ import com.google.jetstream.presentation.utils.ourColors
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun CastAndCrewList(
-    castAndCrew: List<Person>,
+    castAndCrew: List<PersonToCharacter>,
 ) {
     val childPadding = rememberChildPadding()
 
@@ -78,7 +78,7 @@ fun CastAndCrewList(
                 .focusRestorer(),
             contentPadding = PaddingValues(start = childPadding.start)
         ) {
-            items(castAndCrew, key = { it.id }) {
+            items(castAndCrew, key = { it.person.id }) {
                 CastAndCrewItem(it, modifier = Modifier.width(144.dp))
             }
         }
@@ -87,10 +87,11 @@ fun CastAndCrewList(
 
 @Composable
 private fun CastAndCrewItem(
-    castMember: Person,
+    personToCharacter: PersonToCharacter,
     modifier: Modifier = Modifier,
 ) {
-    val castImageUrl = "https://stage.nortv.xyz/" + "storage/" + castMember.profilePath
+    val castImageUrl =
+        "https://stage.nortv.xyz/" + "storage/" + personToCharacter.person.profilePath
     ClassicCard(
         modifier = modifier
             .padding(end = 20.dp, bottom = 16.dp)
@@ -112,7 +113,7 @@ private fun CastAndCrewItem(
                     .fillMaxWidth()
                     .padding(top = 10.dp)
                     .padding(horizontal = 12.dp),
-                text = castMember.name,
+                text = personToCharacter.character ?: "",
                 maxLines = 1,
                 style = MaterialTheme.typography.labelMedium,
                 overflow = TextOverflow.Ellipsis
@@ -120,7 +121,7 @@ private fun CastAndCrewItem(
         },
         subtitle = {
             Text(
-                text = castMember.name,
+                text = personToCharacter.person.name,
                 maxLines = 1,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier
@@ -142,7 +143,7 @@ private fun CastAndCrewItem(
                 contentDescription = StringConstants
                     .Composable
                     .ContentDescription
-                    .image(castMember.name),
+                    .image(personToCharacter.person.name),
                 modifier = modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.725f),

@@ -59,6 +59,7 @@ import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.PosterImage
 import com.google.jetstream.presentation.common.TvShowsRow
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
+import com.google.jetstream.presentation.screens.moviedetails.PersonToCharacter
 import com.google.jetstream.presentation.screens.movies.CastAndCrewList
 import com.google.jetstream.presentation.screens.movies.MovieDetails
 import com.google.jetstream.presentation.screens.movies.TitleValueText
@@ -159,7 +160,10 @@ private fun Details(
         if (tvShow.tvShowPeople?.isNotEmpty() == true) {
             item {
                 CastAndCrewList(
-                    castAndCrew = tvShow.tvShowPeople.map { it.person }
+                    castAndCrew = tvShow.tvShowPeople.map { PersonToCharacter(
+                        person = it.person,
+                        character = it.character
+                    ) }
                 )
             }
         }

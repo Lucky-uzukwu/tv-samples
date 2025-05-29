@@ -45,6 +45,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.jetstream.R
 import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.models.Person
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
@@ -58,6 +59,11 @@ import kotlinx.coroutines.flow.StateFlow
 object MovieDetailsScreen {
     const val MovieIdBundleKey = "movieId"
 }
+
+data class PersonToCharacter(
+    val person: Person,
+    val character: String?,
+)
 
 @Composable
 fun MovieDetailsScreen(
@@ -141,7 +147,12 @@ private fun Details(
 
         item {
             CastAndCrewList(
-                castAndCrew = selectedMovie.moviePeople.map { it.person }
+                castAndCrew = selectedMovie.moviePeople.map {
+                    PersonToCharacter(
+                        person = it.person,
+                        character = it.character
+                    )
+                }
             )
         }
         item {
