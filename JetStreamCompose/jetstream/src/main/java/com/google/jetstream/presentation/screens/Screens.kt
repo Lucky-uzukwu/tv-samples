@@ -29,6 +29,7 @@ enum class Screens(
     val isTabItem: Boolean = false,
     val tabIcon: ImageVector? = null
 ) {
+    Profile,
     AuthScreen,
     Login,
     Register,
@@ -39,7 +40,6 @@ enum class Screens(
 
     //    Favourites(isTabItem = true),
     Search(isTabItem = true, tabIcon = Icons.Default.Search),
-    Profile,
     CategoryMovieList(listOf(CategoryMovieListScreen.CategoryIdBundleKey)),
     MovieDetails(listOf(MovieDetailsScreen.MovieIdBundleKey)),
     TvShowDetails(listOf(TvShowDetailsScreen.TvShowIdBundleKey)),

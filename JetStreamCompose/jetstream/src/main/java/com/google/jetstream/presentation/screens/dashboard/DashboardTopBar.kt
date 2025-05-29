@@ -74,10 +74,24 @@ fun DashboardTopBar(
                 .focusRestorer(),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            UserAvatar(
+                modifier = Modifier
+                    .size(32.dp)
+                    .focusRequester(focusRequesters[0])
+                    .semantics {
+                        contentDescription =
+                            StringConstants.Composable.ContentDescription.UserAvatar
+                    },
+                selected = selectedTabIndex == PROFILE_SCREEN_INDEX,
+                onClick = {
+                    onScreenSelection(Screens.Profile)
+                }
+            )
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 var isTabRowFocused by remember { mutableStateOf(false) }
+                Spacer(modifier = Modifier.width(20.dp))
                 TabRow(
                     modifier = Modifier.onFocusChanged {
                         clearFilmSelection()
@@ -98,23 +112,24 @@ fun DashboardTopBar(
                     screens.forEachIndexed { index, screen ->
                         key(index) {
                             Tab(
+                                onClick = { focusManager.moveFocus(FocusDirection.Down) },
                                 modifier = Modifier
                                     .height(32.dp)
-                                    .focusRequester(focusRequesters[index + 1])
-                                    .handleDPadKeyEvents(
-                                        onEnter = { /* Handle Enter */ },
-                                        onDown = { /* Handle Down */ },
-                                        onLeft = {
-                                            if (index == 0) focusRequesters[1].requestFocus()
-                                            else focusRequesters[index + 1].requestFocus()
-                                        },
-                                        onRight = {
-                                            if (index == screens.size - 1) focusRequesters.last()
-                                                .requestFocus()
-                                            else focusRequesters[index + 1].requestFocus()
-                                        },
-                                        onUp = { focusRequesters[index + 1].requestFocus() }
-                                    ),
+                                    .focusRequester(focusRequesters[index + 1]),
+//                                    .handleDPadKeyEvents(
+//                                        onEnter = { /* Handle Enter */ },
+//                                        onDown = { /* Handle Down */ },
+//                                        onLeft = {
+//                                            if (index == 0) focusRequesters[1].requestFocus()
+//                                            else focusRequesters[index + 1].requestFocus()
+//                                        },
+//                                        onRight = {
+//                                            if (index == screens.size - 1) focusRequesters.last()
+//                                                .requestFocus()
+//                                            else focusRequesters[index + 1].requestFocus()
+//                                        },
+//                                        onUp = { focusRequesters[index + 1].requestFocus() }
+//                                    ),
                                 selected = index == selectedTabIndex,
                                 onFocus = { onScreenSelection(screen) },
                                 colors = TabDefaults.pillIndicatorTabColors(
@@ -122,7 +137,6 @@ fun DashboardTopBar(
                                     selectedContentColor = MaterialTheme.colorScheme.onPrimary,
                                     contentColor = MaterialTheme.colorScheme.onSurface,
                                 ),
-                                onClick = { focusManager.moveFocus(FocusDirection.Down) },
                             ) {
                                 if (screen.tabIcon != null) {
                                     Icon(
@@ -147,18 +161,6 @@ fun DashboardTopBar(
                     }
                 }
             }
-            Spacer(modifier = Modifier.width(20.dp))
-            UserAvatar(
-                modifier = Modifier
-                    .size(32.dp)
-                    .focusRequester(focusRequesters[0])
-                    .semantics {
-                        contentDescription =
-                            StringConstants.Composable.ContentDescription.UserAvatar
-                    },
-                selected = selectedTabIndex == PROFILE_SCREEN_INDEX,
-                onClick = { onScreenSelection(Screens.Profile) }
-            )
         }
     }
 }
