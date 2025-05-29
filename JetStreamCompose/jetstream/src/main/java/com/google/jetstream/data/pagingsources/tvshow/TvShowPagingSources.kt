@@ -43,7 +43,7 @@ class TvShowPagingSources {
         return Pager(
             PagingConfig(
                 pageSize = NETWORK_PAGE_SIZE,
-                initialLoadSize = 40,
+                initialLoadSize = 5,
                 enablePlaceholders = false
             )
         ) {

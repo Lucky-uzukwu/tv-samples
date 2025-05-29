@@ -2,9 +2,7 @@ package com.google.jetstream.data.pagingsources.tvshow
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.TvShow
-import com.google.jetstream.data.network.MovieResponse
 import com.google.jetstream.data.network.TvShowsResponse
 import com.google.jetstream.data.repositories.TvShowsRepository
 import com.google.jetstream.data.repositories.UserRepository
@@ -31,7 +29,7 @@ class TvShowsGenrePagingSource(
             val currentPage = params.key ?: 1
             val pageSize = params.loadSize
             // Fetch all catalogs
-            val movies: TvShowsResponse = tvShowsRepository.getTvShowsToShowInGenreSection(
+            val tvshows: TvShowsResponse = tvShowsRepository.getTvShowsToShowInGenreSection(
                 token = token,
                 genreId = genreId,
                 page = currentPage,
@@ -39,9 +37,13 @@ class TvShowsGenrePagingSource(
             ).firstOrNull() ?: TvShowsResponse(member = emptyList())
 
             LoadResult.Page(
-                data = movies.member, // List<MovieNew>
+                data = tvshows.member, // List<TvShow>
                 prevKey = if (currentPage == 1) null else currentPage - 1,
-                nextKey = if (movies.member.isEmpty()) null else currentPage + 1
+                nextKey = when {
+                    tvshows.member.size == 1 -> null // Stop fetching if exactly one item
+                    tvshows.member.isEmpty() -> null // Stop fetching if empty
+                    else -> currentPage + 1 // Continue fetching for more than one item
+                }
             )
         } catch (e: Exception) {
             LoadResult.Error(e)

@@ -75,13 +75,11 @@ fun ImmersiveShowsList(
 
     if (selectedTvShow == null && tvShows.isNotEmpty()) {
         selectedTvShow = tvShows.first()
-    } else if (selectedTvShow == null) {
-        selectedTvShow = tvShows.last()
     }
 
 
     ImmersiveList(
-        selectedTvShow = selectedTvShow!!,
+        selectedTvShow = selectedTvShow ?: return,
         isListFocused = isListFocused,
         gradientColor = gradientColor,
         tvShows = tvShows,
