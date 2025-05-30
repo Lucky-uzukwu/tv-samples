@@ -116,20 +116,6 @@ fun DashboardTopBar(
                                 modifier = Modifier
                                     .height(32.dp)
                                     .focusRequester(focusRequesters[index + 1]),
-//                                    .handleDPadKeyEvents(
-//                                        onEnter = { /* Handle Enter */ },
-//                                        onDown = { /* Handle Down */ },
-//                                        onLeft = {
-//                                            if (index == 0) focusRequesters[1].requestFocus()
-//                                            else focusRequesters[index + 1].requestFocus()
-//                                        },
-//                                        onRight = {
-//                                            if (index == screens.size - 1) focusRequesters.last()
-//                                                .requestFocus()
-//                                            else focusRequesters[index + 1].requestFocus()
-//                                        },
-//                                        onUp = { focusRequesters[index + 1].requestFocus() }
-//                                    ),
                                 selected = index == selectedTabIndex,
                                 onFocus = { onScreenSelection(screen) },
                                 colors = TabDefaults.pillIndicatorTabColors(

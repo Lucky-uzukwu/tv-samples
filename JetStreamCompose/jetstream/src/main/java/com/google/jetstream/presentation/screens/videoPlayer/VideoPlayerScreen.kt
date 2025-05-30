@@ -108,7 +108,7 @@ fun VideoPlayerScreenContent(
     val exoPlayer = rememberPlayer(context)
 
     val videoPlayerState = rememberVideoPlayerState(
-        hideSeconds = 4,
+        hideSeconds = 15,
     )
 
     LaunchedEffect(selectedMovie) {

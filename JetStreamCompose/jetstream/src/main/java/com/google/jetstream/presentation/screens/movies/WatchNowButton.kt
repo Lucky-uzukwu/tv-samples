@@ -24,7 +24,7 @@ fun WatchNowButton(
 ) {
     Button(
         onClick = { openVideoPlayer(filmId.toString()) },
-        modifier = modifier.padding(top = 24.dp).focusable(),
+        modifier = modifier.padding(top = 24.dp),
         colors = ButtonDefaults.colors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,

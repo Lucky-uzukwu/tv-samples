@@ -122,7 +122,7 @@ private fun ImmersiveList(
                 .gradientOverlay(gradientColor)
         )
         Column {
-            // TODO HERE you can add more deails for each row
+            // TODO HERE you can add more details for each row
             if (isListFocused) {
                 MovieDescription(
                     movie = selectedMovie,

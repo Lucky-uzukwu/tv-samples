@@ -70,7 +70,7 @@ fun MovieDetails(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .focusable()
+//            .focusable()
             .height(432.dp)
             .bringIntoViewRequester(bringIntoViewRequester)
     ) {
@@ -127,7 +127,7 @@ fun MovieDetails(
                 if (video != null) {
                     WatchNowButton(
                         modifier = Modifier
-                            .focusable()
+//                            .focusable()
                             .onFocusChanged {
                                 if (it.isFocused) {
                                     coroutineScope.launch { bringIntoViewRequester.bringIntoView() }
