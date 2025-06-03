@@ -42,7 +42,6 @@ import com.google.jetstream.presentation.theme.primaryLight
 import com.google.jetstream.presentation.utils.handleDPadKeyEvents
 import com.google.jetstream.presentation.utils.occupyScreenSize
 
-val TopBarTabs = Screens.entries.toList().filter { it.isTabItem }
 
 // +1 for ProfileTab
 val TopBarFocusRequesters = List(size = TopBarTabs.size + 1) { FocusRequester() }

@@ -17,7 +17,12 @@
 package com.google.jetstream.presentation.screens
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Tv
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.google.jetstream.presentation.screens.categories.CategoryMovieListScreen
 import com.google.jetstream.presentation.screens.moviedetails.MovieDetailsScreen
@@ -29,17 +34,17 @@ enum class Screens(
     val isTabItem: Boolean = false,
     val tabIcon: ImageVector? = null
 ) {
-    Profile,
     AuthScreen,
     Login,
     Register,
-    Home(isTabItem = true),
-    Movies(isTabItem = true),
-    Shows(isTabItem = true),
-    Categories(isTabItem = true),
-
-    //    Favourites(isTabItem = true),
     Search(isTabItem = true, tabIcon = Icons.Default.Search),
+    Home(isTabItem = true, tabIcon = Icons.Default.Home),
+    Movies(isTabItem = true, tabIcon = Icons.Default.Movie),
+    Shows(isTabItem = true, tabIcon = Icons.Default.Tv),
+    Categories(isTabItem = true, tabIcon = Icons.Default.Category),
+    Profile(isTabItem = true, tabIcon = Icons.Default.Person),
+//    Icons.Default.LiveTv
+    //    Favourites(isTabItem = true),
     CategoryMovieList(listOf(CategoryMovieListScreen.CategoryIdBundleKey)),
     MovieDetails(listOf(MovieDetailsScreen.MovieIdBundleKey)),
     TvShowDetails(listOf(TvShowDetailsScreen.TvShowIdBundleKey)),
