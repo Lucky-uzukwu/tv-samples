@@ -76,13 +76,13 @@ import com.google.jetstream.R
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.theme.JetStreamButtonShape
-import com.google.jetstream.presentation.theme.onPrimaryContainerLightHighContrast
 import com.google.jetstream.presentation.utils.fadingEdge
 import com.google.jetstream.presentation.utils.formatPLot
 import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.getImdbRating
 import com.google.jetstream.presentation.utils.getListBPosition
 import com.google.jetstream.presentation.utils.handleDPadKeyEvents
+import md_theme_light_onPrimaryContainer
 
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -401,7 +401,7 @@ private fun WatchNowButton(
         shape = ButtonDefaults.shape(shape = JetStreamButtonShape),
         colors = ButtonDefaults.colors(
             containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-            focusedContainerColor = onPrimaryContainerLightHighContrast,
+            focusedContainerColor = md_theme_light_onPrimaryContainer,
             contentColor = MaterialTheme.colorScheme.surface,
             focusedContentColor = MaterialTheme.colorScheme.surface,
         ),
@@ -439,7 +439,7 @@ private fun MoreInfoButton(
         colors = ButtonDefaults.colors(
             containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
             contentColor = MaterialTheme.colorScheme.surface,
-            focusedContainerColor = onPrimaryContainerLightHighContrast,
+            focusedContainerColor = md_theme_light_onPrimaryContainer,
             focusedContentColor = MaterialTheme.colorScheme.surface,
         ),
         scale = ButtonDefaults.scale(scale = 1f)

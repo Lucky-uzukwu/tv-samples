@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
-import com.google.jetstream.presentation.theme.AppTheme
+import com.google.jetstream.presentation.theme.ComposeTvTheme
 
 enum class VideoPlayerMediaTitleType { AD, LIVE, DEFAULT }
 
@@ -64,7 +64,7 @@ fun VideoPlayerMediaTitle(
 @Preview(name = "TV Series", device = "id:tv_4k")
 @Composable
 private fun VideoPlayerMediaTitlePreviewSeries() {
-    AppTheme {
+    ComposeTvTheme {
         Surface(shape = RectangleShape) {
             VideoPlayerMediaTitle(
                 title = "True Detective",
@@ -78,7 +78,7 @@ private fun VideoPlayerMediaTitlePreviewSeries() {
 @Preview(name = "Live", device = "id:tv_4k")
 @Composable
 private fun VideoPlayerMediaTitlePreviewLive() {
-    AppTheme {
+    ComposeTvTheme {
         Surface(shape = RectangleShape) {
             VideoPlayerMediaTitle(
                 title = "MacLaren Reveal Their 2022 Car: The MCL36",
@@ -92,7 +92,7 @@ private fun VideoPlayerMediaTitlePreviewLive() {
 @Preview(name = "Ads", device = "id:tv_4k")
 @Composable
 private fun VideoPlayerMediaTitlePreviewAd() {
-    AppTheme {
+    ComposeTvTheme {
         Surface(shape = RectangleShape) {
             VideoPlayerMediaTitle(
                 title = "Samsung Galaxy Note20 | Ultra 5G",

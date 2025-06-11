@@ -57,7 +57,7 @@ import com.google.jetstream.R
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
-import com.google.jetstream.presentation.theme.AppTheme
+import com.google.jetstream.presentation.theme.ComposeTvTheme
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -223,7 +223,7 @@ fun ProfileScreen(
 @Preview(device = Devices.TV_1080p)
 @Composable
 fun ProfileScreenPreview() {
-    AppTheme {
+    ComposeTvTheme {
         Box(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
             ProfileScreen(
                 logOutOnClick = {}

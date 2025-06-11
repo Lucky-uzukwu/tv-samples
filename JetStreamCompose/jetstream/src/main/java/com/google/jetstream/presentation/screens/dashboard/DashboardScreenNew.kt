@@ -1,37 +1,21 @@
 package com.google.jetstream.presentation.screens.dashboard
 
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateIntAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LiveTv
-import androidx.compose.material.icons.filled.Movie
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Tv
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
@@ -41,104 +25,181 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
+import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.screens.Screens
-import com.google.jetstream.presentation.theme.AppTheme
+import com.google.jetstream.presentation.screens.backgroundImageState
+import com.google.jetstream.presentation.screens.categories.CategoriesScreen
+import com.google.jetstream.presentation.screens.dashboard.navigation.drawer.HomeDrawer
+import com.google.jetstream.presentation.screens.home.HomeScreen
+import com.google.jetstream.presentation.screens.profile.ProfileScreen
 
 @Composable
 fun DashboardScreenNew(
-    isComingBackFromDifferentScreen: Boolean,
-    resetIsComingBackFromDifferentScreen: () -> Unit = {},
+    openCategoryMovieList: (categoryId: String) -> Unit = {},
+    openMovieDetailsScreen: (movieId: String) -> Unit = {},
+    openTvShowDetailsScreen: (tvShowId: String) -> Unit = {},
+    openVideoPlayer: (movieId: String) -> Unit = {},
+    selectedMovie: MovieNew? = null,
+    setSelectedMovie: (movie: MovieNew) -> Unit,
+    selectedTvShow: TvShow? = null,
+    clearFilmSelection: () -> Unit,
+    setSelectedTvShow: (tvShow: TvShow) -> Unit,
+    onLogOutClick: () -> Unit
 ) {
-    val density = LocalDensity.current
-    val focusManager = LocalFocusManager.current
     val navController = rememberNavController()
-
-    var currentDestination: String? by remember { mutableStateOf(null) }
+    val backgroundState = backgroundImageState()
     val contentFocusRequester = remember { FocusRequester() }
 
-    DisposableEffect(Unit) {
-        val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
-            currentDestination = destination.route
-        }
-        navController.addOnDestinationChangedListener(listener)
-        onDispose {
-            navController.removeOnDestinationChangedListener(listener)
+    var selectedTab: String by remember { mutableStateOf(TopBarTabs.first().name) }
+
+    LaunchedEffect(key1 = Unit) {
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            selectedTab = destination.route ?: return@addOnDestinationChangedListener
         }
     }
 
-    BackPressHandledArea(
-        onBackPressed = {}
-    ) {
-        val tabs = listOf("Home", "Movies", "Series", "Live", "Settings")
-        var selectedTab by remember { mutableStateOf(0) }
+    Box(modifier = Modifier.fillMaxSize()) {
+        val targetBitmap by remember(backgroundState) { backgroundState.drawable }
 
-        // Background with Netflix-like gradient
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(Color(0xFF1F1F1F), Color(0xFF000000))
-                    )
-                )
-        ) {
-            Row(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                // Sidebar
-                DashboardSideBar(
-                    selectedTabIndex = selectedTab,
-                    onTabSelected = { screen ->
-                        selectedTab = TopBarTabs.indexOf(screen)
-                        // Navigate to the corresponding screen
-                        navController.navigate(screen()) {
-                            popUpTo(navController.graph.startDestinationId)
-                            launchSingleTop = true
-                        }
-                    },
-                    contentFocusRequester = contentFocusRequester
-                )
+        val overlayColor = MaterialTheme.colorScheme.background.copy(alpha = 0.9f)
 
-                Spacer(Modifier.width(16.dp))
-
-                // Body content
-                Box(
+        Crossfade(targetState = targetBitmap) {
+            it?.let {
+                Image(
                     modifier = Modifier
                         .fillMaxSize()
-                        .focusRequester(contentFocusRequester)
-                        .focusable()
-                        .background(Color.Black)
-                ) {
-                    NavHost(
-                        navController = navController,
-                        startDestination = "home",
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .padding(end = 48.dp)
-                    ) {
-                        composable(Screens.Home()) { BodyContent("Home Content") }
-                        composable(Screens.Movies()) { BodyContent("Movies Content") }
-                        composable(Screens.Shows()) { BodyContent("Series Content") }
-                        composable(Screens.Categories()) { BodyContent("Categories Content") }
-                        composable(Screens.Search()) { BodyContent("Search Content") }
-                        composable(Screens.Profile()) { BodyContent("Profile Content") }
-                    }
-                }
+                        .drawWithContent {
+                            drawContent()
+                            drawRect(
+                                Brush.horizontalGradient(
+                                    listOf(
+                                        overlayColor,
+                                        overlayColor.copy(alpha = 0.8f),
+                                        Color.Transparent
+                                    )
+                                )
+                            )
+                            drawRect(
+                                Brush.verticalGradient(
+                                    listOf(
+                                        Color.Transparent, overlayColor.copy(alpha = 0.5f)
+                                    )
+                                )
+                            )
+                        },
+                    bitmap = it,
+                    contentDescription = "Hero item background",
+                    contentScale = ContentScale.Crop,
+                )
             }
         }
     }
+
+
+    HomeDrawer(content = {
+        Body(
+            openCategoryMovieList = openCategoryMovieList,
+            openMovieDetailsScreen = openMovieDetailsScreen,
+            openVideoPlayer = openVideoPlayer,
+            navController = navController,
+            modifier = Modifier
+                .fillMaxSize()
+                .focusRequester(contentFocusRequester)
+                .focusable()
+                .background(Color.Black),
+            setSelectedMovie = setSelectedMovie,
+            setSelectedTvShow = setSelectedTvShow,
+            openTvShowDetailsScreen = openTvShowDetailsScreen,
+            onLogOutClick = onLogOutClick
+        )
+    }, selectedTab = selectedTab) { screen ->
+        navController.navigate(screen())
+    }
+
+//    // Background with Netflix-like gradient
+//    Box(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .background(
+//                brush = Brush.verticalGradient(
+//                    colors = listOf(Color(0xFF1F1F1F), Color(0xFF000000))
+//                )
+//            )
+//    ) {
+//        Row(
+//            modifier = Modifier.fillMaxSize()
+//        ) {
+//            // Sidebar
+//            DashboardSideBar(
+//                selectedTabIndex = selectedTab,
+//                onTabSelected = { screen ->
+//                    selectedTab = TopBarTabs.indexOf(screen)
+//                    // Navigate to the corresponding screen
+//                    navController.navigate(screen()) {
+//                        popUpTo(navController.graph.startDestinationId)
+//                        launchSingleTop = true
+//                    }
+//                },
+//                contentFocusRequester = contentFocusRequester
+//            )
+//
+//            Spacer(Modifier.width(16.dp))
+//            Body(
+//                openCategoryMovieList = openCategoryMovieList,
+//                openMovieDetailsScreen = openMovieDetailsScreen,
+//                openVideoPlayer = openVideoPlayer,
+////                    updateTopBarVisibility = { isTopBarVisible = it },
+////                    isTopBarVisible = isTopBarVisible,
+//                navController = navController,
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .focusRequester(contentFocusRequester)
+//                    .focusable()
+////                        .offset(y = navHostTopPaddingDp)
+//                    .background(Color.Black),
+//                setSelectedMovie = setSelectedMovie,
+//                setSelectedTvShow = setSelectedTvShow,
+//                openTvShowDetailsScreen = openTvShowDetailsScreen,
+//                onLogOutClick = onLogOutClick
+//            )
+//
+////                // Body content
+////                Box(
+////                    modifier = Modifier
+////                        .fillMaxSize()
+////                        .focusRequester(contentFocusRequester)
+////                        .focusable()
+////                        .background(Color.Black)
+////                ) {
+////                    NavHost(
+////                        navController = navController,
+////                        startDestination = "home",
+////                        modifier = Modifier
+////                            .fillMaxHeight()
+////                            .padding(end = 48.dp)
+////                    ) {
+////                        composable(Screens.Home()) { BodyContent("Home Content") }
+////                        composable(Screens.Movies()) { BodyContent("Movies Content") }
+////                        composable(Screens.Shows()) { BodyContent("Series Content") }
+////                        composable(Screens.Categories()) { BodyContent("Categories Content") }
+////                        composable(Screens.Search()) { BodyContent("Search Content") }
+////                        composable(Screens.Profile()) { BodyContent("Profile Content") }
+////                    }
+////                }
+//        }
+//    }
+
 }
 
 @Composable
@@ -177,6 +238,89 @@ private fun BackPressHandledArea(
         content = content
     )
 
+
+@Composable
+private fun Body(
+    modifier: Modifier = Modifier,
+    openCategoryMovieList: (categoryId: String) -> Unit,
+    openMovieDetailsScreen: (movieId: String) -> Unit,
+    openTvShowDetailsScreen: (tvShowId: String) -> Unit,
+    openVideoPlayer: (movieId: String) -> Unit,
+    setSelectedMovie: (movie: MovieNew) -> Unit,
+    setSelectedTvShow: (tvShow: TvShow) -> Unit,
+    navController: NavHostController = rememberNavController(),
+    onLogOutClick: () -> Unit
+) =
+    NavHost(
+        navController = navController,
+        startDestination = Screens.Home(),
+    ) {
+        composable(Screens.Profile()) {
+            ProfileScreen(
+                logOutOnClick = onLogOutClick
+            )
+        }
+        composable(Screens.Home()) {
+            HomeScreen(
+                onMovieClick = { selectedMovie ->
+                    openMovieDetailsScreen(selectedMovie.id.toString())
+                },
+                goToVideoPlayer = { selectedMovie ->
+                    openVideoPlayer(selectedMovie.id.toString())
+                },
+                onScroll = {},
+                isTopBarVisible = true,
+                setSelectedMovie = setSelectedMovie
+            )
+        }
+
+        composable(Screens.Categories()) {
+            CategoriesScreen(
+                onCategoryClick = openCategoryMovieList,
+            )
+        }
+
+//        composable(Screens.Movies()) {
+//            MoviesScreen(
+//                onMovieClick = { selectedMovie ->
+//                    openMovieDetailsScreen(selectedMovie.id.toString())
+//                },
+//                goToVideoPlayer = { selectedMovie ->
+//                    openVideoPlayer(selectedMovie.id.toString())
+//                },
+//                onScroll = { },
+//                isTopBarVisible = true,
+//                setSelectedMovie = setSelectedMovie
+//            )
+//        }
+//        composable(Screens.Shows()) {
+//            TVShowScreen(
+//                onTVShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) },
+//                onScroll = { },
+//                isTopBarVisible = true,
+//                goToVideoPlayer = { selectedMovie ->
+//                    openVideoPlayer(selectedMovie.id.toString())
+//                },
+//                setSelectedTvShow = setSelectedTvShow
+//            )
+//        }
+
+//        composable(Screens.Search()) {
+//            SearchScreen(
+//                onMovieClick = { movie -> openMovieDetailsScreen(movie.id) },
+//                onScroll = { }
+//            )
+//        }
+////        composable(Screens.Favourites()) {
+////            FavouritesScreen(
+////                onMovieClick = openMovieDetailsScreen,
+////                onScroll = updateTopBarVisibility,
+////                isTopBarVisible = isTopBarVisible
+////            )
+////        }
+    }
+
+
 @Composable
 private fun Body(
     modifier: Modifier = Modifier,
@@ -188,6 +332,15 @@ private fun Body(
 @Composable
 fun DashboardScreenNewPreview() {
     DashboardScreenNew(
-        isComingBackFromDifferentScreen = false,
+        openCategoryMovieList = { },
+        openMovieDetailsScreen = { },
+        openTvShowDetailsScreen = { },
+        openVideoPlayer = { },
+        selectedMovie = null,
+        setSelectedMovie = { },
+        selectedTvShow = null,
+        clearFilmSelection = { },
+        setSelectedTvShow = { },
+        onLogOutClick = { },
     )
 }

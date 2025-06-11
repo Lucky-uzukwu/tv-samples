@@ -10,14 +10,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.google.jetstream.presentation.theme.onPrimaryLight
+import md_theme_light_onPrimary
 
 @Composable
 fun DisplayFilmGenericText(text: String) {
 
     Text(
         text = text,
-        color = onPrimaryLight,
+        color = md_theme_light_onPrimary,
         style = MaterialTheme.typography.titleSmall.copy(
             color = MaterialTheme.colorScheme.onSurface.copy(
                 alpha = 0.65f

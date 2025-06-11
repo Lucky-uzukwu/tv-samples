@@ -56,7 +56,6 @@ import com.google.jetstream.presentation.utils.GradientBg
 fun CategoriesScreen(
     gridColumns: Int = 4,
     onCategoryClick: (categoryId: String) -> Unit,
-    onScroll: (isTopBarVisible: Boolean) -> Unit,
     categoriesScreenViewModel: CategoriesScreenViewModel = hiltViewModel()
 ) {
 
@@ -72,7 +71,6 @@ fun CategoriesScreen(
                 gridColumns = gridColumns,
                 movieCategories = s.categoryList,
                 onCategoryClick = onCategoryClick,
-                onScroll = onScroll,
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -86,19 +84,9 @@ private fun Catalog(
     modifier: Modifier = Modifier,
     gridColumns: Int = 4,
     onCategoryClick: (categoryId: String) -> Unit,
-    onScroll: (isTopBarVisible: Boolean) -> Unit,
 ) {
     val childPadding = rememberChildPadding()
     val lazyGridState = rememberLazyGridState()
-    val shouldShowTopBar by remember {
-        derivedStateOf {
-            lazyGridState.firstVisibleItemIndex == 0 &&
-                    lazyGridState.firstVisibleItemScrollOffset < 100
-        }
-    }
-    LaunchedEffect(shouldShowTopBar) {
-        onScroll(shouldShowTopBar)
-    }
 
     AnimatedContent(
         targetState = movieCategories,
@@ -124,11 +112,11 @@ private fun Catalog(
                         .onFocusChanged {
                             isFocused = it.isFocused || it.hasFocus
                         }
-                        .focusProperties {
-                            if (index % gridColumns == 0) {
-                                left = FocusRequester.Cancel
-                            }
-                        }
+//                        .focusProperties {
+//                            if (index % gridColumns == 0) {
+//                                left = FocusRequester.Cancel
+//                            }
+//                        }
                 ) {
                     val itemAlpha by animateFloatAsState(
                         targetValue = if (isFocused) .6f else 0.2f,
@@ -142,7 +130,6 @@ private fun Catalog(
                         }
                         Text(
                             text = movieCategory.name,
-                            color = Color.Black,
                             style = MaterialTheme.typography.titleMedium.copy(
                                 color = textColor,
                             )

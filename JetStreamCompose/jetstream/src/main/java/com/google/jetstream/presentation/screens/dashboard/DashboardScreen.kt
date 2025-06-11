@@ -51,7 +51,7 @@ import com.google.jetstream.presentation.screens.movies.MoviesScreen
 import com.google.jetstream.presentation.screens.profile.ProfileScreen
 import com.google.jetstream.presentation.screens.search.SearchScreen
 import com.google.jetstream.presentation.screens.tvshows.TVShowScreen
-import com.google.jetstream.presentation.theme.AppTheme
+import com.google.jetstream.presentation.theme.ComposeTvTheme
 import com.google.jetstream.presentation.utils.Padding
 
 val ParentPadding = PaddingValues(vertical = 8.dp, horizontal = 29.dp)
@@ -267,7 +267,6 @@ private fun Body(
         composable(Screens.Categories()) {
             CategoriesScreen(
                 onCategoryClick = openCategoryMovieList,
-                onScroll = updateTopBarVisibility
             )
         }
         composable(Screens.Movies()) {
@@ -313,7 +312,7 @@ private fun Body(
 @Preview(showBackground = true)
 @Composable
 fun DashboardScreenPreview() {
-    AppTheme {
+    ComposeTvTheme {
         DashboardScreen(
             isComingBackFromDifferentScreen = false,
             selectedMovie = null,

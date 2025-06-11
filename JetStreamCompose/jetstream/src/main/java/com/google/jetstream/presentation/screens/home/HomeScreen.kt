@@ -136,18 +136,18 @@ private fun Catalog(
 //                }
 //            ),
     ) {
-        item(contentType = "HeroSectionCarousel") {
-            MovieHeroSectionCarousel(
-                movies = featuredMoviesNew,
-                goToVideoPlayer = goToVideoPlayer,
-                goToMoreInfo = {},
-                setSelectedMovie = setSelectedMovie,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(400.dp)
-                    .focusRequester(carouselFocusRequester),
-            )
-        }
+//        item(contentType = "HeroSectionCarousel") {
+//            MovieHeroSectionCarousel(
+//                movies = featuredMoviesNew,
+//                goToVideoPlayer = goToVideoPlayer,
+//                goToMoreInfo = {},
+//                setSelectedMovie = setSelectedMovie,
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(400.dp)
+//                    .focusRequester(carouselFocusRequester),
+//            )
+//        }
 
 //        item {
 //            Row(

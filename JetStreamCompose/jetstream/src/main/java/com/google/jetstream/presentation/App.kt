@@ -36,7 +36,7 @@ import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.screens.categories.CategoryMovieListScreen
-import com.google.jetstream.presentation.screens.dashboard.DashboardScreen
+import com.google.jetstream.presentation.screens.dashboard.DashboardScreenNew
 import com.google.jetstream.presentation.screens.moviedetails.MovieDetailsScreen
 import com.google.jetstream.presentation.screens.tvshowsdetails.TvShowDetailsScreen
 import com.google.jetstream.presentation.screens.videoPlayer.VideoPlayerScreen
@@ -164,7 +164,7 @@ fun App(
                 )
             }
             composable(route = Screens.Dashboard()) {
-                DashboardScreen(
+                DashboardScreenNew(
                     openCategoryMovieList = { categoryId ->
                         navController.navigate(
                             Screens.CategoryMovieList.withArgs(categoryId)
@@ -182,11 +182,6 @@ fun App(
                     },
                     openVideoPlayer = { movieId ->
                         navController.navigate(Screens.VideoPlayer.withArgs(movieId))
-                    },
-                    onBackPressed = onBackPressed,
-                    isComingBackFromDifferentScreen = isComingBackFromDifferentScreen,
-                    resetIsComingBackFromDifferentScreen = {
-                        isComingBackFromDifferentScreen = false
                     },
                     selectedMovie = selectedMovie.value,
                     setSelectedMovie = {

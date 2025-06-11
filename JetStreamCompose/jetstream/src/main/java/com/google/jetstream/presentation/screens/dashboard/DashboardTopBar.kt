@@ -38,9 +38,8 @@ import androidx.tv.material3.Text
 import com.google.jetstream.data.util.StringConstants
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.theme.JetStreamCardShape
-import com.google.jetstream.presentation.theme.primaryLight
-import com.google.jetstream.presentation.utils.handleDPadKeyEvents
 import com.google.jetstream.presentation.utils.occupyScreenSize
+import md_theme_light_primary
 
 
 // +1 for ProfileTab
@@ -118,7 +117,7 @@ fun DashboardTopBar(
                                 selected = index == selectedTabIndex,
                                 onFocus = { onScreenSelection(screen) },
                                 colors = TabDefaults.pillIndicatorTabColors(
-                                    focusedContentColor = primaryLight,
+                                    focusedContentColor = md_theme_light_primary,
                                     selectedContentColor = MaterialTheme.colorScheme.onPrimary,
                                     contentColor = MaterialTheme.colorScheme.onSurface,
                                 ),
