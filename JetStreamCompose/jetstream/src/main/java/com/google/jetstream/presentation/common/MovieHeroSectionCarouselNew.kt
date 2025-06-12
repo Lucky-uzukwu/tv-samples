@@ -34,11 +34,13 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onPlaced
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.tv.material3.Carousel
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.rememberCarouselState
 import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.presentation.utils.handleDPadKeyEvents
 
 
 @Composable
@@ -70,22 +72,27 @@ fun MovieHeroSectionCarouselNew(
     val carouselState = rememberCarouselState()
     var isCarouselFocused by remember { mutableStateOf(true) }
     val carouselFocusRequester = remember { FocusRequester() }
+    val watchNowButtonFocusRequester = remember { FocusRequester() }
+    val moreInfoButtonFocusRequester = remember { FocusRequester() }
 
-//    LaunchedEffect(Unit) {
-//        carouselFocusRequester.requestFocus()
-//    }
+    LaunchedEffect(Unit) {
+        watchNowButtonFocusRequester.requestFocus()
+    }
 
     Carousel(
         itemCount = movies.itemCount,
-        modifier = modifier.requestFocusOnFirstGainingVisibility(),
-        carouselIndicator = {
-            CarouselIndicator(
-                itemCount = movies.itemCount,
-                activeItemIndex = carouselState.activeItemIndex,
-            )
-        }, // Display carousel indicators (dots).
+        modifier = modifier.handleDPadKeyEvents(
+            onRight = {},
+//            onDown = {
+//                carouselFocusRequester.requestFocus()
+//            },
+//            onUp = {
+//                isCarouselFocused = false
+//            }
+        ),
+        carouselIndicator = {},
         carouselState = carouselState,
-        autoScrollDurationMillis = 10000,
+        autoScrollDurationMillis = 3000,
         contentTransformStartToEnd = fadeIn(tween(1000)).togetherWith(fadeOut(tween(1000))),
         contentTransformEndToStart = fadeIn(tween(1000)).togetherWith(fadeOut(tween(1000))),
     ) { idx ->
@@ -98,6 +105,19 @@ fun MovieHeroSectionCarouselNew(
             modifier = Modifier.fillMaxSize()
         )
 
+        CarouselItemForeground(
+            movie = movie,
+            isCarouselFocused = isCarouselFocused,
+            modifier = Modifier.fillMaxSize(),
+            onWatchNowClick = {
+                goToVideoPlayer(movies.itemSnapshotList.items[idx])
+            },
+            onMoreInfoClick = {
+                goToMoreInfo(movies.itemSnapshotList.items[idx])
+            },
+            watchNowButtonFocusRequester = watchNowButtonFocusRequester,
+            moreInfoButtonFocusRequester = moreInfoButtonFocusRequester,
+        )
     }
 
 }

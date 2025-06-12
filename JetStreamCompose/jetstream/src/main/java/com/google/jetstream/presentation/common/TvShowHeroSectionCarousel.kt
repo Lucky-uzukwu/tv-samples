@@ -283,14 +283,12 @@ private fun CarouselItemForeground(
                             onClick = onWatchNowClick,
                             focusRequester = watchNowButtonFocusRequester,
                             moreInfoButtonFocusRequester = moreInfoButtonFocusRequester,
-                            onFocus = { onButtonFocus(0) },
-                            onRight = onInnerElementRight
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         MoreInfoButton(
                             onClick = onMoreInfoClick,
                             focusRequester = moreInfoButtonFocusRequester,
-                            onFocus = { onButtonFocus(1) })
+                        )
                     }
                 }
             )
@@ -329,84 +327,4 @@ private fun CarouselItemBackground(
             },
         contentScale = ContentScale.Crop
     )
-}
-
-@Composable
-private fun WatchNowButton(
-    onClick: () -> Unit,
-    focusRequester: FocusRequester,
-    onFocus: () -> Unit,
-    moreInfoButtonFocusRequester: FocusRequester,
-    onRight: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .focusRequester(focusRequester)
-            .onFocusChanged { if (it.isFocused) onFocus() }
-            .handleDPadKeyEvents(
-                onRight = {
-                    onRight
-                },
-                onDown = {
-                    moreInfoButtonFocusRequester.requestFocus()
-                }
-            ),
-        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-        shape = ButtonDefaults.shape(shape = JetStreamButtonShape),
-        colors = ButtonDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-            focusedContainerColor = md_theme_light_onPrimaryContainer,
-            contentColor = MaterialTheme.colorScheme.surface,
-            focusedContentColor = MaterialTheme.colorScheme.surface,
-        ),
-        scale = ButtonDefaults.scale(scale = 1f)
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.PlayArrow,
-            contentDescription = null,
-        )
-        Spacer(Modifier.size(8.dp))
-        Text(
-            text = stringResource(R.string.watch_now),
-            style = MaterialTheme.typography.titleSmall
-        )
-    }
-}
-
-
-@Composable
-private fun MoreInfoButton(
-    onClick: () -> Unit,
-    focusRequester: FocusRequester,
-    onFocus: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .focusRequester(focusRequester)
-            .onFocusChanged { if (it.isFocused) onFocus() }
-            .handleDPadKeyEvents(
-                onRight = {}
-            ),
-        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-        shape = ButtonDefaults.shape(shape = JetStreamButtonShape),
-        colors = ButtonDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-            contentColor = MaterialTheme.colorScheme.surface,
-            focusedContainerColor = md_theme_light_onPrimaryContainer,
-            focusedContentColor = MaterialTheme.colorScheme.surface,
-        ),
-        scale = ButtonDefaults.scale(scale = 1f)
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Info,
-            contentDescription = null,
-        )
-        Spacer(Modifier.size(8.dp))
-        Text(
-            text = "More info",
-            style = MaterialTheme.typography.titleSmall
-        )
-    }
 }
