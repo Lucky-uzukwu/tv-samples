@@ -195,7 +195,7 @@ fun MovieHeroSectionCarousel(
                 // Only render if the item is loaded
                 if (movieNew != null) {
                     setSelectedMovie(movieNew)
-                    CarouselItemBackground(
+                    CarouselItemImage(
                         movie = movieNew,
                         modifier = Modifier.fillMaxSize()
                     )
@@ -232,51 +232,6 @@ fun MovieHeroSectionCarousel(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Composable
-private fun BoxScope.CarouselIndicator(
-    itemCount: Int,
-    activeItemIndex: Int,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .padding(bottom = 64.dp)
-            .graphicsLayer {
-                clip = true
-                shape = ShapeDefaults.ExtraSmall
-            }
-            .align(Alignment.BottomCenter)
-    ) {
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Indicator Row
-            CarouselDefaults.IndicatorRow(
-                itemCount = itemCount,
-                activeItemIndex = getListBPosition(activeItemIndex).position,
-                indicator =
-                    { isActive ->
-                        val activeColor = Color.White.copy(alpha = 1f) // Increased whiteness
-                        val inactiveColor = activeColor.copy(alpha = 0.3f)
-                        Box(
-                            modifier =
-                                Modifier
-                                    .size(8.dp)
-                                    .background(
-                                        color = if (isActive) activeColor else inactiveColor,
-                                        shape = CircleShape,
-                                    ),
-                        )
-                    }
-            )
-        }
-    }
-}
 
 @Composable
 private fun CarouselItemForeground(
@@ -349,36 +304,6 @@ private fun CarouselItemForeground(
     }
 }
 
-@Composable
-private fun CarouselItemBackground(
-    movie: MovieNew,
-    modifier: Modifier = Modifier
-) {
-    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
-
-    AsyncImage(
-        model = imageUrl,
-        contentDescription = StringConstants
-            .Composable
-            .ContentDescription
-            .moviePoster(movie.title),
-        modifier = modifier
-            .drawWithContent {
-                drawContent()
-                drawRect(
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            Color.Black.copy(alpha = 0.9f),
-                            Color.Transparent
-                        ),
-                        startX = 0f,
-                        endX = size.width * 0.8f // Stretch the gradient to 80% of the width
-                    )
-                )
-            },
-        contentScale = ContentScale.Crop
-    )
-}
 
 @Composable
 private fun WatchNowButton(
