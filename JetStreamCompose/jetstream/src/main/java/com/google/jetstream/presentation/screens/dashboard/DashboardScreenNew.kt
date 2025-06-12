@@ -42,7 +42,10 @@ import com.google.jetstream.presentation.screens.backgroundImageState
 import com.google.jetstream.presentation.screens.categories.CategoriesScreen
 import com.google.jetstream.presentation.screens.dashboard.navigation.drawer.HomeDrawer
 import com.google.jetstream.presentation.screens.home.HomeScreen
+import com.google.jetstream.presentation.screens.movies.MoviesScreen
 import com.google.jetstream.presentation.screens.profile.ProfileScreen
+import com.google.jetstream.presentation.screens.search.SearchScreen
+import com.google.jetstream.presentation.screens.tvshows.TVShowScreen
 
 @Composable
 fun DashboardScreenNew(
@@ -61,7 +64,7 @@ fun DashboardScreenNew(
     val backgroundState = backgroundImageState()
     val contentFocusRequester = remember { FocusRequester() }
 
-    var selectedTab: String by remember { mutableStateOf(TopBarTabs.first().name) }
+    var selectedTab: String by remember { mutableStateOf(Screens.Home()) }
 
     LaunchedEffect(key1 = Unit) {
         navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -107,23 +110,26 @@ fun DashboardScreenNew(
     }
 
 
-    HomeDrawer(content = {
-        Body(
-            openCategoryMovieList = openCategoryMovieList,
-            openMovieDetailsScreen = openMovieDetailsScreen,
-            openVideoPlayer = openVideoPlayer,
-            navController = navController,
-            modifier = Modifier
-                .fillMaxSize()
-                .focusRequester(contentFocusRequester)
-                .focusable()
-                .background(Color.Black),
-            setSelectedMovie = setSelectedMovie,
-            setSelectedTvShow = setSelectedTvShow,
-            openTvShowDetailsScreen = openTvShowDetailsScreen,
-            onLogOutClick = onLogOutClick
-        )
-    }, selectedTab = selectedTab) { screen ->
+    HomeDrawer(
+        selectedTab = selectedTab,
+        content = {
+            Body(
+                openCategoryMovieList = openCategoryMovieList,
+                openMovieDetailsScreen = openMovieDetailsScreen,
+                openVideoPlayer = openVideoPlayer,
+                navController = navController,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .focusRequester(contentFocusRequester)
+                    .focusable()
+                    .background(Color.Black),
+                setSelectedMovie = setSelectedMovie,
+                setSelectedTvShow = setSelectedTvShow,
+                openTvShowDetailsScreen = openTvShowDetailsScreen,
+                onLogOutClick = onLogOutClick
+            )
+        },
+    ) { screen ->
         navController.navigate(screen())
     }
 
@@ -274,43 +280,45 @@ private fun Body(
             )
         }
 
+        composable(Screens.Movies()) {
+            MoviesScreen(
+                onMovieClick = { selectedMovie ->
+                    openMovieDetailsScreen(selectedMovie.id.toString())
+                },
+                goToVideoPlayer = { selectedMovie ->
+                    openVideoPlayer(selectedMovie.id.toString())
+                },
+                onScroll = { },
+                isTopBarVisible = true,
+                setSelectedMovie = setSelectedMovie
+            )
+        }
+
+        composable(Screens.Shows()) {
+            TVShowScreen(
+                onTVShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) },
+                onScroll = { },
+                isTopBarVisible = true,
+                goToVideoPlayer = { selectedMovie ->
+                    openVideoPlayer(selectedMovie.id.toString())
+                },
+                setSelectedTvShow = setSelectedTvShow
+            )
+        }
+
         composable(Screens.Categories()) {
             CategoriesScreen(
                 onCategoryClick = openCategoryMovieList,
             )
         }
+        composable(Screens.Search()) {
+            SearchScreen(
+                onMovieClick = { movie -> openMovieDetailsScreen(movie.id) },
+                onScroll = { }
+            )
+        }
 
-//        composable(Screens.Movies()) {
-//            MoviesScreen(
-//                onMovieClick = { selectedMovie ->
-//                    openMovieDetailsScreen(selectedMovie.id.toString())
-//                },
-//                goToVideoPlayer = { selectedMovie ->
-//                    openVideoPlayer(selectedMovie.id.toString())
-//                },
-//                onScroll = { },
-//                isTopBarVisible = true,
-//                setSelectedMovie = setSelectedMovie
-//            )
-//        }
-//        composable(Screens.Shows()) {
-//            TVShowScreen(
-//                onTVShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) },
-//                onScroll = { },
-//                isTopBarVisible = true,
-//                goToVideoPlayer = { selectedMovie ->
-//                    openVideoPlayer(selectedMovie.id.toString())
-//                },
-//                setSelectedTvShow = setSelectedTvShow
-//            )
-//        }
 
-//        composable(Screens.Search()) {
-//            SearchScreen(
-//                onMovieClick = { movie -> openMovieDetailsScreen(movie.id) },
-//                onScroll = { }
-//            )
-//        }
 ////        composable(Screens.Favourites()) {
 ////            FavouritesScreen(
 ////                onMovieClick = openMovieDetailsScreen,

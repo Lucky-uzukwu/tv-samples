@@ -61,7 +61,7 @@ fun HomeScreen(
     homeScreeViewModel: HomeScreeViewModel = hiltViewModel(),
 ) {
     val uiState by homeScreeViewModel.uiState.collectAsStateWithLifecycle()
-    val featuredMovies = homeScreeViewModel.heroSectionMovies.collectAsLazyPagingItems()
+    val featuredMovies = homeScreeViewModel.heroMovies.collectAsLazyPagingItems()
 
     when (val s = uiState) {
         is HomeScreenUiState.Ready -> {

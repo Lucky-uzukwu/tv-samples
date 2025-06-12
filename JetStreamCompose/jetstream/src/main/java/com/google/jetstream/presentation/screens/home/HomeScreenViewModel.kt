@@ -19,33 +19,34 @@ import com.google.jetstream.data.repositories.UserRepository
 import com.google.jetstream.data.pagingsources.movie.MoviesPagingSources
 import com.google.jetstream.data.pagingsources.movie.MoviesHeroSectionPagingSource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 @HiltViewModel
 class HomeScreeViewModel @Inject constructor(
     private val movieRepository: MovieRepository,
-    userRepository: UserRepository,
-    catalogRepository: CatalogRepository,
-    genreRepository: GenreRepository,
-    streamingProvidersRepository: StreamingProvidersRepository
+    private val userRepository: UserRepository,
+    private val catalogRepository: CatalogRepository,
+    private val genreRepository: GenreRepository,
+    private val streamingProvidersRepository: StreamingProvidersRepository
 ) : ViewModel() {
 
-    // Paginated flows for movie lists
-    val heroSectionMovies: StateFlow<PagingData<MovieNew>> = Pager(
-        PagingConfig(pageSize = 5, initialLoadSize = 5)
-    ) {
-        MoviesHeroSectionPagingSource(movieRepository, userRepository)
-    }.flow.cachedIn(viewModelScope).stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
+    private val _heroMovies = MutableStateFlow<PagingData<MovieNew>>(
         PagingData.empty()
     )
+    val heroMovies: StateFlow<PagingData<MovieNew>> get() = _heroMovies.asStateFlow()
+
+    init {
+        fetchHeroMovies()
+    }
 
     // UI State combining all data
     val uiState: StateFlow<HomeScreenUiState> = combine(
@@ -80,6 +81,21 @@ class HomeScreeViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = HomeScreenUiState.Loading
     )
+
+
+    private fun fetchHeroMovies() {
+        viewModelScope.launch {
+            Pager(
+                PagingConfig(pageSize = 5, initialLoadSize = 5)
+            ) {
+                MoviesHeroSectionPagingSource(movieRepository, userRepository)
+            }.flow
+                .cachedIn(viewModelScope)
+                .collect { pagingData ->
+                    _heroMovies.value = pagingData
+                }
+        }
+    }
 
     private suspend fun fetchCatalogsAndMovies(
         catalogRepository: CatalogRepository,
