@@ -10,12 +10,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -40,12 +37,6 @@ import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.MovieHeroSectionCarousel
 import com.google.jetstream.presentation.screens.backgroundImageState
 import kotlinx.coroutines.flow.StateFlow
-
-sealed class LastViewedItem {
-    data class CarouselItem(val movieId: Int, val index: Int) : LastViewedItem()
-    data class ImmersiveListItem(val movieId: Int, val catalogId: String, val index: Int) :
-        LastViewedItem()
-}
 
 
 @Composable
@@ -89,12 +80,6 @@ private fun Catalog(
     setSelectedMovie: (movie: MovieNew) -> Unit,
     streamingProviders: List<StreamingProvider>,
 ) {
-
-    // Persist last viewed item state
-    var lastMovieId by rememberSaveable { mutableIntStateOf(0) }
-    var lastCatalogId by rememberSaveable { mutableStateOf<String?>(null) } // null for carousel
-    var isCarouselLast by rememberSaveable { mutableStateOf(true) }
-
     val lazyListState = rememberLazyListState()
     val backgroundState = backgroundImageState()
     var isCarouselFocused by remember { mutableStateOf(true) }
@@ -104,20 +89,6 @@ private fun Catalog(
     }
     val genreToLazyPagingItems = genreToMovies.mapValues { (_, flow) ->
         flow.collectAsLazyPagingItems()
-    }
-
-    // Restore scroll position when navigating back
-    LaunchedEffect(lastMovieId, lastCatalogId) {
-        if (isCarouselLast) {
-            lazyListState.scrollToItem(0) // Carousel is at index 0
-        } else {
-            // Find the catalog index for the immersive list
-            val catalogIndex =
-                catalogToLazyPagingItems.keys.indexOfFirst { it.id == lastCatalogId }
-            if (catalogIndex >= 0) {
-                lazyListState.scrollToItem(catalogIndex + 1) // +1 for carousel
-            }
-        }
     }
 
     Box(modifier = modifier) {
@@ -173,17 +144,11 @@ private fun Catalog(
                         url = imageUrl
                     )
                     setSelectedMovie(movie)
-                    // Update last viewed item
-                    lastMovieId = movie.id
-                    lastCatalogId = null
-                    isCarouselLast = true
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(400.dp),
                 isCarouselFocused = isCarouselFocused,
-                initialMovieId = lastMovieId.takeIf { isCarouselLast }
-                    ?: 0 // Pass movie ID if carousel was last
             )
         }
         items(

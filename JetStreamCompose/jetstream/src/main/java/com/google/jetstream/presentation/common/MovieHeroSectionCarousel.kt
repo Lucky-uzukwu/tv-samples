@@ -30,10 +30,9 @@ fun MovieHeroSectionCarousel(
     setSelectedMovie: (MovieNew) -> Unit,
     modifier: Modifier = Modifier,
     isCarouselFocused: Boolean = false,
-    initialMovieId: Int = 0
 ) {
 
-    val carouselState = rememberCarouselState(initialMovieId)
+    val carouselState = rememberCarouselState()
     val playButtonFocusRequester = remember { FocusRequester() }
     val moreInfoButtonFocusRequester = remember { FocusRequester() }
     val displayTitleFocusRequester = remember { FocusRequester() }
