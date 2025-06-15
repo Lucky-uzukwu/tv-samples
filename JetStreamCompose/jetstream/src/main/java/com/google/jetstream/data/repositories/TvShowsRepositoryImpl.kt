@@ -75,6 +75,7 @@ class TvShowsRepositoryImpl @Inject constructor(
 
         if (response.isSuccessful) {
             val tvShowResponse = response.body()
+            Logger.i { "Successfully fetched ${tvShowResponse?.member?.size} tv shows for catalog $catalogId." }
             if (tvShowResponse != null) {
                 emit(tvShowResponse)
             }
@@ -119,6 +120,7 @@ class TvShowsRepositoryImpl @Inject constructor(
 
         if (response.isSuccessful) {
             val tvShowsResponse = response.body()
+            Logger.i { "Successfully fetched ${tvShowsResponse?.member?.size} tv shows for genre $genreId." }
             if (tvShowsResponse != null) {
                 emit(tvShowsResponse)
             }
@@ -156,7 +158,7 @@ class TvShowsRepositoryImpl @Inject constructor(
     override fun getTvShowsDetails(
         token: String,
         tvShowId: String
-    ): Flow<TvShow>  = flow {
+    ): Flow<TvShow> = flow {
         val user = userRepository.getUser() ?: return@flow
         val response = tvShowService.getTvShowById(
             authToken = "Bearer $token",

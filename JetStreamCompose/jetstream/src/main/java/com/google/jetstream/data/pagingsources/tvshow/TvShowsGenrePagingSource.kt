@@ -29,7 +29,7 @@ class TvShowsGenrePagingSource(
             val currentPage = params.key ?: 1
             val pageSize = params.loadSize
             // Fetch all catalogs
-            val tvshows: TvShowsResponse = tvShowsRepository.getTvShowsToShowInGenreSection(
+            val tvShows: TvShowsResponse = tvShowsRepository.getTvShowsToShowInGenreSection(
                 token = token,
                 genreId = genreId,
                 page = currentPage,
@@ -37,13 +37,9 @@ class TvShowsGenrePagingSource(
             ).firstOrNull() ?: TvShowsResponse(member = emptyList())
 
             LoadResult.Page(
-                data = tvshows.member, // List<TvShow>
+                data = tvShows.member, // List<TvShow>
                 prevKey = if (currentPage == 1) null else currentPage - 1,
-                nextKey = when {
-                    tvshows.member.size == 1 -> null // Stop fetching if exactly one item
-                    tvshows.member.isEmpty() -> null // Stop fetching if empty
-                    else -> currentPage + 1 // Continue fetching for more than one item
-                }
+                nextKey = if (tvShows.member.isEmpty()) null else currentPage + 1
             )
         } catch (e: Exception) {
             LoadResult.Error(e)

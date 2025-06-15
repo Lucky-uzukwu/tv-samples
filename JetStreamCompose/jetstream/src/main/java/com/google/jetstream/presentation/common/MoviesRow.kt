@@ -308,7 +308,7 @@ fun ImmersiveListMoviesRow(
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ImmersiveListShowsRow(
-    tvShows: List<TvShow>,
+    tvShows: LazyPagingItems<TvShow>,
     modifier: Modifier = Modifier,
     itemDirection: ItemDirection = ItemDirection.Vertical,
     startPadding: Dp = rememberChildPadding().start,
@@ -354,7 +354,7 @@ fun ImmersiveListShowsRow(
                     }
             ) {
                 itemsIndexed(
-                    tvShowsState,
+                    tvShowsState.itemSnapshotList.items,
                     key = { _, tvShow ->
                         tvShow.id
                     }

@@ -49,18 +49,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.paging.compose.LazyPagingItems
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.jetstream.R
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import com.google.jetstream.presentation.utils.bringIntoViewIfChildrenAreFocused
+import com.google.jetstream.presentation.utils.formatPLot
 import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.getImdbRating
 
 @Composable
 fun ImmersiveShowsList(
-    tvShows: List<TvShow>,
+    tvShows: LazyPagingItems<TvShow>,
     sectionTitle: String? = stringResource(R.string.top_10_movies_title),
     modifier: Modifier = Modifier,
     setSelectedTvShow: (TvShow) -> Unit,
@@ -70,11 +73,14 @@ fun ImmersiveShowsList(
     var isListFocused by remember { mutableStateOf(false) }
 
     var selectedTvShow by remember(tvShows) {
-        mutableStateOf(tvShows.firstOrNull())
+        mutableStateOf(tvShows.itemSnapshotList.firstOrNull())
     }
 
-    if (selectedTvShow == null && tvShows.isNotEmpty()) {
-        selectedTvShow = tvShows.first()
+    LaunchedEffect(Unit) {
+        if (tvShows.itemSnapshotList.items.isNotEmpty()) {
+            selectedTvShow = tvShows.itemSnapshotList.items.first()
+            setSelectedTvShow(selectedTvShow!!)
+        }
     }
 
 
@@ -93,7 +99,7 @@ fun ImmersiveShowsList(
             isListFocused = it.hasFocus
         },
         modifier = modifier.bringIntoViewIfChildrenAreFocused(
-            PaddingValues(bottom = 116.dp)
+            PaddingValues(bottom = 50.dp)
         )
     )
 
@@ -104,7 +110,7 @@ private fun ImmersiveList(
     selectedTvShow: TvShow,
     isListFocused: Boolean,
     gradientColor: Color,
-    tvShows: List<TvShow>,
+    tvShows: LazyPagingItems<TvShow>,
     sectionTitle: String?,
     onFocusChanged: (FocusState) -> Unit,
     onMovieFocused: (TvShow) -> Unit,
@@ -187,14 +193,24 @@ private fun TvShowDescription(
     val getYear = tvShow.releaseDate?.substring(0, 4)
 
     Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = modifier.padding(
+            start = 32.dp
+        ),
     ) {
-        tvShow.title?.let { DisplayFilmTitle(it, style = MaterialTheme.typography.displaySmall) }
-        DisplayFilmDescription(
-            tvShow.tagLine,
-            style = MaterialTheme.typography.bodyLarge,
-        )
+        tvShow.title?.let {
+            Text(
+                modifier = Modifier.padding(top = 64.dp),
+                text = it,
+                maxLines = 2,
+                color = Color.White,
+                style = MaterialTheme.typography.displaySmall,
+                fontSize = 40.sp,
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        val formattedPlot = tvShow.plot.formatPLot()
+        DisplayFilmGenericText(formattedPlot)
+        Spacer(modifier = Modifier.height(8.dp))
         Row {
             IMDbLogo()
             Spacer(modifier = Modifier.width(4.dp))
@@ -209,6 +225,7 @@ private fun TvShowDescription(
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
+        Spacer(modifier = Modifier.height(8.dp))
         DisplayFilmExtraInfo(
             getYear,
             combinedGenre,

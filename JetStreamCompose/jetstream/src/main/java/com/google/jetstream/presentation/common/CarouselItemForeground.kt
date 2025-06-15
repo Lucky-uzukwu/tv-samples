@@ -18,7 +18,6 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -32,6 +31,7 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.jetstream.R
 import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.presentation.theme.JetStreamButtonShape
 import com.google.jetstream.presentation.utils.formatPLot
 import com.google.jetstream.presentation.utils.formatVotes
@@ -106,6 +106,70 @@ fun CarouselItemForeground(
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                         }
+                        MoreInfoButton(
+                            onClick = onMoreInfoClick,
+                            focusRequester = moreInfoButtonFocusRequester,
+                        )
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun CarouselItemForeground(
+    tvShow: TvShow,
+    modifier: Modifier = Modifier,
+    onMoreInfoClick: () -> Unit,
+    displayTitleFocusRequester: FocusRequester,
+    moreInfoButtonFocusRequester: FocusRequester,
+) {
+    val combinedGenre = tvShow.genres?.joinToString(" ") { genre -> genre.name }
+    val getYear = tvShow.releaseDate?.substring(0, 4)
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.TopStart
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .focusGroup()
+                .padding(32.dp),
+            verticalArrangement = Arrangement.Top
+        ) {
+            tvShow.title?.let {
+                DisplayFilmTitle(
+                    it, modifier = Modifier
+                        .padding(top = 48.dp)
+                        .focusRequester(displayTitleFocusRequester)
+                        .focusable()
+                )
+            }
+            val formattedPlot = tvShow.plot.formatPLot()
+            DisplayFilmGenericText(formattedPlot)
+
+            Spacer(modifier = Modifier.height(10.dp))
+            DisplayFilmExtraInfo(getYear, combinedGenre, tvShow.duration)
+
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row {
+                IMDbLogo()
+                Spacer(modifier = Modifier.width(8.dp))
+                DisplayFilmGenericText(
+                    "${
+                        tvShow.imdbRating.getImdbRating()
+                    }/10 - ${tvShow.imdbVotes.toString().formatVotes()} IMDB Votes"
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+            AnimatedVisibility(
+                visible = true,
+                content = {
+                    Row {
                         MoreInfoButton(
                             onClick = onMoreInfoClick,
                             focusRequester = moreInfoButtonFocusRequester,

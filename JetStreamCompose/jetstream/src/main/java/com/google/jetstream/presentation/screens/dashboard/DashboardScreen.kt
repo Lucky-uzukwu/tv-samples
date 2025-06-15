@@ -281,8 +281,6 @@ private fun Body(
         composable(Screens.Shows()) {
             TVShowScreen(
                 onTVShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) },
-                onScroll = updateTopBarVisibility,
-                isTopBarVisible = isTopBarVisible,
                 goToVideoPlayer = { selectedMovie ->
                     openVideoPlayer(selectedMovie.id.toString())
                 },

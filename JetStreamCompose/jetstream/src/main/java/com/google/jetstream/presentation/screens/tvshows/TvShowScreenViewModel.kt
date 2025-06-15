@@ -7,9 +7,11 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.google.jetstream.data.models.Genre
+import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.data.network.Catalog
+import com.google.jetstream.data.pagingsources.movie.MoviesHeroSectionPagingSource
 import com.google.jetstream.data.pagingsources.tvshow.TvShowPagingSources
 import com.google.jetstream.data.pagingsources.tvshow.TvShowsHeroSectionPagingSource
 import com.google.jetstream.data.repositories.CatalogRepository
@@ -18,32 +20,33 @@ import com.google.jetstream.data.repositories.StreamingProvidersRepository
 import com.google.jetstream.data.repositories.TvShowsRepository
 import com.google.jetstream.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class TvShowScreenViewModel @Inject constructor(
     private val tvShowRepository: TvShowsRepository,
-    userRepository: UserRepository,
-    catalogRepository: CatalogRepository,
-    genreRepository: GenreRepository,
-    streamingProvidersRepository: StreamingProvidersRepository
+    private val userRepository: UserRepository,
+    private val catalogRepository: CatalogRepository,
+    private val genreRepository: GenreRepository,
+    private val streamingProvidersRepository: StreamingProvidersRepository
 ) : ViewModel() {
 
-
-    val heroSectionTvShows: StateFlow<PagingData<TvShow>> = Pager(
-        PagingConfig(pageSize = 5, initialLoadSize = 5)
-    ) {
-        TvShowsHeroSectionPagingSource(tvShowRepository, userRepository)
-    }.flow.cachedIn(viewModelScope).stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
+    private val _heroSectionTvShows = MutableStateFlow<PagingData<TvShow>>(
         PagingData.empty()
     )
+    val heroSectionTvShows: StateFlow<PagingData<TvShow>> get() = _heroSectionTvShows.asStateFlow()
+
+    init {
+        fetchHeroSectionTvShows()
+    }
 
     // UI State combining all data
     val uiState: StateFlow<TvShowScreenUiState> = combine(
@@ -78,6 +81,20 @@ class TvShowScreenViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = TvShowScreenUiState.Loading
     )
+
+    private fun fetchHeroSectionTvShows() {
+        viewModelScope.launch {
+            Pager(
+                PagingConfig(pageSize = 5, initialLoadSize = 5)
+            ) {
+                TvShowsHeroSectionPagingSource(tvShowRepository, userRepository)
+            }.flow
+                .cachedIn(viewModelScope)
+                .collect { pagingData ->
+                    _heroSectionTvShows.value = pagingData
+                }
+        }
+    }
 
     private suspend fun fetchCatalogsAndTvShows(
         catalogRepository: CatalogRepository,

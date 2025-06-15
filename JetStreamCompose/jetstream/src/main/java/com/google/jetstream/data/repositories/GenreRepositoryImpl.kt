@@ -66,7 +66,7 @@ class GenreRepositoryImpl @Inject constructor(
         if (response.isSuccessful) {
             val genres = response.body()
             Logger.i { "API Response: $genres" }
-            Logger.i { "Successfully fetched ${genres?.member?.size} genres for movie section." }
+            Logger.i { "Successfully fetched ${genres?.member?.size} genres for tv show section." }
             if (genres != null) {
                 emit(genres.member)
             }

@@ -39,11 +39,7 @@ class TvShowsCatalogPagingSource(
             LoadResult.Page(
                 data = tvShows.member, // List<TvShow>
                 prevKey = if (currentPage == 1) null else currentPage - 1,
-                nextKey = when {
-                    tvShows.member.size == 1 -> null // Stop fetching if exactly one item
-                    tvShows.member.isEmpty() -> null // Stop fetching if empty
-                    else -> currentPage + 1 // Continue fetching for more than one item
-                }
+                nextKey = if (tvShows.member.isEmpty()) null else currentPage + 1
             )
         } catch (e: Exception) {
             LoadResult.Error(e)
