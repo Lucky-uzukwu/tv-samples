@@ -22,7 +22,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -33,6 +32,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,13 +48,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.jetstream.R
 import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.models.MovieNew
-import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import com.google.jetstream.presentation.utils.bringIntoViewIfChildrenAreFocused
+import com.google.jetstream.presentation.utils.formatPLot
 import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.getImdbRating
 
@@ -73,8 +74,11 @@ fun Top10MoviesList(
         mutableStateOf(movieList.firstOrNull())
     }
 
-    if (selectedMovie == null && movieList.isNotEmpty()) {
-        selectedMovie = movieList.first()
+    LaunchedEffect(Unit) {
+        if (movieList.isNotEmpty()) {
+            selectedMovie = movieList.first()
+            setSelectedMovie(selectedMovie!!)
+        }
     }
 
     ImmersiveList(
@@ -92,7 +96,7 @@ fun Top10MoviesList(
             isListFocused = it.hasFocus
         },
         modifier = modifier.bringIntoViewIfChildrenAreFocused(
-            PaddingValues(bottom = 116.dp)
+            PaddingValues(bottom = 50.dp)
         )
     )
 
@@ -124,12 +128,8 @@ private fun ImmersiveList(
         Column {
             // TODO HERE you can add more details for each row
             if (isListFocused) {
-                MovieDescription(
-                    movie = selectedMovie,
-                    modifier = Modifier.padding(
-                        start = rememberChildPadding().start,
-                        bottom = 10.dp
-                    )
+                DisplayMovieDetails(
+                    movie = selectedMovie
                 )
             }
 
@@ -176,7 +176,7 @@ private fun Background(
 }
 
 @Composable
-private fun MovieDescription(
+private fun DisplayMovieDetails(
     movie: MovieNew,
     modifier: Modifier = Modifier,
 ) {
@@ -184,14 +184,22 @@ private fun MovieDescription(
     val getYear = movie.releaseDate?.substring(0, 4)
 
     Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = modifier.padding(
+            start = 32.dp
+        ),
     ) {
-        DisplayFilmTitle(movie.title, style = MaterialTheme.typography.displaySmall)
-        DisplayFilmDescription(
-            movie.tagLine,
-            style = MaterialTheme.typography.bodyLarge,
+        Text(
+            modifier = Modifier.padding(top = 64.dp),
+            text = movie.title,
+            maxLines = 2,
+            color = Color.White,
+            style = MaterialTheme.typography.displaySmall,
+            fontSize = 40.sp,
         )
+        Spacer(modifier = Modifier.height(8.dp))
+        val formattedPlot = movie.plot.formatPLot()
+        DisplayFilmGenericText(formattedPlot)
+        Spacer(modifier = Modifier.height(8.dp))
         Row {
             IMDbLogo()
             Spacer(modifier = Modifier.width(4.dp))
@@ -206,13 +214,13 @@ private fun MovieDescription(
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
+        Spacer(modifier = Modifier.height(8.dp))
         DisplayFilmExtraInfo(
             getYear,
             combinedGenre,
             movie.duration,
             style = MaterialTheme.typography.bodyLarge,
         )
-
     }
 }
 

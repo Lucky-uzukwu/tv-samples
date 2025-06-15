@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
@@ -229,7 +230,6 @@ fun ImmersiveListMoviesRow(
     movieList: List<MovieNew>,
     modifier: Modifier = Modifier,
     itemDirection: ItemDirection = ItemDirection.Vertical,
-    startPadding: Dp = rememberChildPadding().start,
     endPadding: Dp = rememberChildPadding().end,
     title: String? = null,
     titleStyle: TextStyle = MaterialTheme.typography.headlineLarge.copy(
@@ -254,7 +254,6 @@ fun ImmersiveListMoviesRow(
                 style = titleStyle,
                 modifier = Modifier
                     .alpha(1f)
-                    .padding(start = startPadding)
                     .padding(vertical = 16.dp)
             )
         }
@@ -263,7 +262,7 @@ fun ImmersiveListMoviesRow(
             label = "",
         ) { movieState ->
             LazyRow(
-                contentPadding = PaddingValues(start = startPadding, end = endPadding),
+                contentPadding = PaddingValues(end = endPadding),
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                 modifier = Modifier
                     .focusRequester(lazyRow)
@@ -542,8 +541,9 @@ private fun MoviesRowItemImage(
             movieTitle = movieTitle,
             movieUri = movieUri,
             modifier = modifier
-                .fillMaxWidth()
-                .height(192.dp)
+//                .fillMaxWidth()
+                .height(198.dp)
+                .width(150.dp)
                 .drawWithContent {
                     drawContent()
                     if (showIndexOverImage) {

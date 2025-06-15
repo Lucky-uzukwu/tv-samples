@@ -14,7 +14,10 @@ import androidx.tv.material3.Text
 import md_theme_light_onPrimary
 
 @Composable
-fun DisplayFilmGenericText(text: String) {
+fun DisplayFilmGenericText(
+    text: String,
+    maxLines: Int = 3,
+    ) {
 
     Text(
         text = text,
@@ -29,7 +32,7 @@ fun DisplayFilmGenericText(text: String) {
                 blurRadius = 2f
             )
         ),
-        maxLines = 3,
+        maxLines = maxLines,
         fontWeight = FontWeight.SemiBold,
         overflow = TextOverflow.Ellipsis,
         modifier = Modifier.padding(top = 8.dp)

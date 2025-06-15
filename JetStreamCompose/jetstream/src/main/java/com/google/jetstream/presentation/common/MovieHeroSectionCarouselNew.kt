@@ -41,7 +41,6 @@ fun MovieHeroSectionCarouselNew(
     goToVideoPlayer: (movie: MovieNew) -> Unit,
     goToMoreInfo: (movie: MovieNew) -> Unit,
     setSelectedMovie: (MovieNew) -> Unit,
-    isCarouselFocused: Boolean,
     modifier: Modifier = Modifier
 ) {
 
@@ -49,10 +48,6 @@ fun MovieHeroSectionCarouselNew(
     val playButtonFocusRequester = remember { FocusRequester() }
     val moreInfoButtonFocusRequester = remember { FocusRequester() }
     val displayTitleFocusRequester = remember { FocusRequester() }
-
-    LaunchedEffect(Unit) {
-        playButtonFocusRequester.requestFocus()
-    }
 
     Carousel(
         itemCount = movies.itemCount,
@@ -77,7 +72,6 @@ fun MovieHeroSectionCarouselNew(
 
         CarouselItemForeground(
             movie = movie,
-            isCarouselFocused = isCarouselFocused,
             modifier = Modifier.fillMaxSize(),
             onWatchNowClick = {
                 goToVideoPlayer(movies.itemSnapshotList.items[idx])

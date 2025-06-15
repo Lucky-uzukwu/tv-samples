@@ -14,9 +14,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -42,13 +44,16 @@ import md_theme_light_shadow
 fun CarouselItemForeground(
     movie: MovieNew,
     modifier: Modifier = Modifier,
-    isCarouselFocused: Boolean = false,
     onWatchNowClick: () -> Unit,
     onMoreInfoClick: () -> Unit,
     playButtonFocusRequester: FocusRequester,
     displayTitleFocusRequester: FocusRequester,
     moreInfoButtonFocusRequester: FocusRequester,
 ) {
+    LaunchedEffect(Unit) {
+        playButtonFocusRequester.requestFocus()
+    }
+
     val combinedGenre = movie.genres.joinToString(" ") { genre -> genre.name }
     val getYear = movie.releaseDate?.substring(0, 4)
     Box(
@@ -89,14 +94,22 @@ fun CarouselItemForeground(
 
             Spacer(modifier = Modifier.height(10.dp))
             AnimatedVisibility(
-                visible = isCarouselFocused,
+                visible = true,
                 content = {
                     Row {
-                        PlayButton(
-                            onClick = onWatchNowClick,
-                            focusRequester = playButtonFocusRequester,
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
+                        if (movie.video != null) {
+                            PlayButton(
+                                onClick = onWatchNowClick,
+                                focusRequester = playButtonFocusRequester,
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                        } else {
+                            ComingSoonButton(
+                                onClick = { },
+                                focusRequester = playButtonFocusRequester,
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                        }
                         MoreInfoButton(
                             onClick = onMoreInfoClick,
                             focusRequester = moreInfoButtonFocusRequester,
@@ -169,6 +182,39 @@ fun PlayButton(
         Spacer(Modifier.size(8.dp))
         Text(
             text = stringResource(R.string.play),
+            style = MaterialTheme.typography.titleSmall
+        )
+    }
+}
+
+@Composable
+fun ComingSoonButton(
+    onClick: () -> Unit,
+    focusRequester: FocusRequester,
+) {
+
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .height(40.dp)
+            .focusRequester(focusRequester),
+        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+        shape = ButtonDefaults.shape(shape = JetStreamButtonShape),
+        colors = ButtonDefaults.colors(
+            containerColor = md_theme_light_outline,
+            contentColor = md_theme_light_onTertiary,
+            focusedContainerColor = md_theme_light_onTertiary,
+            focusedContentColor = md_theme_light_shadow,
+        ),
+        scale = ButtonDefaults.scale(scale = 1f)
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Add,
+            contentDescription = null,
+        )
+        Spacer(Modifier.size(8.dp))
+        Text(
+            text = stringResource(R.string.coming_soon),
             style = MaterialTheme.typography.titleSmall
         )
     }
