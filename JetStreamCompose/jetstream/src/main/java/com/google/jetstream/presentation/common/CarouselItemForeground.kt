@@ -36,7 +36,6 @@ import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.getImdbRating
 import com.google.jetstream.presentation.utils.handleDPadKeyEvents
 import md_theme_light_onPrimary
-import md_theme_light_onPrimaryContainer
 import md_theme_light_shadow
 
 @Composable
@@ -62,16 +61,24 @@ fun CarouselItemForeground(
                 .padding(32.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            DisplayFilmTitle(movie.title)
-            DisplayFilmDescription(
-                tagLine = movie.tagLine,
-            )
+            DisplayFilmTitle(
+                movie.title, modifier = Modifier
+                    .padding(top = 48.dp)
+                    .onFocusChanged(
+                        onFocusChanged = {
+                            if (it.isFocused) {
+                                watchNowButtonFocusRequester.requestFocus()
+                            }
+                        }
+                    )
+                    .focusable())
+            val formattedPlot = movie.plot.formatPLot()
+            DisplayFilmGenericText(formattedPlot)
+
+            Spacer(modifier = Modifier.height(10.dp))
             DisplayFilmExtraInfo(getYear, combinedGenre, movie.duration)
 
-            val formattedPlot = movie.plot.formatPLot()
 
-
-            DisplayFilmGenericText(formattedPlot)
             Spacer(modifier = Modifier.height(10.dp))
 
             Row {
@@ -84,17 +91,17 @@ fun CarouselItemForeground(
                 )
             }
 
+            Spacer(modifier = Modifier.height(10.dp))
             AnimatedVisibility(
                 visible = isCarouselFocused,
                 content = {
-                    Column {
-                        Spacer(modifier = Modifier.height(16.dp))
+                    Row {
                         WatchNowButton(
                             onClick = onWatchNowClick,
                             focusRequester = watchNowButtonFocusRequester,
                             moreInfoButtonFocusRequester = moreInfoButtonFocusRequester,
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
                         MoreInfoButton(
                             onClick = onMoreInfoClick,
                             focusRequester = moreInfoButtonFocusRequester,
@@ -115,6 +122,7 @@ fun MoreInfoButton(
     Button(
         onClick = onClick,
         modifier = Modifier
+            .height(40.dp)
             .focusRequester(focusRequester),
         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
         shape = ButtonDefaults.shape(shape = JetStreamButtonShape),
@@ -132,7 +140,7 @@ fun MoreInfoButton(
         )
         Spacer(Modifier.size(8.dp))
         Text(
-            text = "More info",
+            text = stringResource(R.string.more_info),
             style = MaterialTheme.typography.titleSmall
         )
     }
@@ -148,6 +156,7 @@ fun WatchNowButton(
         onClick = onClick,
         modifier = Modifier
             .focusRequester(focusRequester)
+            .height(40.dp)
             .handleDPadKeyEvents(
                 onDown = {
                     moreInfoButtonFocusRequester.requestFocus()
@@ -169,7 +178,7 @@ fun WatchNowButton(
         )
         Spacer(Modifier.size(8.dp))
         Text(
-            text = stringResource(R.string.watch_now),
+            text = stringResource(R.string.play),
             style = MaterialTheme.typography.titleSmall
         )
     }

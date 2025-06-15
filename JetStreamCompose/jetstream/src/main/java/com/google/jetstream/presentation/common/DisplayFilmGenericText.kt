@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
@@ -28,7 +29,8 @@ fun DisplayFilmGenericText(text: String) {
                 blurRadius = 2f
             )
         ),
-        maxLines = 2,
+        maxLines = 3,
+        fontWeight = FontWeight.SemiBold,
         overflow = TextOverflow.Ellipsis,
         modifier = Modifier.padding(top = 8.dp)
     )

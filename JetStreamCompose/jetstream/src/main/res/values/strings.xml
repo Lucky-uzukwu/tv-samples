@@ -47,4 +47,6 @@ https://www.apache.org/licenses/LICENSE-2.0
     <string name="live">Live</string>
     <string name="message_loading">Loading…</string>
     <string name="message_error">Wops, something went wrong…</string>
+    <string name="play">Play</string>
+    <string name="more_info">More Info</string>
 </resources>

@@ -7,6 +7,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
@@ -30,7 +31,7 @@ fun DisplayFilmExtraInfo(
         Text(
             text = "$getYear - $combinedGenre - ${duration?.formatDuration()}",
             color = Color.White,
-            style = MaterialTheme.typography.titleMedium.copy(
+            style = MaterialTheme.typography.titleSmall.copy(
                 color = MaterialTheme.colorScheme.onSurface.copy(
                     alpha = 0.65f
                 ),
@@ -40,6 +41,7 @@ fun DisplayFilmExtraInfo(
                     blurRadius = 2f
                 )
             ),
+            fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             modifier = Modifier.padding(top = 8.dp)
         )
