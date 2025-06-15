@@ -174,31 +174,5 @@ private fun Catalog(
                 )
             }
         }
-
-        items(
-            items = genreToLazyPagingItems.keys.toList(),
-            key = { genre -> genre.id }, // Use catalog ID as unique key
-            contentType = { "GenreRow" }
-        ) { genre ->
-            val movies: LazyPagingItems<MovieNew>? = genreToLazyPagingItems[genre]
-
-            if (movies != null && movies.itemCount > 0) {
-                ImmersiveListMoviesRow(
-                    movies = movies,
-                    sectionTitle = genre.name,
-                    onMovieClick = onMovieClick,
-                    setSelectedMovie = { movie ->
-                        val imageUrl =
-                            "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
-                        setSelectedMovie(movie)
-                        backgroundState.load(
-                            url = imageUrl
-                        )
-                    },
-                    modifier = Modifier,
-                )
-            }
-        }
-
     }
 }

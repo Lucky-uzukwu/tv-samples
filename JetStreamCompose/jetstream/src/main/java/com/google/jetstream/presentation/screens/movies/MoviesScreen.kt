@@ -1,34 +1,40 @@
 package com.google.jetstream.presentation.screens.movies
 
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.tv.material3.MaterialTheme
 import com.google.jetstream.data.models.Genre
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.presentation.common.Error
+import com.google.jetstream.presentation.common.ImmersiveListMoviesRow
 import com.google.jetstream.presentation.common.Loading
-import com.google.jetstream.presentation.common.MovieHeroSectionCarousel
+import com.google.jetstream.presentation.common.MovieHeroSectionCarouselNew
+import com.google.jetstream.presentation.screens.backgroundImageState
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
@@ -36,8 +42,6 @@ fun MoviesScreen(
     onMovieClick: (movie: MovieNew) -> Unit,
     goToVideoPlayer: (movie: MovieNew) -> Unit,
     setSelectedMovie: (movie: MovieNew) -> Unit,
-    onScroll: (isTopBarVisible: Boolean) -> Unit,
-    isTopBarVisible: Boolean,
     moviesScreenViewModel: MoviesScreenViewModel = hiltViewModel(),
 ) {
     val uiState by moviesScreenViewModel.uiState.collectAsStateWithLifecycle()
@@ -46,14 +50,12 @@ fun MoviesScreen(
     when (val s = uiState) {
         is MoviesScreenUiState.Ready -> {
             Catalog(
-                featuredMoviesNew = featuredMovies,
+                featuredMovies = featuredMovies,
                 catalogToMovies = s.catalogToMovies,
                 genreToMovies = s.genreToMovies,
                 onMovieClick = onMovieClick,
-                onScroll = onScroll,
                 setSelectedMovie = setSelectedMovie,
                 goToVideoPlayer = goToVideoPlayer,
-                isTopBarVisible = isTopBarVisible,
                 streamingProviders = s.streamingProviders,
                 modifier = Modifier.fillMaxSize(),
             )
@@ -66,93 +68,136 @@ fun MoviesScreen(
 
 @Composable
 private fun Catalog(
-    featuredMoviesNew: LazyPagingItems<MovieNew>,
+    featuredMovies: LazyPagingItems<MovieNew>,
     catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
     genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>,
     onMovieClick: (movie: MovieNew) -> Unit,
-    onScroll: (isTopBarVisible: Boolean) -> Unit,
     goToVideoPlayer: (movie: MovieNew) -> Unit,
     modifier: Modifier = Modifier,
     setSelectedMovie: (movie: MovieNew) -> Unit,
     streamingProviders: List<StreamingProvider>,
-    isTopBarVisible: Boolean = true,
 ) {
     val lazyListState = rememberLazyListState()
-    var immersiveListHasFocus by remember { mutableStateOf(false) }
+    val backgroundState = backgroundImageState()
+    var isCarouselFocused by remember { mutableStateOf(true) }
 
-    val shouldShowTopBar by remember {
-        derivedStateOf {
-            lazyListState.firstVisibleItemIndex == 0 &&
-                    lazyListState.firstVisibleItemScrollOffset < 300
+    val catalogToLazyPagingItems = catalogToMovies.mapValues { (_, flow) ->
+        flow.collectAsLazyPagingItems()
+    }
+    val genreToLazyPagingItems = genreToMovies.mapValues { (_, flow) ->
+        flow.collectAsLazyPagingItems()
+    }
+
+    Box(modifier = modifier) {
+        val targetBitmap by remember(backgroundState) { backgroundState.drawable }
+
+        val overlayColor = MaterialTheme.colorScheme.background.copy(alpha = 0.9f)
+
+        Crossfade(targetState = targetBitmap) {
+            it?.let {
+                Image(
+                    modifier = modifier
+                        .drawWithContent {
+                            drawContent()
+                            drawRect(
+                                Brush.horizontalGradient(
+                                    listOf(
+                                        overlayColor,
+                                        overlayColor.copy(alpha = 0.8f),
+                                        Color.Transparent
+                                    )
+                                )
+                            )
+                            drawRect(
+                                Brush.verticalGradient(
+                                    listOf(
+                                        Color.Transparent, overlayColor.copy(alpha = 0.5f)
+                                    )
+                                )
+                            )
+                        },
+                    bitmap = it,
+                    contentDescription = "Hero item background",
+                    contentScale = ContentScale.Crop,
+                )
+            }
         }
     }
-    val carouselFocusRequester = remember { FocusRequester() }
-    LaunchedEffect(shouldShowTopBar) {
-        onScroll(shouldShowTopBar)
-    }
-    LaunchedEffect(isTopBarVisible) {
-        if (isTopBarVisible) lazyListState.animateScrollToItem(0)
-    }
-
 
     LazyColumn(
         state = lazyListState,
-        contentPadding = PaddingValues(bottom = 108.dp),
-        modifier = modifier,
+        modifier = modifier
     ) {
         item(contentType = "HeroSectionCarousel") {
-            MovieHeroSectionCarousel(
-                movies = featuredMoviesNew,
+            MovieHeroSectionCarouselNew(
+                movies = featuredMovies,
                 goToVideoPlayer = goToVideoPlayer,
-                goToMoreInfo = {},
-                setSelectedMovie = setSelectedMovie,
+                goToMoreInfo = onMovieClick,
+
+                setSelectedMovie = { movie ->
+                    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
+                    backgroundState.load(
+                        url = imageUrl
+                    )
+                    setSelectedMovie(movie)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(400.dp)
-                    .focusRequester(carouselFocusRequester),
+                    .height(400.dp),
+                isCarouselFocused = isCarouselFocused,
             )
         }
 
-        // Loop through catalogList to display each catalog and its movies
-//        items(
-//            items = catalogToMovies.keys.toList(),
-//            key = { catalog -> catalog.id }, // Use catalog ID as unique key
-//            contentType = { "MoviesRow" }
-//        ) { catalog ->
-//            val movies = catalogToMovies[catalog]?.collectAsLazyPagingItems()
-//            val movieList = movies?.itemSnapshotList?.items ?: emptyList()
-//
-//
-//            Top10MoviesList(
-//                movies = movieList,
-//                sectionTitle = catalog.name,
-//                onMovieClick = onMovieClick,
-//                setSelectedMovie = setSelectedMovie,
-//                modifier = Modifier.onFocusChanged {
-//                    immersiveListHasFocus = it.hasFocus
-//                },
-//            )
-//        }
+        items(
+            items = genreToLazyPagingItems.keys.toList(),
+            key = { genre -> genre.id }, // Use catalog ID as unique key
+            contentType = { "GenreRow" }
+        ) { genre ->
+            val movies: LazyPagingItems<MovieNew>? = genreToLazyPagingItems[genre]
 
-        // Loop through genreList to display each catalog and its movies
-//        items(
-//            items = genreToMovies.keys.toList(),
-//            key = { genre -> genre.id }, // Use catalog ID as unique key
-//            contentType = { "MoviesRow" }
-//        ) { genre ->
-//            val movies = genreToMovies[genre]?.collectAsLazyPagingItems()
-//            val movieList = movies?.itemSnapshotList?.items ?: emptyList()
-//
-//            Top10MoviesList(
-//                movies = movieList,
-//                sectionTitle = genre.name,
-//                onMovieClick = onMovieClick,
-//                setSelectedMovie = setSelectedMovie,
-//                modifier = Modifier.onFocusChanged {
-//                    immersiveListHasFocus = it.hasFocus
-//                },
-//            )
-//        }
+            if (movies != null && movies.itemCount > 0) {
+                ImmersiveListMoviesRow(
+                    movies = movies,
+                    sectionTitle = genre.name,
+                    onMovieClick = onMovieClick,
+                    setSelectedMovie = { movie ->
+                        val imageUrl =
+                            "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
+                        setSelectedMovie(movie)
+                        backgroundState.load(
+                            url = imageUrl
+                        )
+                    },
+                    modifier = Modifier,
+                )
+            }
+        }
+
+
+        items(
+            items = catalogToLazyPagingItems.keys.toList(),
+            key = { catalog -> catalog.id }, // Use catalog ID as unique key
+            contentType = { "MoviesRow" }
+        ) { catalog ->
+            val movies: LazyPagingItems<MovieNew>? = catalogToLazyPagingItems[catalog]
+
+            if (movies != null && movies.itemCount > 0) {
+                ImmersiveListMoviesRow(
+                    movies = movies,
+                    sectionTitle = catalog.name,
+                    onMovieClick = onMovieClick,
+                    setSelectedMovie = { movie ->
+                        val imageUrl =
+                            "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
+                        setSelectedMovie(movie)
+                        backgroundState.load(
+                            url = imageUrl
+                        )
+                    },
+                    modifier = Modifier
+                )
+            }
+        }
     }
 
 }
