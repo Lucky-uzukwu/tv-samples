@@ -38,7 +38,7 @@ fun HomeDrawer(
     onScreenSelected: ((screen: Screens) -> Unit)?
 ) {
     val closeDrawerWidth = 80.dp
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Open)
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
     ModalNavigationDrawer(
         drawerState = drawerState, drawerContent = { _ ->
@@ -46,7 +46,7 @@ fun HomeDrawer(
                 Modifier
                     .background(MaterialTheme.colorScheme.surface)
                     .fillMaxHeight()
-                    .padding(12.dp)
+                    .padding(10.dp)
                     .selectableGroup(),
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.spacedBy(

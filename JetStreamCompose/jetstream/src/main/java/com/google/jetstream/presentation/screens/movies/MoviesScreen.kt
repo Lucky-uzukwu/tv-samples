@@ -33,7 +33,7 @@ import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.ImmersiveListMoviesRow
 import com.google.jetstream.presentation.common.Loading
-import com.google.jetstream.presentation.common.MovieHeroSectionCarouselNew
+import com.google.jetstream.presentation.common.MovieHeroSectionCarousel
 import com.google.jetstream.presentation.screens.backgroundImageState
 import kotlinx.coroutines.flow.StateFlow
 
@@ -129,7 +129,7 @@ private fun Catalog(
         modifier = modifier
     ) {
         item(contentType = "HeroSectionCarousel") {
-            MovieHeroSectionCarouselNew(
+            MovieHeroSectionCarousel(
                 movies = featuredMovies,
                 goToVideoPlayer = goToVideoPlayer,
                 goToMoreInfo = onMovieClick,
