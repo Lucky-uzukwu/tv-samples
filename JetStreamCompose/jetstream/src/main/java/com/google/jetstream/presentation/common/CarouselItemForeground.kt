@@ -50,10 +50,6 @@ fun CarouselItemForeground(
     displayTitleFocusRequester: FocusRequester,
     moreInfoButtonFocusRequester: FocusRequester,
 ) {
-    LaunchedEffect(Unit) {
-        playButtonFocusRequester.requestFocus()
-    }
-
     val combinedGenre = movie.genres.joinToString(" ") { genre -> genre.name }
     val getYear = movie.releaseDate?.substring(0, 4)
     Box(

@@ -1,19 +1,3 @@
-/*
- * Copyright 2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.google.jetstream.presentation.screens.home
 
 import androidx.compose.animation.Crossfade
@@ -33,7 +17,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -49,10 +32,9 @@ import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.presentation.common.Error
+import com.google.jetstream.presentation.common.ImmersiveListMoviesRow
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.MovieHeroSectionCarouselNew
-import com.google.jetstream.presentation.common.SampleImmersiveList
-import com.google.jetstream.presentation.common.Top10MoviesList
 import com.google.jetstream.presentation.screens.backgroundImageState
 import kotlinx.coroutines.flow.StateFlow
 
@@ -61,8 +43,6 @@ fun HomeScreen(
     onMovieClick: (movie: MovieNew) -> Unit,
     goToVideoPlayer: (movie: MovieNew) -> Unit,
     setSelectedMovie: (movie: MovieNew) -> Unit,
-    onScroll: (isTopBarVisible: Boolean) -> Unit,
-    isTopBarVisible: Boolean,
     homeScreeViewModel: HomeScreeViewModel = hiltViewModel(),
 ) {
     val uiState by homeScreeViewModel.uiState.collectAsStateWithLifecycle()
@@ -75,10 +55,8 @@ fun HomeScreen(
                 catalogToMovies = s.catalogToMovies,
                 genreToMovies = s.genreToMovies,
                 onMovieClick = onMovieClick,
-                onScroll = onScroll,
                 setSelectedMovie = setSelectedMovie,
                 goToVideoPlayer = goToVideoPlayer,
-                isTopBarVisible = isTopBarVisible,
                 streamingProviders = s.streamingProviders,
                 modifier = Modifier.fillMaxSize(),
             )
@@ -96,18 +74,23 @@ private fun Catalog(
     catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
     genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>,
     onMovieClick: (movie: MovieNew) -> Unit,
-    onScroll: (isTopBarVisible: Boolean) -> Unit,
     goToVideoPlayer: (movie: MovieNew) -> Unit,
     modifier: Modifier = Modifier,
     setSelectedMovie: (movie: MovieNew) -> Unit,
     streamingProviders: List<StreamingProvider>,
-    isTopBarVisible: Boolean = true,
 ) {
     val lazyListState = rememberLazyListState()
-    var immersiveListHasFocus by remember { mutableStateOf(false) }
     val backgroundState = backgroundImageState()
+    var isCarouselFocused by remember { mutableStateOf(true) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    val catalogToLazyPagingItems = catalogToMovies.mapValues { (_, flow) ->
+        flow.collectAsLazyPagingItems()
+    }
+    val genreToLazyPagingItems = genreToMovies.mapValues { (_, flow) ->
+        flow.collectAsLazyPagingItems()
+    }
+
+    Box(modifier = modifier) {
         val targetBitmap by remember(backgroundState) { backgroundState.drawable }
 
         val overlayColor = MaterialTheme.colorScheme.background.copy(alpha = 0.9f)
@@ -115,8 +98,7 @@ private fun Catalog(
         Crossfade(targetState = targetBitmap) {
             it?.let {
                 Image(
-                    modifier = Modifier
-                        .fillMaxSize()
+                    modifier = modifier
                         .drawWithContent {
                             drawContent()
                             drawRect(
@@ -146,7 +128,7 @@ private fun Catalog(
 
     LazyColumn(
         state = lazyListState,
-        modifier = Modifier.fillMaxSize()
+        modifier = modifier
     ) {
 
         item(contentType = "HeroSectionCarousel") {
@@ -154,6 +136,7 @@ private fun Catalog(
                 movies = featuredMovies,
                 goToVideoPlayer = goToVideoPlayer,
                 goToMoreInfo = onMovieClick,
+
                 setSelectedMovie = { movie ->
                     val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
                     backgroundState.load(
@@ -163,21 +146,20 @@ private fun Catalog(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(400.dp)
+                    .height(400.dp),
+                isCarouselFocused = isCarouselFocused,
             )
         }
-
         items(
-            items = catalogToMovies.keys.toList(),
+            items = catalogToLazyPagingItems.keys.toList(),
             key = { catalog -> catalog.id }, // Use catalog ID as unique key
             contentType = { "MoviesRow" }
         ) { catalog ->
-            val movies = catalogToMovies[catalog]?.collectAsLazyPagingItems()
-            val movieList = movies?.itemSnapshotList?.items ?: emptyList()
+            val movies: LazyPagingItems<MovieNew>? = catalogToLazyPagingItems[catalog]
 
-            if (movieList.isNotEmpty()) {
-                Top10MoviesList(
-                    movieList = movieList,
+            if (movies != null && movies.itemCount > 0) {
+                ImmersiveListMoviesRow(
+                    movies = movies,
                     sectionTitle = catalog.name,
                     onMovieClick = onMovieClick,
                     setSelectedMovie = { movie ->
@@ -189,62 +171,34 @@ private fun Catalog(
                         )
                     },
                     modifier = Modifier
-                        .onFocusChanged {
-                            immersiveListHasFocus = it.hasFocus
-                        },
                 )
             }
+        }
 
+        items(
+            items = genreToLazyPagingItems.keys.toList(),
+            key = { genre -> genre.id }, // Use catalog ID as unique key
+            contentType = { "GenreRow" }
+        ) { genre ->
+            val movies: LazyPagingItems<MovieNew>? = genreToLazyPagingItems[genre]
+
+            if (movies != null && movies.itemCount > 0) {
+                ImmersiveListMoviesRow(
+                    movies = movies,
+                    sectionTitle = genre.name,
+                    onMovieClick = onMovieClick,
+                    setSelectedMovie = { movie ->
+                        val imageUrl =
+                            "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
+                        setSelectedMovie(movie)
+                        backgroundState.load(
+                            url = imageUrl
+                        )
+                    },
+                    modifier = Modifier,
+                )
+            }
         }
 
     }
-
-
-//    Box {
-//        LazyColumn(
-//            state = lazyListState,
-//            contentPadding = PaddingValues(bottom = 108.dp),
-//            modifier = modifier
-////            .focusable()
-////            .handleDPadKeyEvents(
-////                onDown = {
-////                    if (lazyListState.firstVisibleItemIndex == 0) {
-////                        carouselFocusRequester.requestFocus()
-////                    } else {
-////                        carouselFocusRequester.freeFocus()
-////                        focusManager.moveFocus(FocusDirection.Down)
-////                    }
-////                },
-////                onUp = {
-////                    focusManager.moveFocus(FocusDirection.Up)
-////                }
-////            ),
-//        ) {
-
-//
-////        item {
-////            Row(
-////                modifier = Modifier
-////                    .fillMaxWidth()
-////                    .padding(horizontal = 48.dp, vertical = 16.dp),
-////                verticalAlignment = Alignment.CenterVertically
-////            ) {
-////                streamingProviders.forEach { streamingProvider ->
-////                    if (streamingProvider.logoPath != null) {
-////                        StreamingProviderIcon(
-////                            modifier = Modifier
-////                                .padding(top = 16.dp),
-////                            logoPath = streamingProvider.logoPath,
-////                            contentDescription = streamingProvider.name,
-////                        )
-////                        Spacer(Modifier.width(16.dp))
-////                    }
-////
-////                }
-////            }
-////        }
-//
-
-//        }
-//    }
 }

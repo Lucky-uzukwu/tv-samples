@@ -259,8 +259,6 @@ private fun Body(
                 goToVideoPlayer = { selectedMovie ->
                     openVideoPlayer(selectedMovie.id.toString())
                 },
-                onScroll = updateTopBarVisibility,
-                isTopBarVisible = isTopBarVisible,
                 setSelectedMovie = setSelectedMovie
             )
         }

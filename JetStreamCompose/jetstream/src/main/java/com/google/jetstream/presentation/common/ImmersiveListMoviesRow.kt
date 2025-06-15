@@ -49,10 +49,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.paging.compose.LazyPagingItems
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.jetstream.R
-import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.presentation.utils.bringIntoViewIfChildrenAreFocused
 import com.google.jetstream.presentation.utils.formatPLot
@@ -60,8 +60,8 @@ import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.getImdbRating
 
 @Composable
-fun Top10MoviesList(
-    movieList: MovieListNew,
+fun ImmersiveListMoviesRow(
+    movies: LazyPagingItems<MovieNew>,
     sectionTitle: String? = stringResource(R.string.top_10_movies_title),
     modifier: Modifier = Modifier,
     setSelectedMovie: (MovieNew) -> Unit,
@@ -70,13 +70,13 @@ fun Top10MoviesList(
 ) {
     var isListFocused by remember { mutableStateOf(false) }
 
-    var selectedMovie by remember(movieList) {
-        mutableStateOf(movieList.firstOrNull())
+    var selectedMovie by remember(movies) {
+        mutableStateOf(movies.itemSnapshotList.firstOrNull())
     }
 
     LaunchedEffect(Unit) {
-        if (movieList.isNotEmpty()) {
-            selectedMovie = movieList.first()
+        if (movies.itemSnapshotList.items.isNotEmpty()) {
+            selectedMovie = movies.itemSnapshotList.items.first()
             setSelectedMovie(selectedMovie!!)
         }
     }
@@ -85,7 +85,7 @@ fun Top10MoviesList(
         selectedMovie = selectedMovie ?: return,
         isListFocused = isListFocused,
         gradientColor = gradientColor,
-        movieList = movieList,
+        movies = movies,
         sectionTitle = sectionTitle,
         onMovieClick = onMovieClick,
         onMovieFocused = {
@@ -107,7 +107,7 @@ private fun ImmersiveList(
     selectedMovie: MovieNew,
     isListFocused: Boolean,
     gradientColor: Color,
-    movieList: MovieListNew,
+    movies: LazyPagingItems<MovieNew>,
     sectionTitle: String?,
     onFocusChanged: (FocusState) -> Unit,
     onMovieFocused: (MovieNew) -> Unit,
@@ -134,7 +134,7 @@ private fun ImmersiveList(
             }
 
             ImmersiveListMoviesRow(
-                movieList = movieList,
+                movies = movies,
                 itemDirection = ItemDirection.Horizontal,
                 title = sectionTitle,
                 showItemTitle = !isListFocused,
@@ -142,7 +142,7 @@ private fun ImmersiveList(
                 onMovieSelected = onMovieClick,
                 onMovieFocused = onMovieFocused,
                 isListFocused = isListFocused,
-                modifier = Modifier.onFocusChanged(onFocusChanged)
+                modifier = modifier.onFocusChanged(onFocusChanged)
             )
         }
     }
