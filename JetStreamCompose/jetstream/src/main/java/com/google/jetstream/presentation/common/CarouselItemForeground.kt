@@ -32,6 +32,7 @@ import androidx.tv.material3.Text
 import com.google.jetstream.R
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.TvShow
+import com.google.jetstream.presentation.screens.movies.PlayButton
 import com.google.jetstream.presentation.theme.JetStreamButtonShape
 import com.google.jetstream.presentation.utils.formatPLot
 import com.google.jetstream.presentation.utils.formatVotes
@@ -209,39 +210,6 @@ fun MoreInfoButton(
         Spacer(Modifier.size(8.dp))
         Text(
             text = stringResource(R.string.more_info),
-            style = MaterialTheme.typography.titleSmall
-        )
-    }
-}
-
-@Composable
-fun PlayButton(
-    onClick: () -> Unit,
-    focusRequester: FocusRequester,
-) {
-
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .height(40.dp)
-            .focusRequester(focusRequester),
-        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-        shape = ButtonDefaults.shape(shape = JetStreamButtonShape),
-        colors = ButtonDefaults.colors(
-            containerColor = md_theme_light_outline,
-            contentColor = md_theme_light_onTertiary,
-            focusedContainerColor = md_theme_light_onTertiary,
-            focusedContentColor = md_theme_light_shadow,
-        ),
-        scale = ButtonDefaults.scale(scale = 1f)
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.PlayArrow,
-            contentDescription = null,
-        )
-        Spacer(Modifier.size(8.dp))
-        Text(
-            text = stringResource(R.string.play),
             style = MaterialTheme.typography.titleSmall
         )
     }
