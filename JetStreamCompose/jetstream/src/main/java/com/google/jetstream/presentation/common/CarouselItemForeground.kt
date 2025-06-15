@@ -1,6 +1,7 @@
 package com.google.jetstream.presentation.common
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Button
@@ -34,8 +34,8 @@ import com.google.jetstream.presentation.theme.JetStreamButtonShape
 import com.google.jetstream.presentation.utils.formatPLot
 import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.getImdbRating
-import com.google.jetstream.presentation.utils.handleDPadKeyEvents
-import md_theme_light_onPrimary
+import md_theme_light_onTertiary
+import md_theme_light_outline
 import md_theme_light_shadow
 
 @Composable
@@ -45,10 +45,10 @@ fun CarouselItemForeground(
     isCarouselFocused: Boolean = false,
     onWatchNowClick: () -> Unit,
     onMoreInfoClick: () -> Unit,
-    watchNowButtonFocusRequester: FocusRequester,
+    playButtonFocusRequester: FocusRequester,
+    displayTitleFocusRequester: FocusRequester,
     moreInfoButtonFocusRequester: FocusRequester,
 ) {
-
     val combinedGenre = movie.genres.joinToString(" ") { genre -> genre.name }
     val getYear = movie.releaseDate?.substring(0, 4)
     Box(
@@ -58,20 +58,16 @@ fun CarouselItemForeground(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .focusGroup()
                 .padding(32.dp),
             verticalArrangement = Arrangement.Top
         ) {
             DisplayFilmTitle(
                 movie.title, modifier = Modifier
                     .padding(top = 48.dp)
-                    .onFocusChanged(
-                        onFocusChanged = {
-                            if (it.isFocused) {
-                                watchNowButtonFocusRequester.requestFocus()
-                            }
-                        }
-                    )
-                    .focusable())
+                    .focusRequester(displayTitleFocusRequester)
+                    .focusable()
+            )
             val formattedPlot = movie.plot.formatPLot()
             DisplayFilmGenericText(formattedPlot)
 
@@ -96,10 +92,9 @@ fun CarouselItemForeground(
                 visible = isCarouselFocused,
                 content = {
                     Row {
-                        WatchNowButton(
+                        PlayButton(
                             onClick = onWatchNowClick,
-                            focusRequester = watchNowButtonFocusRequester,
-                            moreInfoButtonFocusRequester = moreInfoButtonFocusRequester,
+                            focusRequester = playButtonFocusRequester,
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         MoreInfoButton(
@@ -117,7 +112,7 @@ fun CarouselItemForeground(
 @Composable
 fun MoreInfoButton(
     onClick: () -> Unit,
-    focusRequester: FocusRequester,
+    focusRequester: FocusRequester
 ) {
     Button(
         onClick = onClick,
@@ -127,10 +122,10 @@ fun MoreInfoButton(
         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
         shape = ButtonDefaults.shape(shape = JetStreamButtonShape),
         colors = ButtonDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-            contentColor = MaterialTheme.colorScheme.surface,
-            focusedContainerColor = md_theme_light_shadow,
-            focusedContentColor = md_theme_light_onPrimary,
+            containerColor = md_theme_light_outline,
+            contentColor = md_theme_light_onTertiary,
+            focusedContainerColor = md_theme_light_onTertiary,
+            focusedContentColor = md_theme_light_shadow,
         ),
         scale = ButtonDefaults.scale(scale = 1f)
     ) {
@@ -147,28 +142,23 @@ fun MoreInfoButton(
 }
 
 @Composable
-fun WatchNowButton(
+fun PlayButton(
     onClick: () -> Unit,
     focusRequester: FocusRequester,
-    moreInfoButtonFocusRequester: FocusRequester,
 ) {
+
     Button(
         onClick = onClick,
         modifier = Modifier
-            .focusRequester(focusRequester)
             .height(40.dp)
-            .handleDPadKeyEvents(
-                onDown = {
-                    moreInfoButtonFocusRequester.requestFocus()
-                }
-            ),
+            .focusRequester(focusRequester),
         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
         shape = ButtonDefaults.shape(shape = JetStreamButtonShape),
         colors = ButtonDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-            contentColor = MaterialTheme.colorScheme.surface,
-            focusedContainerColor = md_theme_light_shadow,
-            focusedContentColor = md_theme_light_onPrimary,
+            containerColor = md_theme_light_outline,
+            contentColor = md_theme_light_onTertiary,
+            focusedContainerColor = md_theme_light_onTertiary,
+            focusedContentColor = md_theme_light_shadow,
         ),
         scale = ButtonDefaults.scale(scale = 1f)
     ) {

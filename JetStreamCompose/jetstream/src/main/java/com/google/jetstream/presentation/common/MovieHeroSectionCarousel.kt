@@ -162,20 +162,20 @@ fun MovieHeroSectionCarousel(
                         movie = movieNew,
                         modifier = Modifier.fillMaxSize()
                     )
-                    CarouselItemForeground(
-                        movie = movieNew,
-                        isCarouselFocused = isCarouselFocused,
-                        modifier = Modifier.fillMaxSize(),
-                        onWatchNowClick = {
-                            movies.itemSnapshotList.items.get(movieIndex)
-                                .let { goToVideoPlayer(it) }
-                        },
-                        onMoreInfoClick = {
-                            movies.itemSnapshotList.items.get(movieIndex).let { goToMoreInfo(it) }
-                        },
-                        watchNowButtonFocusRequester = watchNowButtonFocusRequester,
-                        moreInfoButtonFocusRequester = moreInfoButtonFocusRequester,
-                    )
+//                    CarouselItemForeground(
+//                        movie = movieNew,
+//                        isCarouselFocused = isCarouselFocused,
+//                        modifier = Modifier.fillMaxSize(),
+//                        onWatchNowClick = {
+//                            movies.itemSnapshotList.items.get(movieIndex)
+//                                .let { goToVideoPlayer(it) }
+//                        },
+//                        onMoreInfoClick = {
+//                            movies.itemSnapshotList.items.get(movieIndex).let { goToMoreInfo(it) }
+//                        },
+//                        watchNowButtonFocusRequester = watchNowButtonFocusRequester,
+//                        moreInfoButtonFocusRequester = moreInfoButtonFocusRequester,
+//                    )
                 }
             }
         )

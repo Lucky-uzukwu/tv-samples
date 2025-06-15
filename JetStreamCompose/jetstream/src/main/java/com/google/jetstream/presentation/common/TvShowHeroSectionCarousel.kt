@@ -21,22 +21,15 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -49,40 +42,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
-import androidx.tv.material3.Button
-import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.Carousel
-import androidx.tv.material3.CarouselDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
-import androidx.tv.material3.Icon
-import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.ShapeDefaults
-import androidx.tv.material3.Text
 import co.touchlab.kermit.Logger
 import coil.compose.AsyncImage
-import com.google.jetstream.R
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.data.util.StringConstants
-import com.google.jetstream.presentation.theme.JetStreamButtonShape
 import com.google.jetstream.presentation.utils.fadingEdge
 import com.google.jetstream.presentation.utils.formatPLot
 import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.getImdbRating
-import com.google.jetstream.presentation.utils.getListBPosition
 import com.google.jetstream.presentation.utils.handleDPadKeyEvents
-import md_theme_light_onPrimaryContainer
 
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -279,16 +258,16 @@ private fun CarouselItemForeground(
                 content = {
                     Column {
                         Spacer(modifier = Modifier.height(16.dp))
-                        WatchNowButton(
-                            onClick = onWatchNowClick,
-                            focusRequester = watchNowButtonFocusRequester,
-                            moreInfoButtonFocusRequester = moreInfoButtonFocusRequester,
-                        )
+//                        PlayButton(
+//                            onClick = onWatchNowClick,
+//                            focusRequester = watchNowButtonFocusRequester,
+//                            moreInfoButtonFocusRequester = moreInfoButtonFocusRequester,
+//                        )
                         Spacer(modifier = Modifier.height(16.dp))
-                        MoreInfoButton(
-                            onClick = onMoreInfoClick,
-                            focusRequester = moreInfoButtonFocusRequester,
-                        )
+//                        MoreInfoButton(
+//                            onClick = onMoreInfoClick,
+//                            focusRequester = moreInfoButtonFocusRequester,
+//                        )
                     }
                 }
             )
