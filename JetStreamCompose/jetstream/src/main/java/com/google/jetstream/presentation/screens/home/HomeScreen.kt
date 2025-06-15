@@ -171,7 +171,6 @@ private fun Catalog(
                             url = imageUrl
                         )
                     },
-                    modifier = Modifier
                 )
             }
         }
