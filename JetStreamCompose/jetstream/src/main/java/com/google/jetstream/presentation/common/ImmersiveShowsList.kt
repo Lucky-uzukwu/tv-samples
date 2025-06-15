@@ -144,7 +144,6 @@ private fun ImmersiveList(
                 tvShows = tvShows,
                 itemDirection = ItemDirection.Horizontal,
                 title = sectionTitle,
-                showItemTitle = !isListFocused,
                 showIndexOverImage = false,
                 onMovieSelected = onMovieClick,
                 isListFocused = isListFocused,

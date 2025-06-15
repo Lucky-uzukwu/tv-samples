@@ -166,13 +166,6 @@ private fun Details(
             )
         }
 
-//        item {
-//            MovieReviews(
-//                modifier = Modifier.padding(top = childPadding.top),
-//                reviewsAndRatings = selectedMovie.getImdbRating()
-//            )
-//        }
-
         item {
             Box(
                 modifier = Modifier

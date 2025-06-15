@@ -150,20 +150,15 @@ private fun Details(
             )
         }
 
-        if (tvShow.seasons?.isNotEmpty() == true && tvShow.seasons.first().episodes?.isNotEmpty() == true) {
-            item {
-                TvShowSeasonsAndEpisodes(
-                    seasons = tvShow.seasons,
-                )
-            }
-        }
         if (tvShow.tvShowPeople?.isNotEmpty() == true) {
             item {
                 CastAndCrewList(
-                    castAndCrew = tvShow.tvShowPeople.map { PersonToCharacter(
-                        person = it.person,
-                        character = it.character
-                    ) }
+                    castAndCrew = tvShow.tvShowPeople.map {
+                        PersonToCharacter(
+                            person = it.person,
+                            character = it.character
+                        )
+                    }
                 )
             }
         }
@@ -180,13 +175,6 @@ private fun Details(
                 onMovieSelected = refreshScreenWithNewMovie
             )
         }
-
-//        item {
-//            MovieReviews(
-//                modifier = Modifier.padding(top = childPadding.top),
-//                reviewsAndRatings = tvShow.getImdbRating()
-//            )
-//        }
 
         item {
             Box(
@@ -301,18 +289,6 @@ private fun TvShowSeasonsAndEpisodes(
                                     .padding(bottom = 12.dp)
                                     .focusable()
                             ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 2.dp),
-                                ) {
-//                                    Text(
-//                                        text = episode.title, // Create this string resource
-//                                        style = MaterialTheme.typography.bodyLarge,
-//                                        color = Color.White,
-//                                        modifier = Modifier.weight(1f)
-//                                    )
-                                }
                                 if (episode.posterImagePath != null) {
                                     val imageUrl =
                                         "https://stage.nortv.xyz/" + "storage/" + episode.posterImagePath

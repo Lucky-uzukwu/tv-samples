@@ -1,57 +1,57 @@
 package com.google.jetstream.presentation.screens.dashboard
 
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateIntAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.Text
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.TvShow
+import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.screens.Screens
+import com.google.jetstream.presentation.screens.backgroundImageState
 import com.google.jetstream.presentation.screens.categories.CategoriesScreen
+import com.google.jetstream.presentation.screens.dashboard.navigation.drawer.HomeDrawer
 import com.google.jetstream.presentation.screens.home.HomeScreen
 import com.google.jetstream.presentation.screens.movies.MoviesScreen
 import com.google.jetstream.presentation.screens.profile.ProfileScreen
 import com.google.jetstream.presentation.screens.search.SearchScreen
 import com.google.jetstream.presentation.screens.tvshows.TVShowScreen
-import com.google.jetstream.presentation.theme.ComposeTvTheme
 import com.google.jetstream.presentation.utils.Padding
 
 val ParentPadding = PaddingValues(vertical = 8.dp, horizontal = 29.dp)
@@ -74,135 +74,173 @@ fun DashboardScreen(
     openMovieDetailsScreen: (movieId: String) -> Unit = {},
     openTvShowDetailsScreen: (tvShowId: String) -> Unit = {},
     openVideoPlayer: (movieId: String) -> Unit = {},
-    isComingBackFromDifferentScreen: Boolean,
     selectedMovie: MovieNew? = null,
     setSelectedMovie: (movie: MovieNew) -> Unit,
     selectedTvShow: TvShow? = null,
     clearFilmSelection: () -> Unit,
     setSelectedTvShow: (tvShow: TvShow) -> Unit,
-    resetIsComingBackFromDifferentScreen: () -> Unit = {},
-    onBackPressed: () -> Unit = {},
     onLogOutClick: () -> Unit
 ) {
-    val density = LocalDensity.current
-    val focusManager = LocalFocusManager.current
     val navController = rememberNavController()
+    val backgroundState = backgroundImageState()
+    val contentFocusRequester = remember { FocusRequester() }
 
-    var isTopBarVisible by remember { mutableStateOf(true) }
-    var isTopBarFocused by remember { mutableStateOf(false) }
+    var selectedTab: String by remember { mutableStateOf(Screens.Home()) }
 
-    var currentDestination: String? by remember { mutableStateOf(null) }
-    val currentTopBarSelectedTabIndex by remember(currentDestination) {
-        derivedStateOf {
-            currentDestination?.let { TopBarTabs.indexOf(Screens.valueOf(it)) } ?: 0
+    LaunchedEffect(key1 = Unit) {
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            selectedTab = destination.route ?: return@addOnDestinationChangedListener
         }
     }
 
-    DisposableEffect(Unit) {
-        val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
-            currentDestination = destination.route
-        }
+    Box(modifier = Modifier.fillMaxSize()) {
+        val targetBitmap by remember(backgroundState) { backgroundState.drawable }
 
-        navController.addOnDestinationChangedListener(listener)
+        val overlayColor = MaterialTheme.colorScheme.background.copy(alpha = 0.9f)
 
-        onDispose {
-            navController.removeOnDestinationChangedListener(listener)
-        }
-    }
-
-    BackPressHandledArea(
-        // 1. On user's first back press, bring focus to the current selected tab, if TopBar is not
-        //    visible, first make it visible, then focus the selected tab
-        // 2. On second back press, bring focus back to the first displayed tab
-        // 3. On third back press, exit the app
-        onBackPressed = {
-            if (!isTopBarVisible) {
-                isTopBarVisible = true
-                TopBarFocusRequesters[currentTopBarSelectedTabIndex + 1].requestFocus()
-            } else if (currentTopBarSelectedTabIndex == 0) onBackPressed()
-            else if (!isTopBarFocused) {
-                TopBarFocusRequesters[currentTopBarSelectedTabIndex + 1].requestFocus()
-            } else TopBarFocusRequesters[1].requestFocus()
-        }
-    ) {
-        // We do not want to focus the TopBar everytime we come back from another screen e.g.
-        // MovieDetails, CategoryMovieList or VideoPlayer screen
-        var wasTopBarFocusRequestedBefore by rememberSaveable { mutableStateOf(false) }
-
-        var topBarHeightPx: Int by rememberSaveable { mutableIntStateOf(0) }
-
-        // Used to show/hide DashboardTopBar
-        val topBarYOffsetPx by animateIntAsState(
-            targetValue = if (isTopBarVisible) 0 else -topBarHeightPx,
-            animationSpec = tween(),
-            label = "",
-            finishedListener = {
-                if (it == -topBarHeightPx && isComingBackFromDifferentScreen) {
-                    focusManager.moveFocus(FocusDirection.Down)
-                    resetIsComingBackFromDifferentScreen()
-                }
+        Crossfade(targetState = targetBitmap) {
+            it?.let {
+                Image(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .drawWithContent {
+                            drawContent()
+                            drawRect(
+                                Brush.horizontalGradient(
+                                    listOf(
+                                        overlayColor,
+                                        overlayColor.copy(alpha = 0.8f),
+                                        Color.Transparent
+                                    )
+                                )
+                            )
+                            drawRect(
+                                Brush.verticalGradient(
+                                    listOf(
+                                        Color.Transparent, overlayColor.copy(alpha = 0.5f)
+                                    )
+                                )
+                            )
+                        },
+                    bitmap = it,
+                    contentDescription = "Hero item background",
+                    contentScale = ContentScale.Crop,
+                )
             }
-        )
+        }
+    }
 
-        // Used to push down/pull up NavHost when DashboardTopBar is shown/hidden
-        val navHostTopPaddingDp by animateDpAsState(
-            targetValue = if (isTopBarVisible) with(density) { topBarHeightPx.toDp() } else 0.dp,
-            animationSpec = tween(),
-            label = "",
-        )
 
-//        LaunchedEffect(Unit) {
-//            if (!isComingBackFromDifferentScreen && !wasTopBarFocusRequestedBefore) {
-//                TopBarFocusRequesters[currentTopBarSelectedTabIndex + 1].requestFocus()
-//                wasTopBarFocusRequestedBefore = true
-//            }
+    HomeDrawer(
+        selectedTab = selectedTab,
+        content = {
+            Body(
+                openCategoryMovieList = openCategoryMovieList,
+                openMovieDetailsScreen = openMovieDetailsScreen,
+                openVideoPlayer = openVideoPlayer,
+                navController = navController,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .focusRequester(contentFocusRequester)
+                    .focusable()
+                    .background(Color.Black),
+                setSelectedMovie = setSelectedMovie,
+                setSelectedTvShow = setSelectedTvShow,
+                openTvShowDetailsScreen = openTvShowDetailsScreen,
+                onLogOutClick = onLogOutClick
+            )
+        },
+    ) { screen ->
+        navController.navigate(screen())
+    }
+
+//    // Background with Netflix-like gradient
+//    Box(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .background(
+//                brush = Brush.verticalGradient(
+//                    colors = listOf(Color(0xFF1F1F1F), Color(0xFF000000))
+//                )
+//            )
+//    ) {
+//        Row(
+//            modifier = Modifier.fillMaxSize()
+//        ) {
+//            // Sidebar
+//            DashboardSideBar(
+//                selectedTabIndex = selectedTab,
+//                onTabSelected = { screen ->
+//                    selectedTab = TopBarTabs.indexOf(screen)
+//                    // Navigate to the corresponding screen
+//                    navController.navigate(screen()) {
+//                        popUpTo(navController.graph.startDestinationId)
+//                        launchSingleTop = true
+//                    }
+//                },
+//                contentFocusRequester = contentFocusRequester
+//            )
+//
+//            Spacer(Modifier.width(16.dp))
+//            Body(
+//                openCategoryMovieList = openCategoryMovieList,
+//                openMovieDetailsScreen = openMovieDetailsScreen,
+//                openVideoPlayer = openVideoPlayer,
+////                    updateTopBarVisibility = { isTopBarVisible = it },
+////                    isTopBarVisible = isTopBarVisible,
+//                navController = navController,
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .focusRequester(contentFocusRequester)
+//                    .focusable()
+////                        .offset(y = navHostTopPaddingDp)
+//                    .background(Color.Black),
+//                setSelectedMovie = setSelectedMovie,
+//                setSelectedTvShow = setSelectedTvShow,
+//                openTvShowDetailsScreen = openTvShowDetailsScreen,
+//                onLogOutClick = onLogOutClick
+//            )
+//
+////                // Body content
+////                Box(
+////                    modifier = Modifier
+////                        .fillMaxSize()
+////                        .focusRequester(contentFocusRequester)
+////                        .focusable()
+////                        .background(Color.Black)
+////                ) {
+////                    NavHost(
+////                        navController = navController,
+////                        startDestination = "home",
+////                        modifier = Modifier
+////                            .fillMaxHeight()
+////                            .padding(end = 48.dp)
+////                    ) {
+////                        composable(Screens.Home()) { BodyContent("Home Content") }
+////                        composable(Screens.Movies()) { BodyContent("Movies Content") }
+////                        composable(Screens.Shows()) { BodyContent("Series Content") }
+////                        composable(Screens.Categories()) { BodyContent("Categories Content") }
+////                        composable(Screens.Search()) { BodyContent("Search Content") }
+////                        composable(Screens.Profile()) { BodyContent("Profile Content") }
+////                    }
+////                }
 //        }
+//    }
 
-        DashboardTopBar(
-            modifier = Modifier
-                .offset { IntOffset(x = 0, y = topBarYOffsetPx) }
-                .background(Color.Black)
-                .onSizeChanged { topBarHeightPx = it.height }
-                .onFocusChanged { isTopBarFocused = it.hasFocus }
-                .then(
-                    if (selectedMovie == null && selectedTvShow == null)
-                        Modifier.background(Color.Black)
-                    else
-                        Modifier
-                )
-                .padding(
-                    horizontal = ParentPadding.calculateStartPadding(
-                        LocalLayoutDirection.current
-                    ) + 4.dp
-                )
-                .padding(
-                    top = ParentPadding.calculateTopPadding(),
-                    bottom = ParentPadding.calculateBottomPadding()
-                ),
-            selectedTabIndex = currentTopBarSelectedTabIndex,
-            clearFilmSelection = clearFilmSelection,
-        ) { screen ->
-            navController.navigate(screen()) {
-                if (screen == TopBarTabs[0]) popUpTo(TopBarTabs[0].invoke())
-                clearFilmSelection()
-                launchSingleTop = true
-            }
-        }
+}
 
-        Body(
-            openCategoryMovieList = openCategoryMovieList,
-            openMovieDetailsScreen = openMovieDetailsScreen,
-            openVideoPlayer = openVideoPlayer,
-            updateTopBarVisibility = { isTopBarVisible = it },
-            isTopBarVisible = isTopBarVisible,
-            navController = navController,
-            modifier = Modifier
-                .offset(y = navHostTopPaddingDp)
-                .background(Color.Black),
-            setSelectedMovie = setSelectedMovie,
-            setSelectedTvShow = setSelectedTvShow,
-            openTvShowDetailsScreen = openTvShowDetailsScreen,
-            onLogOutClick = onLogOutClick
+@Composable
+fun BodyContent(title: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF1F1F1F)),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = title,
+            color = Color.White,
+            fontSize = 24.sp
         )
     }
 }
@@ -227,22 +265,20 @@ private fun BackPressHandledArea(
         content = content
     )
 
+
 @Composable
 private fun Body(
+    modifier: Modifier = Modifier,
     openCategoryMovieList: (categoryId: String) -> Unit,
     openMovieDetailsScreen: (movieId: String) -> Unit,
     openTvShowDetailsScreen: (tvShowId: String) -> Unit,
     openVideoPlayer: (movieId: String) -> Unit,
-    updateTopBarVisibility: (Boolean) -> Unit,
     setSelectedMovie: (movie: MovieNew) -> Unit,
     setSelectedTvShow: (tvShow: TvShow) -> Unit,
-    modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    isTopBarVisible: Boolean = true,
     onLogOutClick: () -> Unit
 ) =
     NavHost(
-        modifier = modifier,
         navController = navController,
         startDestination = Screens.Home(),
     ) {
@@ -262,11 +298,7 @@ private fun Body(
                 setSelectedMovie = setSelectedMovie
             )
         }
-        composable(Screens.Categories()) {
-            CategoriesScreen(
-                onCategoryClick = openCategoryMovieList,
-            )
-        }
+
         composable(Screens.Movies()) {
             MoviesScreen(
                 onMovieClick = { selectedMovie ->
@@ -278,6 +310,7 @@ private fun Body(
                 setSelectedMovie = setSelectedMovie
             )
         }
+
         composable(Screens.Shows()) {
             TVShowScreen(
                 onTVShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) },
@@ -287,34 +320,50 @@ private fun Body(
                 setSelectedTvShow = setSelectedTvShow
             )
         }
-//        composable(Screens.Favourites()) {
-//            FavouritesScreen(
-//                onMovieClick = openMovieDetailsScreen,
-//                onScroll = updateTopBarVisibility,
-//                isTopBarVisible = isTopBarVisible
-//            )
-//        }
+
+        composable(Screens.Categories()) {
+            CategoriesScreen(
+                onCategoryClick = openCategoryMovieList,
+            )
+        }
         composable(Screens.Search()) {
             SearchScreen(
                 onMovieClick = { movie -> openMovieDetailsScreen(movie.id) },
-                onScroll = updateTopBarVisibility
+                onScroll = { }
             )
         }
+
+
+////        composable(Screens.Favourites()) {
+////            FavouritesScreen(
+////                onMovieClick = openMovieDetailsScreen,
+////                onScroll = updateTopBarVisibility,
+////                isTopBarVisible = isTopBarVisible
+////            )
+////        }
     }
 
 
-@Preview(showBackground = true)
 @Composable
-fun DashboardScreenPreview() {
-    ComposeTvTheme {
-        DashboardScreen(
-            isComingBackFromDifferentScreen = false,
-            selectedMovie = null,
-            setSelectedMovie = {},
-            selectedTvShow = null,
-            setSelectedTvShow = {},
-            onLogOutClick = {},
-            clearFilmSelection = {}
-        )
-    }
+private fun Body(
+    modifier: Modifier = Modifier,
+    navController: NavHostController = rememberNavController(),
+) =
+    Loading(modifier = modifier)
+
+@Preview(showBackground = true, device = "id:tv_4k")
+@Composable
+fun DashboardScreenNewPreview() {
+    DashboardScreen(
+        openCategoryMovieList = { },
+        openMovieDetailsScreen = { },
+        openTvShowDetailsScreen = { },
+        openVideoPlayer = { },
+        selectedMovie = null,
+        setSelectedMovie = { },
+        selectedTvShow = null,
+        clearFilmSelection = { },
+        setSelectedTvShow = { },
+        onLogOutClick = { },
+    )
 }

@@ -137,7 +137,6 @@ private fun ImmersiveList(
                 movies = movies,
                 itemDirection = ItemDirection.Horizontal,
                 title = sectionTitle,
-                showItemTitle = !isListFocused,
                 showIndexOverImage = false,
                 onMovieSelected = onMovieClick,
                 onMovieFocused = onMovieFocused,

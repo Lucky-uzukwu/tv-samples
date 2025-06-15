@@ -38,7 +38,7 @@ fun HomeDrawer(
     onScreenSelected: ((screen: Screens) -> Unit)?
 ) {
     val closeDrawerWidth = 80.dp
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Open)
 
     ModalNavigationDrawer(
         drawerState = drawerState, drawerContent = { _ ->

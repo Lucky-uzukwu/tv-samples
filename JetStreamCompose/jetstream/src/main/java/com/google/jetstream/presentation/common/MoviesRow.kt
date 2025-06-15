@@ -41,19 +41,15 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -71,7 +67,6 @@ import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import com.google.jetstream.presentation.theme.JetStreamBorderWidth
 import com.google.jetstream.presentation.theme.JetStreamCardShape
-import com.google.jetstream.presentation.utils.handleDPadKeyEvents
 import kotlinx.coroutines.flow.StateFlow
 
 enum class ItemDirection(val aspectRatio: Float) {
@@ -92,7 +87,6 @@ fun MoviesRow(
         fontWeight = FontWeight.Medium,
         fontSize = 30.sp
     ),
-    showItemTitle: Boolean = true,
     showIndexOverImage: Boolean = false,
     onMovieSelected: (movie: MovieNew) -> Unit = {}
 ) {
@@ -126,9 +120,7 @@ fun MoviesRow(
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                 modifier = Modifier
                     .focusRequester(lazyRow)
-                    .focusRestorer {
-                        firstItem
-                    }
+                    .focusRequester(firstItem)
             ) {
                 itemsIndexed(similarMovies, key = { _, movie -> movie.id }) { index, movie ->
                     val itemModifier = if (index == 0) {
@@ -145,82 +137,6 @@ fun MoviesRow(
                             onMovieSelected(it)
                         },
                         movie = movie,
-                        showItemTitle = showItemTitle,
-                        showIndexOverImage = showIndexOverImage
-                    )
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-fun TvShowsRow(
-    tvShows: StateFlow<PagingData<TvShow>>,
-    modifier: Modifier = Modifier,
-    itemDirection: ItemDirection = ItemDirection.Vertical,
-    startPadding: Dp = rememberChildPadding().start,
-    endPadding: Dp = rememberChildPadding().end,
-    title: String? = null,
-    titleStyle: TextStyle = MaterialTheme.typography.headlineLarge.copy(
-        fontWeight = FontWeight.Medium,
-        fontSize = 30.sp
-    ),
-    showItemTitle: Boolean = true,
-    showIndexOverImage: Boolean = false,
-    onMovieSelected: (movie: TvShow) -> Unit = {}
-) {
-    val (lazyRow, firstItem) = remember { FocusRequester.createRefs() }
-
-    Column(
-        modifier = modifier.focusGroup()
-    ) {
-        if (title != null) {
-            Text(
-                text = title,
-                style = titleStyle,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White.copy(alpha = 0.9f),
-                modifier = Modifier
-                    .alpha(1f)
-                    .padding(start = startPadding, top = 16.dp, bottom = 16.dp)
-            )
-        }
-        AnimatedContent(
-            targetState = tvShows,
-            label = "",
-        ) { movieState ->
-            val similarMoviesAsLazyItems = movieState.collectAsLazyPagingItems()
-            val similarMovies = similarMoviesAsLazyItems.itemSnapshotList.items
-            LazyRow(
-                contentPadding = PaddingValues(
-                    start = startPadding,
-                    end = endPadding,
-                ),
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
-                modifier = Modifier
-                    .focusRequester(lazyRow)
-                    .focusRestorer {
-                        firstItem
-                    }
-            ) {
-                itemsIndexed(similarMovies, key = { _, movie -> movie.id }) { index, tvShow ->
-                    val itemModifier = if (index == 0) {
-                        Modifier.focusRequester(firstItem)
-                    } else {
-                        Modifier
-                    }
-                    TvShowRowItem(
-                        modifier = itemModifier.weight(1f),
-                        index = index,
-                        itemDirection = itemDirection,
-                        onTvShowSelected = {
-                            lazyRow.saveFocusedChild()
-                            onMovieSelected(it)
-                        },
-                        tvShow = tvShow,
-                        showItemTitle = showItemTitle,
                         showIndexOverImage = showIndexOverImage
                     )
                 }
@@ -241,7 +157,6 @@ fun ImmersiveListMoviesRow(
         fontWeight = FontWeight.Medium,
         fontSize = 30.sp
     ),
-    showItemTitle: Boolean = true,
     isListFocused: Boolean,
     showIndexOverImage: Boolean = false,
     onMovieSelected: (MovieNew) -> Unit = {},
@@ -271,9 +186,7 @@ fun ImmersiveListMoviesRow(
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                 modifier = Modifier
                     .focusRequester(lazyRow)
-                    .focusRestorer {
-                        firstItem
-                    }
+                    .focusRequester(firstItem)
             ) {
                 itemsIndexed(
                     movieState.itemSnapshotList.items,
@@ -296,7 +209,6 @@ fun ImmersiveListMoviesRow(
                         },
                         onMovieFocused = onMovieFocused,
                         movie = movie,
-                        showItemTitle = showItemTitle,
                         showIndexOverImage = showIndexOverImage
                     )
                 }
@@ -318,7 +230,6 @@ fun ImmersiveListShowsRow(
         fontWeight = FontWeight.Medium,
         fontSize = 30.sp
     ),
-    showItemTitle: Boolean = true,
     isListFocused: Boolean,
     showIndexOverImage: Boolean = false,
     onMovieSelected: (TvShow) -> Unit = {},
@@ -349,9 +260,7 @@ fun ImmersiveListShowsRow(
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                 modifier = Modifier
                     .focusRequester(lazyRow)
-                    .focusRestorer {
-                        firstItem
-                    }
+                    .focusRequester(firstItem)
             ) {
                 itemsIndexed(
                     tvShowsState.itemSnapshotList.items,
@@ -374,7 +283,6 @@ fun ImmersiveListShowsRow(
                         },
                         onTvShowFocused = onMovieFocused,
                         tvShow = tvShow,
-                        showItemTitle = showItemTitle,
                         showIndexOverImage = showIndexOverImage
                     )
                 }
@@ -389,7 +297,6 @@ private fun ShowsRowItem(
     index: Int,
     tvShow: TvShow,
     onTvShowSelected: (TvShow) -> Unit,
-    showItemTitle: Boolean,
     showIndexOverImage: Boolean,
     modifier: Modifier = Modifier,
     itemDirection: ItemDirection = ItemDirection.Vertical,
@@ -440,7 +347,6 @@ private fun MoviesRowItem(
     index: Int,
     movie: MovieNew,
     onMovieSelected: (MovieNew) -> Unit,
-    showItemTitle: Boolean,
     showIndexOverImage: Boolean,
     modifier: Modifier = Modifier,
     itemDirection: ItemDirection = ItemDirection.Vertical,
@@ -488,7 +394,6 @@ fun TvShowRowItem(
     index: Int,
     tvShow: TvShow,
     onTvShowSelected: (TvShow) -> Unit,
-    showItemTitle: Boolean,
     showIndexOverImage: Boolean,
     modifier: Modifier = Modifier,
     itemDirection: ItemDirection = ItemDirection.Vertical,
