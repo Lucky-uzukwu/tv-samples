@@ -51,16 +51,16 @@ fun CarouselItemForeground(
     displayTitleFocusRequester: FocusRequester,
     moreInfoButtonFocusRequester: FocusRequester,
 ) {
-    val combinedGenre = movie.genres.joinToString(" ") { genre -> genre.name }
+    val combinedGenre = movie.genres.take(2).joinToString(" ") { genre -> genre.name }
     val getYear = movie.releaseDate?.substring(0, 4)
     Box(
-        modifier = modifier,
+        modifier = modifier
+            .width(580.dp)
+            .focusGroup(),
         contentAlignment = Alignment.TopStart
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .focusGroup()
+            modifier = modifier
                 .padding(32.dp),
             verticalArrangement = Arrangement.Top
         ) {
@@ -74,19 +74,18 @@ fun CarouselItemForeground(
             DisplayFilmGenericText(formattedPlot)
 
             Spacer(modifier = Modifier.height(10.dp))
-            DisplayFilmExtraInfo(getYear, combinedGenre, movie.duration)
-
-
-            Spacer(modifier = Modifier.height(10.dp))
 
             Row {
-                IMDbLogo()
+                DisplayFilmExtraInfo(getYear, combinedGenre, movie.duration)
                 Spacer(modifier = Modifier.width(8.dp))
                 DisplayFilmGenericText(
                     "${
                         movie.imdbRating.getImdbRating()
                     }/10 - ${movie.imdbVotes.toString().formatVotes()} IMDB Votes"
                 )
+                Spacer(modifier = Modifier.width(8.dp))
+                IMDbLogo()
+
             }
 
             Spacer(modifier = Modifier.height(10.dp))

@@ -2,6 +2,7 @@ package com.google.jetstream.presentation.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,10 +22,10 @@ fun IMDbLogo(
         text = "IMDb",
         modifier = modifier
             .background(backgroundColor)
-            .padding(horizontal = 4.dp, vertical = 8.dp),
+            .padding(horizontal = 4.dp, vertical = 4.dp),
         color = textColor,
-        style = MaterialTheme.typography.titleSmall.copy(
-            fontWeight = FontWeight.ExtraBold
+        style = MaterialTheme.typography.bodySmall.copy(
+            fontWeight = FontWeight.SemiBold
         )
     )
 }

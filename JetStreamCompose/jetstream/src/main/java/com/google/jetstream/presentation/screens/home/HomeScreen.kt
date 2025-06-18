@@ -2,10 +2,13 @@ package com.google.jetstream.presentation.screens.home
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -17,6 +20,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -137,7 +142,6 @@ private fun Catalog(
                 movies = featuredMovies,
                 goToVideoPlayer = goToVideoPlayer,
                 goToMoreInfo = onMovieClick,
-
                 setSelectedMovie = { movie ->
                     val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
                     backgroundState.load(
@@ -151,6 +155,7 @@ private fun Catalog(
                 isCarouselFocused = isCarouselFocused,
             )
         }
+
         items(
             items = catalogToLazyPagingItems.keys.toList(),
             key = { catalog -> catalog.id }, // Use catalog ID as unique key
@@ -167,6 +172,7 @@ private fun Catalog(
                         val imageUrl =
                             "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
                         setSelectedMovie(movie)
+                        isCarouselFocused = false
                         backgroundState.load(
                             url = imageUrl
                         )

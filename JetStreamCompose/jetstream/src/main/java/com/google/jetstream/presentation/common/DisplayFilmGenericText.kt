@@ -17,12 +17,12 @@ import md_theme_light_onPrimary
 fun DisplayFilmGenericText(
     text: String,
     maxLines: Int = 3,
-    ) {
+) {
 
     Text(
         text = text,
         color = md_theme_light_onPrimary,
-        style = MaterialTheme.typography.titleSmall.copy(
+        style = MaterialTheme.typography.bodySmall.copy(
             color = MaterialTheme.colorScheme.onSurface.copy(
                 alpha = 0.65f
             ),
@@ -33,8 +33,8 @@ fun DisplayFilmGenericText(
             )
         ),
         maxLines = maxLines,
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.ExtraBold,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.padding(top = 8.dp)
+        modifier = Modifier.padding(top = 5.dp)
     )
 }

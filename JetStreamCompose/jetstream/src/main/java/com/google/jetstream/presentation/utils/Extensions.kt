@@ -40,9 +40,9 @@ fun Modifier.fadingEdge(brush: Brush) = this
 
 fun String?.formatPLot(): String {
     val plotWords = this?.split(" ") ?: emptyList()
-    val formattedPlot = plotWords.chunked(15).joinToString("\n") { chunk ->
+    val formattedPlot = plotWords.chunked(10).joinToString("\n") { chunk ->
         // Ensure the second line (and subsequent lines) are not more than 15 words
-        if (chunk.size > 15) chunk.take(15).joinToString(" ") + "..."
+        if (chunk.size > 10) chunk.take(10).joinToString(" ") + "..."
         else chunk.joinToString(" ")
     }.let {
         // Ensure the ellipsis is added correctly if the original plot was truncated.

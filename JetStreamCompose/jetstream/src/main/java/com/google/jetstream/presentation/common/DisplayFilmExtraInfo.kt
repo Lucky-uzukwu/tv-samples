@@ -31,7 +31,7 @@ fun DisplayFilmExtraInfo(
         Text(
             text = "$getYear - $combinedGenre - ${duration?.formatDuration()}",
             color = Color.White,
-            style = MaterialTheme.typography.titleSmall.copy(
+            style = MaterialTheme.typography.bodySmall.copy(
                 color = MaterialTheme.colorScheme.onSurface.copy(
                     alpha = 0.65f
                 ),
@@ -41,9 +41,9 @@ fun DisplayFilmExtraInfo(
                     blurRadius = 2f
                 )
             ),
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.ExtraBold,
             maxLines = 1,
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier.padding(top = 5.dp)
         )
     }
 }
