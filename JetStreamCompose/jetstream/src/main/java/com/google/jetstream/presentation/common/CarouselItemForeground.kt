@@ -61,7 +61,7 @@ fun CarouselItemForeground(
     ) {
         Column(
             modifier = modifier
-                .padding(32.dp),
+                .padding(top = 62.dp, start = 10.dp),
             verticalArrangement = Arrangement.Top
         ) {
             DisplayFilmTitle(

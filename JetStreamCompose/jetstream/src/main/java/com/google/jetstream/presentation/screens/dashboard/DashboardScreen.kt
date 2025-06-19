@@ -3,43 +3,29 @@ package com.google.jetstream.presentation.screens.dashboard
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.presentation.common.Loading
@@ -85,13 +71,6 @@ fun DashboardScreen(
     val backgroundState = backgroundImageState()
     val contentFocusRequester = remember { FocusRequester() }
 
-    var selectedTab: String by remember { mutableStateOf(Screens.Home()) }
-
-    LaunchedEffect(key1 = Unit) {
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            selectedTab = destination.route ?: return@addOnDestinationChangedListener
-        }
-    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         val targetBitmap by remember(backgroundState) { backgroundState.drawable }
@@ -132,7 +111,7 @@ fun DashboardScreen(
 
 
     HomeDrawer(
-        selectedTab = selectedTab,
+        navController = navController,
         content = {
             Body(
                 openCategoryMovieList = openCategoryMovieList,
@@ -141,8 +120,8 @@ fun DashboardScreen(
                 navController = navController,
                 modifier = Modifier
                     .fillMaxSize()
-                    .focusRequester(contentFocusRequester)
-                    .focusable()
+//                    .focusRequester(contentFocusRequester)
+//                    .focusable()
                     .background(Color.Black),
                 setSelectedMovie = setSelectedMovie,
                 setSelectedTvShow = setSelectedTvShow,
@@ -153,118 +132,7 @@ fun DashboardScreen(
     ) { screen ->
         navController.navigate(screen())
     }
-
-//    // Background with Netflix-like gradient
-//    Box(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .background(
-//                brush = Brush.verticalGradient(
-//                    colors = listOf(Color(0xFF1F1F1F), Color(0xFF000000))
-//                )
-//            )
-//    ) {
-//        Row(
-//            modifier = Modifier.fillMaxSize()
-//        ) {
-//            // Sidebar
-//            DashboardSideBar(
-//                selectedTabIndex = selectedTab,
-//                onTabSelected = { screen ->
-//                    selectedTab = TopBarTabs.indexOf(screen)
-//                    // Navigate to the corresponding screen
-//                    navController.navigate(screen()) {
-//                        popUpTo(navController.graph.startDestinationId)
-//                        launchSingleTop = true
-//                    }
-//                },
-//                contentFocusRequester = contentFocusRequester
-//            )
-//
-//            Spacer(Modifier.width(16.dp))
-//            Body(
-//                openCategoryMovieList = openCategoryMovieList,
-//                openMovieDetailsScreen = openMovieDetailsScreen,
-//                openVideoPlayer = openVideoPlayer,
-////                    updateTopBarVisibility = { isTopBarVisible = it },
-////                    isTopBarVisible = isTopBarVisible,
-//                navController = navController,
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .focusRequester(contentFocusRequester)
-//                    .focusable()
-////                        .offset(y = navHostTopPaddingDp)
-//                    .background(Color.Black),
-//                setSelectedMovie = setSelectedMovie,
-//                setSelectedTvShow = setSelectedTvShow,
-//                openTvShowDetailsScreen = openTvShowDetailsScreen,
-//                onLogOutClick = onLogOutClick
-//            )
-//
-////                // Body content
-////                Box(
-////                    modifier = Modifier
-////                        .fillMaxSize()
-////                        .focusRequester(contentFocusRequester)
-////                        .focusable()
-////                        .background(Color.Black)
-////                ) {
-////                    NavHost(
-////                        navController = navController,
-////                        startDestination = "home",
-////                        modifier = Modifier
-////                            .fillMaxHeight()
-////                            .padding(end = 48.dp)
-////                    ) {
-////                        composable(Screens.Home()) { BodyContent("Home Content") }
-////                        composable(Screens.Movies()) { BodyContent("Movies Content") }
-////                        composable(Screens.Shows()) { BodyContent("Series Content") }
-////                        composable(Screens.Categories()) { BodyContent("Categories Content") }
-////                        composable(Screens.Search()) { BodyContent("Search Content") }
-////                        composable(Screens.Profile()) { BodyContent("Profile Content") }
-////                    }
-////                }
-//        }
-//    }
-
 }
-
-@Composable
-fun BodyContent(title: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF1F1F1F)),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = title,
-            color = Color.White,
-            fontSize = 24.sp
-        )
-    }
-}
-
-@Composable
-private fun BackPressHandledArea(
-    onBackPressed: () -> Unit,
-    modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit,
-) =
-    Box(
-        modifier = Modifier
-            .onPreviewKeyEvent {
-                if (it.key == Key.Back && it.type == KeyEventType.KeyUp) {
-                    onBackPressed()
-                    true
-                } else {
-                    false
-                }
-            }
-            .then(modifier),
-        content = content
-    )
-
 
 @Composable
 private fun Body(

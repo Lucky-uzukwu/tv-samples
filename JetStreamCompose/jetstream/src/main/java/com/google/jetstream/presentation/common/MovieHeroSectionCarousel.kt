@@ -8,7 +8,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -37,11 +36,11 @@ fun MovieHeroSectionCarousel(
     val moreInfoButtonFocusRequester = remember { FocusRequester() }
     val displayTitleFocusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) {
-        if (isCarouselFocused) {
-            playButtonFocusRequester.requestFocus()
-        }
-    }
+//    LaunchedEffect(Unit) {
+//        if (isCarouselFocused) {
+//            playButtonFocusRequester.requestFocus()
+//        }
+//    }
 
     Carousel(
         itemCount = movies.itemCount,

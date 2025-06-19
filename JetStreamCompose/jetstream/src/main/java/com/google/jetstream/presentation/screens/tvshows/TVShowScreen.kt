@@ -157,7 +157,7 @@ private fun Catalog(
         ) { genre ->
             val tvShows: LazyPagingItems<TvShow>? = genreToLazyPagingItems[genre]
 
-            if (tvShows != null && tvShows.itemCount > 1) {
+            if (tvShows != null && tvShows.itemCount > 0) {
                 ImmersiveShowsList(
                     tvShows = tvShows,
                     sectionTitle = genre.name,
@@ -182,7 +182,7 @@ private fun Catalog(
         ) { genre ->
             val tvShows: LazyPagingItems<TvShow>? = catalogToLazyPagingItems[genre]
 
-            if (tvShows != null && tvShows.itemCount > 1) {
+            if (tvShows != null && tvShows.itemCount > 0) {
                 ImmersiveShowsList(
                     tvShows = tvShows,
                     sectionTitle = genre.name,

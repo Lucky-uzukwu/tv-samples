@@ -22,6 +22,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -45,7 +46,9 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -184,7 +187,7 @@ private fun DisplayMovieDetails(
 
     Column(
         modifier = modifier.padding(
-            start = 32.dp
+            start = 10.dp
         ),
     ) {
         Text(
@@ -192,34 +195,30 @@ private fun DisplayMovieDetails(
             text = movie.title,
             maxLines = 2,
             color = Color.White,
-            style = MaterialTheme.typography.displaySmall,
-            fontSize = 40.sp,
+            fontWeight = FontWeight.W900,
+            style = MaterialTheme.typography.displaySmall.copy(
+                shadow = Shadow(
+                    color = Color.Black.copy(alpha = 0.5f),
+                    offset = Offset(x = 2f, y = 4f),
+                    blurRadius = 2f
+                )
+            ),
         )
-        Spacer(modifier = Modifier.height(8.dp))
         val formattedPlot = movie.plot.formatPLot()
-        DisplayFilmGenericText(formattedPlot)
+        DisplayFilmGenericText(formattedPlot, maxLines = 2)
         Spacer(modifier = Modifier.height(8.dp))
         Row {
-            IMDbLogo()
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "${
+            DisplayFilmExtraInfo(getYear, combinedGenre, movie.duration)
+            Spacer(modifier = Modifier.width(8.dp))
+            DisplayFilmGenericText(
+                "${
                     movie.imdbRating.getImdbRating()
-                }/10 - ${movie.imdbVotes.toString().formatVotes()} IMDB Votes",
-                style = MaterialTheme.typography.titleSmall,
-                maxLines = 1,
-                color = Color.White,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 8.dp)
+                }/10 - ${movie.imdbVotes.toString().formatVotes()} IMDB Votes"
             )
+            Spacer(modifier = Modifier.width(8.dp))
+            IMDbLogo()
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        DisplayFilmExtraInfo(
-            getYear,
-            combinedGenre,
-            movie.duration,
-            style = MaterialTheme.typography.bodyLarge,
-        )
+        Spacer(modifier = Modifier.height(28.dp))
     }
 }
 

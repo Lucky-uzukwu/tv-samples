@@ -156,9 +156,9 @@ fun ImmersiveListMoviesRow(
     itemDirection: ItemDirection = ItemDirection.Vertical,
     endPadding: Dp = rememberChildPadding().end,
     title: String? = null,
-    titleStyle: TextStyle = MaterialTheme.typography.headlineLarge.copy(
+    titleStyle: TextStyle = MaterialTheme.typography.headlineSmall.copy(
         fontWeight = FontWeight.Medium,
-        fontSize = 30.sp
+        fontSize = 18.sp
     ),
     isListFocused: Boolean,
     showIndexOverImage: Boolean = false,
@@ -168,16 +168,20 @@ fun ImmersiveListMoviesRow(
     val (lazyRow, firstItem) = remember { FocusRequester.createRefs() }
 
     Column(
-        modifier = modifier.focusGroup()
+        modifier = modifier
+            .padding(
+                start = 3.dp
+            )
+            .focusGroup()
     ) {
         if (title != null) {
             Text(
                 text = title,
-                color = if (isListFocused) Color.Black else Color.White,
+                color = Color.White,
                 style = titleStyle,
                 modifier = Modifier
                     .alpha(1f)
-                    .padding(vertical = 16.dp)
+                    .padding(vertical = 16.dp, horizontal = 9.dp)
             )
         }
         AnimatedContent(
@@ -186,7 +190,7 @@ fun ImmersiveListMoviesRow(
         ) { movieState ->
             LazyRow(
                 contentPadding = PaddingValues(end = endPadding),
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier
                     .focusRequester(lazyRow)
                     .focusRequester(firstItem)
