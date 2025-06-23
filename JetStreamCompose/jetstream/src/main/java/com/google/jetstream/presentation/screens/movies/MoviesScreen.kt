@@ -25,6 +25,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.tv.material3.CarouselState
+import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import com.google.jetstream.data.models.Genre
 import com.google.jetstream.data.models.MovieNew
@@ -38,6 +40,7 @@ import com.google.jetstream.presentation.screens.backgroundImageState
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
+@OptIn(ExperimentalTvMaterial3Api::class)
 fun MoviesScreen(
     onMovieClick: (movie: MovieNew) -> Unit,
     goToVideoPlayer: (movie: MovieNew) -> Unit,
@@ -67,6 +70,7 @@ fun MoviesScreen(
 }
 
 @Composable
+@OptIn(ExperimentalTvMaterial3Api::class)
 private fun Catalog(
     featuredMovies: LazyPagingItems<MovieNew>,
     catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
@@ -143,7 +147,11 @@ private fun Catalog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(400.dp),
+                carouselState = remember {
+                    CarouselState()
+                }
             )
+
         }
 
         items(

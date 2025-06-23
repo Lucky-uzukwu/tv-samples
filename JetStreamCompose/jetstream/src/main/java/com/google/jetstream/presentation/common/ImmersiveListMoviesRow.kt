@@ -204,17 +204,17 @@ private fun DisplayMovieDetails(
                 )
             ),
         )
-        val formattedPlot = movie.plot.formatPLot()
-        DisplayFilmGenericText(formattedPlot, maxLines = 2)
+//        val formattedPlot = movie.plot.formatPLot()
+//        DisplayFilmGenericText(formattedPlot, maxLines = 2)
         Spacer(modifier = Modifier.height(8.dp))
         Row {
-            DisplayFilmExtraInfo(getYear, combinedGenre, movie.duration)
+//            DisplayFilmExtraInfo(getYear, combinedGenre, movie.duration)
             Spacer(modifier = Modifier.width(8.dp))
-            DisplayFilmGenericText(
-                "${
-                    movie.imdbRating.getImdbRating()
-                }/10 - ${movie.imdbVotes.toString().formatVotes()} IMDB Votes"
-            )
+//            DisplayFilmGenericText(
+//                "${
+//                    movie.imdbRating.getImdbRating()
+//                }/10 - ${movie.imdbVotes.toString().formatVotes()} IMDB Votes"
+//            )
             Spacer(modifier = Modifier.width(8.dp))
             IMDbLogo()
         }

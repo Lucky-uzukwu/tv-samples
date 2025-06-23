@@ -15,6 +15,7 @@ import com.google.jetstream.presentation.utils.formatDuration
 
 @Composable
 fun DisplayFilmExtraInfo(
+    modifier: Modifier = Modifier,
     getYear: String?,
     combinedGenre: String?,
     duration: Int?,
@@ -22,6 +23,7 @@ fun DisplayFilmExtraInfo(
 ) {
     if (style != null) {
         Text(
+            modifier = modifier,
             text = "$getYear - $combinedGenre - ${duration?.formatDuration()}",
             style = style,
             color = Color.White,
@@ -41,9 +43,9 @@ fun DisplayFilmExtraInfo(
                     blurRadius = 2f
                 )
             ),
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Light,
             maxLines = 1,
-            modifier = Modifier.padding(top = 5.dp)
+            modifier = modifier,
         )
     }
 }

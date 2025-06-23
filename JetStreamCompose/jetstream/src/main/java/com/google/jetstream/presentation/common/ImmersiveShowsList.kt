@@ -207,8 +207,8 @@ private fun TvShowDescription(
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        val formattedPlot = tvShow.plot.formatPLot()
-        DisplayFilmGenericText(formattedPlot)
+//        val formattedPlot = tvShow.plot.formatPLot()
+//        DisplayFilmGenericText(formattedPlot)
         Spacer(modifier = Modifier.height(8.dp))
         Row {
             IMDbLogo()
@@ -224,13 +224,13 @@ private fun TvShowDescription(
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        DisplayFilmExtraInfo(
-            getYear,
-            combinedGenre,
-            tvShow.duration,
-            style = MaterialTheme.typography.bodyLarge,
-        )
+//        Spacer(modifier = Modifier.height(8.dp))
+//        DisplayFilmExtraInfo(
+//            getYear,
+//            combinedGenre,
+//            tvShow.duration,
+//            style = MaterialTheme.typography.bodyLarge,
+//        )
 
     }
 }

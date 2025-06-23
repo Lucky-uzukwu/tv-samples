@@ -8,24 +8,25 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.sp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 
 @Composable
 fun DisplayFilmTitle(
-    title: String,
     modifier: Modifier = Modifier,
-    style: TextStyle? = null
+    title: String,
+    style: TextStyle? = null,
+    maxLines: Int = 1
 ) {
     if (style != null) {
         Text(
             modifier = modifier,
             text = title,
-            maxLines = 2,
+            maxLines = maxLines,
             color = Color.White,
             style = style,
-            fontSize = 60.sp,
+            overflow = TextOverflow.Ellipsis,
+            fontWeight = FontWeight.W700,
         )
     } else {
         Text(
@@ -41,7 +42,7 @@ fun DisplayFilmTitle(
                     blurRadius = 2f
                 )
             ),
-            maxLines = 2
+            maxLines = maxLines
         )
     }
 }

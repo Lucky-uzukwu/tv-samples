@@ -2,49 +2,54 @@ package com.google.jetstream.presentation.screens.home
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.focusable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.tv.foundation.lazy.list.TvLazyColumn
+import androidx.tv.material3.CarouselState
+import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import com.google.jetstream.data.models.Genre
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.presentation.common.Error
-import com.google.jetstream.presentation.common.ImmersiveListMoviesRow
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.MovieHeroSectionCarousel
 import com.google.jetstream.presentation.screens.backgroundImageState
 import kotlinx.coroutines.flow.StateFlow
 
+@OptIn(ExperimentalTvMaterial3Api::class)
+val carouselSaver =
+    Saver<CarouselState, Int>(save = { it.activeItemIndex }, restore = { CarouselState(it) })
+
 
 @Composable
+@OptIn(ExperimentalTvMaterial3Api::class)
 fun HomeScreen(
     onMovieClick: (movie: MovieNew) -> Unit,
     goToVideoPlayer: (movie: MovieNew) -> Unit,
@@ -53,6 +58,7 @@ fun HomeScreen(
 ) {
     val uiState by homeScreeViewModel.uiState.collectAsStateWithLifecycle()
     val featuredMovies = homeScreeViewModel.heroMovies.collectAsLazyPagingItems()
+    val carouselState = rememberSaveable(saver = carouselSaver) { CarouselState(0) }
 
     when (val s = uiState) {
         is HomeScreenUiState.Ready -> {
@@ -64,6 +70,7 @@ fun HomeScreen(
                 setSelectedMovie = setSelectedMovie,
                 goToVideoPlayer = goToVideoPlayer,
                 streamingProviders = s.streamingProviders,
+                carouselState = carouselState,
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -74,7 +81,7 @@ fun HomeScreen(
 }
 
 @Composable
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalTvMaterial3Api::class)
 private fun Catalog(
     featuredMovies: LazyPagingItems<MovieNew>,
     catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
@@ -84,11 +91,10 @@ private fun Catalog(
     modifier: Modifier = Modifier,
     setSelectedMovie: (movie: MovieNew) -> Unit,
     streamingProviders: List<StreamingProvider>,
+    carouselState: CarouselState,
 ) {
     val lazyListState = rememberLazyListState()
     val backgroundState = backgroundImageState()
-    var isCarouselFocused by remember { mutableStateOf(true) }
-
     val catalogToLazyPagingItems = catalogToMovies.mapValues { (_, flow) ->
         flow.collectAsLazyPagingItems()
     }
@@ -132,9 +138,13 @@ private fun Catalog(
         }
     }
 
-    LazyColumn(
-        state = lazyListState,
-        modifier = modifier
+    TvLazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .semantics { contentDescription = "Home Screen" },
+        verticalArrangement = Arrangement.spacedBy(40.dp),
+        contentPadding = PaddingValues(vertical = 40.dp)
     ) {
 
         item(contentType = "HeroSectionCarousel") {
@@ -149,36 +159,36 @@ private fun Catalog(
                     )
                     setSelectedMovie(movie)
                 },
+                carouselState = carouselState,
                 modifier = Modifier
+                    .height(340.dp)
                     .fillMaxWidth()
-                    .height(400.dp),
-                isCarouselFocused = isCarouselFocused,
             )
         }
 
-        items(
-            items = catalogToLazyPagingItems.keys.toList(),
-            key = { catalog -> catalog.id }, // Use catalog ID as unique key
-            contentType = { "MoviesRow" }
-        ) { catalog ->
-            val movies: LazyPagingItems<MovieNew>? = catalogToLazyPagingItems[catalog]
-
-            if (movies != null && movies.itemCount > 0) {
-                ImmersiveListMoviesRow(
-                    movies = movies,
-                    sectionTitle = catalog.name,
-                    onMovieClick = onMovieClick,
-                    setSelectedMovie = { movie ->
-                        val imageUrl =
-                            "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
-                        setSelectedMovie(movie)
-                        isCarouselFocused = false
-                        backgroundState.load(
-                            url = imageUrl
-                        )
-                    },
-                )
-            }
-        }
+//        items(
+//            count = catalogToLazyPagingItems.size,
+//            key = { catalog -> catalog.hashCode() }, // Use catalog ID as unique key
+//            contentType = { "MoviesRow" }
+//        ) { catalog ->
+//            val catalogKey = catalogToLazyPagingItems.keys.elementAt(catalog)
+//            val movies = catalogToLazyPagingItems[catalogKey]
+//
+//            if (movies != null && movies.itemCount > 0) {
+//                ImmersiveListMoviesRow(
+//                    movies = movies,
+//                    sectionTitle = catalogKey.name,
+//                    onMovieClick = onMovieClick,
+//                    setSelectedMovie = { movie ->
+//                        val imageUrl =
+//                            "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
+//                        setSelectedMovie(movie)
+//                        backgroundState.load(
+//                            url = imageUrl
+//                        )
+//                    },
+//                )
+//            }
+//        }
     }
 }

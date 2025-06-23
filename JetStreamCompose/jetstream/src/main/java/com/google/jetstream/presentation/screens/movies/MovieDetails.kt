@@ -105,10 +105,10 @@ fun MovieDetails(
                     Row {
                         IMDbLogo()
                         Spacer(modifier = Modifier.width(8.dp))
-                        DisplayFilmGenericText(
-                            "${imdbRating.getImdbRating()}/10 - " +
-                                    "${imdbVotes.toString().formatVotes()} IMDB Votes"
-                        )
+//                        DisplayFilmGenericText(
+//                            "${imdbRating.getImdbRating()}/10 - " +
+//                                    "${imdbVotes.toString().formatVotes()} IMDB Votes"
+//                        )
                     }
 
 
