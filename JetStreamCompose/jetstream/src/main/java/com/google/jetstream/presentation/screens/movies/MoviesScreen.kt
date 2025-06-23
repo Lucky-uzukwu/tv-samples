@@ -79,7 +79,6 @@ private fun Catalog(
 ) {
     val lazyListState = rememberLazyListState()
     val backgroundState = backgroundImageState()
-    var isCarouselFocused by remember { mutableStateOf(true) }
 
     val catalogToLazyPagingItems = catalogToMovies.mapValues { (_, flow) ->
         flow.collectAsLazyPagingItems()
@@ -144,7 +143,6 @@ private fun Catalog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(400.dp),
-                isCarouselFocused = isCarouselFocused,
             )
         }
 
