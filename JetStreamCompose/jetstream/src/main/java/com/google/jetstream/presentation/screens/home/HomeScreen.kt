@@ -38,6 +38,7 @@ import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.presentation.common.Error
+import com.google.jetstream.presentation.common.ImmersiveListMoviesRow
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.MovieHeroSectionCarousel
 import com.google.jetstream.presentation.screens.backgroundImageState
@@ -166,29 +167,29 @@ private fun Catalog(
             )
         }
 
-//        items(
-//            count = catalogToLazyPagingItems.size,
-//            key = { catalog -> catalog.hashCode() }, // Use catalog ID as unique key
-//            contentType = { "MoviesRow" }
-//        ) { catalog ->
-//            val catalogKey = catalogToLazyPagingItems.keys.elementAt(catalog)
-//            val movies = catalogToLazyPagingItems[catalogKey]
-//
-//            if (movies != null && movies.itemCount > 0) {
-//                ImmersiveListMoviesRow(
-//                    movies = movies,
-//                    sectionTitle = catalogKey.name,
-//                    onMovieClick = onMovieClick,
-//                    setSelectedMovie = { movie ->
-//                        val imageUrl =
-//                            "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
-//                        setSelectedMovie(movie)
-//                        backgroundState.load(
-//                            url = imageUrl
-//                        )
-//                    },
-//                )
-//            }
-//        }
+        items(
+            count = catalogToLazyPagingItems.size,
+            key = { catalog -> catalog.hashCode() }, // Use catalog ID as unique key
+            contentType = { "MoviesRow" }
+        ) { catalog ->
+            val catalogKey = catalogToLazyPagingItems.keys.elementAt(catalog)
+            val movies = catalogToLazyPagingItems[catalogKey]
+
+            if (movies != null && movies.itemCount > 0) {
+                ImmersiveListMoviesRow(
+                    movies = movies,
+                    sectionTitle = catalogKey.name,
+                    onMovieClick = onMovieClick,
+                    setSelectedMovie = { movie ->
+                        val imageUrl =
+                            "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
+                        setSelectedMovie(movie)
+                        backgroundState.load(
+                            url = imageUrl
+                        )
+                    },
+                )
+            }
+        }
     }
 }

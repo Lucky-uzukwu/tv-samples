@@ -150,82 +150,6 @@ fun MoviesRow(
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ImmersiveListMoviesRow(
-    movies: LazyPagingItems<MovieNew>,
-    modifier: Modifier = Modifier,
-    itemDirection: ItemDirection = ItemDirection.Vertical,
-    endPadding: Dp = rememberChildPadding().end,
-    title: String? = null,
-    titleStyle: TextStyle = MaterialTheme.typography.headlineSmall.copy(
-        fontWeight = FontWeight.Medium,
-        fontSize = 18.sp
-    ),
-    isListFocused: Boolean,
-    showIndexOverImage: Boolean = false,
-    onMovieSelected: (MovieNew) -> Unit = {},
-    onMovieFocused: (MovieNew) -> Unit = {}
-) {
-    val (lazyRow, firstItem) = remember { FocusRequester.createRefs() }
-
-    Column(
-        modifier = modifier
-            .padding(
-                start = 3.dp
-            )
-            .focusGroup()
-    ) {
-        if (title != null) {
-            Text(
-                text = title,
-                color = Color.White,
-                style = titleStyle,
-                modifier = Modifier
-                    .alpha(1f)
-                    .padding(vertical = 16.dp, horizontal = 9.dp)
-            )
-        }
-        AnimatedContent(
-            targetState = movies,
-            label = "",
-        ) { movieState ->
-            LazyRow(
-                contentPadding = PaddingValues(end = endPadding),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier
-                    .focusRequester(lazyRow)
-                    .focusRequester(firstItem)
-            ) {
-                itemsIndexed(
-                    movieState.itemSnapshotList.items,
-                    key = { _, movie ->
-                        movie.id
-                    }
-                ) { index, movie ->
-                    val itemModifier = if (index == 0) {
-                        Modifier.focusRequester(firstItem)
-                    } else {
-                        Modifier
-                    }
-                    MoviesRowItem(
-                        modifier = itemModifier.weight(1f),
-                        index = index,
-                        itemDirection = itemDirection,
-                        onMovieSelected = {
-                            lazyRow.saveFocusedChild()
-                            onMovieSelected(it)
-                        },
-                        onMovieFocused = onMovieFocused,
-                        movie = movie,
-                        showIndexOverImage = showIndexOverImage
-                    )
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
 fun ImmersiveListShowsRow(
     tvShows: LazyPagingItems<TvShow>,
     modifier: Modifier = Modifier,
@@ -350,7 +274,7 @@ private fun ShowsRowItem(
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun MoviesRowItem(
+fun MoviesRowItem(
     index: Int,
     movie: MovieNew,
     onMovieSelected: (MovieNew) -> Unit,

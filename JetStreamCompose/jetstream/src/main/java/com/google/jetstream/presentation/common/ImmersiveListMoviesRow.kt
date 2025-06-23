@@ -1,27 +1,13 @@
-/*
- * Copyright 2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.google.jetstream.presentation.common
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,9 +15,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,28 +28,34 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
 import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.paging.compose.LazyPagingItems
+import androidx.tv.foundation.lazy.list.TvLazyRow
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.jetstream.R
 import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import com.google.jetstream.presentation.utils.bringIntoViewIfChildrenAreFocused
-import com.google.jetstream.presentation.utils.formatPLot
-import com.google.jetstream.presentation.utils.formatVotes
-import com.google.jetstream.presentation.utils.getImdbRating
 
 @Composable
 fun ImmersiveListMoviesRow(
@@ -136,14 +131,13 @@ private fun ImmersiveList(
                 )
             }
 
-            ImmersiveListMoviesRow(
+            ImmersiveListMoviesRowNew(
                 movies = movies,
                 itemDirection = ItemDirection.Horizontal,
                 title = sectionTitle,
                 showIndexOverImage = false,
                 onMovieSelected = onMovieClick,
                 onMovieFocused = onMovieFocused,
-                isListFocused = isListFocused,
                 modifier = modifier.onFocusChanged(onFocusChanged)
             )
         }
@@ -261,3 +255,134 @@ private fun Modifier.gradientOverlay(gradientColor: Color): Modifier =
             drawRect(linearGradient)
         }
     }
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun ImmersiveListMoviesRow(
+    movies: LazyPagingItems<MovieNew>,
+    modifier: Modifier = Modifier,
+    itemDirection: ItemDirection = ItemDirection.Vertical,
+    endPadding: Dp = rememberChildPadding().end,
+    title: String? = null,
+    titleStyle: TextStyle = MaterialTheme.typography.headlineSmall.copy(
+        fontWeight = FontWeight.Medium,
+        fontSize = 18.sp
+    ),
+    showIndexOverImage: Boolean = false,
+    onMovieSelected: (MovieNew) -> Unit = {},
+    onMovieFocused: (MovieNew) -> Unit = {}
+) {
+    val (lazyRow, firstItem) = remember { FocusRequester.createRefs() }
+
+    Column(
+        modifier = modifier
+            .padding(
+                start = 3.dp
+            )
+            .focusGroup()
+    ) {
+        if (title != null) {
+            Text(
+                text = title,
+                color = Color.White,
+                style = titleStyle,
+                modifier = Modifier
+                    .alpha(1f)
+                    .padding(vertical = 16.dp, horizontal = 9.dp)
+            )
+        }
+        AnimatedContent(
+            targetState = movies,
+            label = "",
+        ) { movieState ->
+            LazyRow(
+                contentPadding = PaddingValues(end = endPadding),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier
+                    .focusRequester(lazyRow)
+                    .focusRequester(firstItem)
+            ) {
+                itemsIndexed(
+                    movieState.itemSnapshotList.items,
+                    key = { _, movie ->
+                        movie.id
+                    }
+                ) { index, movie ->
+                    val itemModifier = if (index == 0) {
+                        Modifier.focusRequester(firstItem)
+                    } else {
+                        Modifier
+                    }
+                    MoviesRowItem(
+                        modifier = itemModifier.weight(1f),
+                        index = index,
+                        itemDirection = itemDirection,
+                        onMovieSelected = {
+                            lazyRow.saveFocusedChild()
+                            onMovieSelected(it)
+                        },
+                        onMovieFocused = onMovieFocused,
+                        movie = movie,
+                        showIndexOverImage = showIndexOverImage
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun ImmersiveListMoviesRowNew(
+    movies: LazyPagingItems<MovieNew>,
+    modifier: Modifier = Modifier,
+    itemDirection: ItemDirection = ItemDirection.Vertical,
+    endPadding: Dp = rememberChildPadding().end,
+    title: String? = null,
+    titleStyle: TextStyle = MaterialTheme.typography.headlineSmall.copy(
+        fontWeight = FontWeight.Medium,
+        fontSize = 18.sp
+    ),
+    showIndexOverImage: Boolean = false,
+    onMovieSelected: (MovieNew) -> Unit = {},
+    onMovieFocused: (MovieNew) -> Unit = {}
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        if (title != null) {
+            Text(
+                text = title,
+                color = Color.White,
+                style = titleStyle,
+                modifier = Modifier
+                    .padding(start = 32.dp)
+                    .alpha(1f)
+            )
+        }
+
+        TvLazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            contentPadding = PaddingValues(horizontal = 32.dp)
+        ) {
+            items(movies.itemSnapshotList.items.size) { index ->
+                val movie = movies.itemSnapshotList.items[index]
+                MoviesRowItem(
+                    modifier = Modifier.weight(1f),
+                    index = index,
+                    itemDirection = itemDirection,
+                    onMovieSelected = {
+                        onMovieSelected(it)
+                    },
+                    onMovieFocused = onMovieFocused,
+                    movie = movie,
+                    showIndexOverImage = showIndexOverImage
+                )
+            }
+        }
+
+    }
+}
+

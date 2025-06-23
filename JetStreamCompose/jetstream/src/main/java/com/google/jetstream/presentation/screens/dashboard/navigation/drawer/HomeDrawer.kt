@@ -42,34 +42,26 @@ fun HomeDrawer(
     navController: NavController = rememberNavController(),
     onScreenSelected: ((screen: Screens) -> Unit)?
 ) {
-    val closeDrawerWidth = 65.dp
+    val closeDrawerWidth = 80.dp
+    val backgroundContentPadding = 12.dp
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     var (selectedTab, setSelectedTab) = remember { mutableStateOf<String?>(Screens.Home()) }
 
-    LaunchedEffect(key1 = Unit) {
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            selectedTab = destination.route ?: return@addOnDestinationChangedListener
-        }
-    }
 
     ModalNavigationDrawer(
+        scrimBrush = Brush.horizontalGradient(
+            listOf(
+                MaterialTheme.colorScheme.background,
+                Color.Transparent
+            )
+        ),
         drawerState = drawerState, drawerContent = { _ ->
             Column(
                 Modifier
-                    .background(
-                        color = if (drawerState.currentValue == DrawerValue.Open) {
-                            Color.Transparent.copy(alpha = 0.7f)
-                        } else {
-                            Color.Transparent
-                        }
-                    )
                     .fillMaxHeight()
-                    .padding(top = 90.dp, start = 4.dp, end = 4.dp, bottom = 90.dp)
+                    .padding(12.dp)
                     .selectableGroup(),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(
-                    1.dp, alignment = Alignment.CenterVertically
-                ),
+                verticalArrangement = Arrangement.Center
             ) {
                 TopBarTabs.forEachIndexed { index, item ->
                     NavigationRow(
@@ -82,16 +74,12 @@ fun HomeDrawer(
                         })
                 }
             }
-        }, scrimBrush = Brush.horizontalGradient(
-            listOf(
-                MaterialTheme.colorScheme.surface, Color.Transparent
-            )
-        )
+        }
     ) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(start = closeDrawerWidth)
+                .background(MaterialTheme.colorScheme.background)
+                .padding(start = closeDrawerWidth + backgroundContentPadding),
         ) {
             content()
         }
