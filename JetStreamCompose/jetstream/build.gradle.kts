@@ -82,6 +82,7 @@ dependencies {
 
     // extra material icons
     implementation(libs.androidx.material.icons.extended)
+    implementation(libs.tv.foundation)
 
     // Material components optimized for TV apps
     implementation(libs.androidx.tv.material)
@@ -125,7 +126,7 @@ dependencies {
     implementation(libs.converter.gson) // JSON converter (or use Moshi if preferred)
     implementation("co.touchlab:kermit:2.0.4")
     implementation("androidx.compose.material3:material3")
-    implementation ("androidx.compose.material:material-icons-extended")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.datastore:datastore-preferences:1.1.6")
 
     val paging_version = "3.3.6"
@@ -136,4 +137,38 @@ dependencies {
     implementation("androidx.paging:paging-compose:$paging_version")
 
     implementation("androidx.compose.ui:ui-text-google-fonts:1.8.1")
+
+    implementation(libs.tv.foundation)
+    implementation(libs.coil.compose)
+
+    // SplashScreen
+    implementation(libs.androidx.core.splashscreen)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
+    ksp(libs.hilt.compiler)
+
+    // ViewModel in Compose
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    //lifecycle
+    implementation(libs.androidx.lifecycle.runtime.compose)
+
+    // Compose Navigation
+    implementation(libs.androidx.navigation.compose)
+
+    // Coil
+    implementation(libs.coil.compose)
+
+    // JSON parser
+    implementation(libs.kotlinx.serialization)
+
+    // Media3
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
+
+
+    // Baseline profile installer
+    implementation(libs.androidx.profileinstaller)
 }
