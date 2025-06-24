@@ -1,19 +1,3 @@
-/*
- * Copyright 2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.google.jetstream.presentation.common
 
 import androidx.compose.animation.AnimatedVisibility
@@ -22,13 +6,16 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -39,23 +26,30 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.paging.compose.LazyPagingItems
+import androidx.tv.foundation.lazy.list.TvLazyRow
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.jetstream.R
 import com.google.jetstream.data.models.TvShow
-import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
+import com.google.jetstream.presentation.theme.JetStreamBorderWidth
+import com.google.jetstream.presentation.theme.JetStreamCardShape
 import com.google.jetstream.presentation.utils.bringIntoViewIfChildrenAreFocused
 import com.google.jetstream.presentation.utils.formatPLot
 import com.google.jetstream.presentation.utils.formatVotes
@@ -126,6 +120,7 @@ private fun ImmersiveList(
             visible = isListFocused,
             modifier = modifier
                 .height(500.dp)
+                .padding(horizontal = 10.dp)
                 .gradientOverlay(gradientColor)
         )
         Column {
@@ -133,10 +128,6 @@ private fun ImmersiveList(
             if (isListFocused) {
                 TvShowDescription(
                     tvShow = selectedTvShow,
-                    modifier = Modifier.padding(
-                        start = rememberChildPadding().start,
-                        bottom = 10.dp
-                    )
                 )
             }
 
@@ -146,7 +137,6 @@ private fun ImmersiveList(
                 title = sectionTitle,
                 showIndexOverImage = false,
                 onMovieSelected = onMovieClick,
-                isListFocused = isListFocused,
                 onMovieFocused = onMovieFocused,
                 modifier = Modifier.onFocusChanged(onFocusChanged)
             )
@@ -192,46 +182,52 @@ private fun TvShowDescription(
     val getYear = tvShow.releaseDate?.substring(0, 4)
 
     Column(
-        modifier = modifier.padding(
-            start = 32.dp
-        ),
+        modifier = modifier
+            .padding(horizontal = 34.dp)
+            .width(360.dp),
     ) {
-        tvShow.title?.let {
-            Text(
-                modifier = Modifier.padding(top = 64.dp),
-                text = it,
-                maxLines = 2,
-                color = Color.White,
-                style = MaterialTheme.typography.displaySmall,
-                fontSize = 40.sp,
+        Row(
+            modifier = Modifier.padding(bottom = 5.dp),
+        ) {
+            DisplayFilmExtraInfo(
+                getYear = getYear,
+                combinedGenre = combinedGenre,
+                duration = tvShow.duration
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-//        val formattedPlot = tvShow.plot.formatPLot()
-//        DisplayFilmGenericText(formattedPlot)
-        Spacer(modifier = Modifier.height(8.dp))
-        Row {
-            IMDbLogo()
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
+        tvShow.title?.let {
+            DisplayFilmTitle(
+                title = it,
+                style = MaterialTheme.typography.displaySmall.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                maxLines = 2
+            )
+        }
+        val formattedPlot = tvShow.plot.formatPLot()
+        DisplayFilmGenericText(
+            modifier = Modifier.padding(top = 4.dp),
+            text = formattedPlot,
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            maxLines = 3
+        )
+        Row(
+            modifier = Modifier.padding(top = 12.dp, bottom = 28.dp)
+        ) {
+            DisplayFilmGenericText(
                 text = "${
                     tvShow.imdbRating.getImdbRating()
                 }/10 - ${tvShow.imdbVotes.toString().formatVotes()} IMDB Votes",
-                style = MaterialTheme.typography.titleSmall,
-                maxLines = 1,
-                color = Color.White,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 8.dp)
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                fontWeight = FontWeight.Light
             )
+            Spacer(modifier = Modifier.width(8.dp))
+            IMDbLogo()
         }
-//        Spacer(modifier = Modifier.height(8.dp))
-//        DisplayFilmExtraInfo(
-//            getYear,
-//            combinedGenre,
-//            tvShow.duration,
-//            style = MaterialTheme.typography.bodyLarge,
-//        )
-
     }
 }
 
@@ -274,3 +270,105 @@ private fun Modifier.gradientOverlay(gradientColor: Color): Modifier =
             drawRect(linearGradient)
         }
     }
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun ImmersiveListShowsRow(
+    tvShows: LazyPagingItems<TvShow>,
+    modifier: Modifier = Modifier,
+    itemDirection: ItemDirection = ItemDirection.Vertical,
+    title: String? = null,
+    titleStyle: TextStyle = MaterialTheme.typography.headlineLarge.copy(
+        fontWeight = FontWeight.Medium,
+        fontSize = 30.sp
+    ),
+    showIndexOverImage: Boolean = false,
+    onMovieSelected: (TvShow) -> Unit = {},
+    onMovieFocused: (TvShow) -> Unit = {}
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        if (title != null) {
+            Text(
+                text = title,
+                color = Color.White,
+                style = titleStyle,
+                modifier = Modifier
+                    .padding(start = 32.dp)
+                    .alpha(1f)
+            )
+        }
+
+        TvLazyRow(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            contentPadding = PaddingValues(horizontal = 32.dp)
+        ) {
+            items(tvShows.itemSnapshotList.items.size) { index ->
+                val tvShow = tvShows.itemSnapshotList.items[index]
+                ShowsRowItem(
+                    modifier = Modifier.weight(1f),
+                    index = index,
+                    itemDirection = itemDirection,
+                    onTvShowSelected = {
+                        onMovieSelected(it)
+                    },
+                    onTvShowFocused = onMovieFocused,
+                    tvShow = tvShow,
+                    showIndexOverImage = showIndexOverImage,
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+private fun ShowsRowItem(
+    index: Int,
+    tvShow: TvShow,
+    onTvShowSelected: (TvShow) -> Unit,
+    showIndexOverImage: Boolean,
+    modifier: Modifier = Modifier,
+    itemDirection: ItemDirection = ItemDirection.Vertical,
+    onTvShowFocused: (TvShow) -> Unit = {},
+) {
+    var isFocused by remember { mutableStateOf(false) }
+    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + tvShow.posterImagePath
+
+    MovieCard(
+        onClick = { onTvShowSelected(tvShow) },
+        modifier = Modifier
+            .border(
+                width = JetStreamBorderWidth,
+                color = if (isFocused) Color.White else Color.Transparent,
+                shape = JetStreamCardShape
+            )
+            .onFocusChanged {
+                isFocused = it.isFocused
+                if (it.isFocused) {
+                    onTvShowFocused(tvShow)
+                }
+            }
+            .focusProperties {
+                left = if (index == 0) {
+                    FocusRequester.Cancel
+                } else {
+                    FocusRequester.Default
+                }
+            }
+            .then(modifier)
+    ) {
+        tvShow.title?.let {
+            MoviesRowItemImage(
+                modifier = Modifier.aspectRatio(itemDirection.aspectRatio),
+                showIndexOverImage = showIndexOverImage,
+                movieTitle = it,
+                movieUri = imageUrl,
+                index = index
+            )
+        }
+    }
+}

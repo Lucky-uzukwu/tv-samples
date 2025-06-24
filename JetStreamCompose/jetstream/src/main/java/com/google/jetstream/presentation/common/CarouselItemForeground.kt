@@ -133,76 +133,75 @@ fun CarouselItemForeground(
     tvShow: TvShow,
     modifier: Modifier = Modifier,
     onMoreInfoClick: () -> Unit,
-    displayTitleFocusRequester: FocusRequester,
-    moreInfoButtonFocusRequester: FocusRequester,
+    isCarouselFocused: Boolean = false
 ) {
     val combinedGenre = tvShow.genres?.joinToString(" ") { genre -> genre.name }
     val getYear = tvShow.releaseDate?.substring(0, 4)
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.TopStart
+    Column(
+        modifier = modifier
+            .padding(start = 34.dp, bottom = 32.dp)
+            .width(360.dp),
+        verticalArrangement = Arrangement.Bottom
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .focusGroup()
-                .padding(32.dp),
-            verticalArrangement = Arrangement.Top
+        Row(
+            modifier = Modifier.padding(bottom = 5.dp),
         ) {
-            tvShow.title?.let {
-                DisplayFilmTitle(
-                    title = it,
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
-                    maxLines = 1
-                )
-            }
-            val formattedPlot = tvShow.plot.formatPLot()
+            DisplayFilmExtraInfo(
+                getYear = getYear,
+                combinedGenre = combinedGenre,
+                duration = tvShow.duration
+            )
+        }
+        tvShow.title?.let {
+            DisplayFilmTitle(
+                title = it,
+                style = MaterialTheme.typography.displaySmall.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                maxLines = 2
+            )
+        }
+        val formattedPlot = tvShow.plot.formatPLot()
+        DisplayFilmGenericText(
+            modifier = Modifier.padding(top = 4.dp),
+            text = formattedPlot,
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            maxLines = 3
+        )
+
+        Row(
+            modifier = Modifier.padding(top = 12.dp, bottom = 28.dp)
+        ) {
             DisplayFilmGenericText(
-                modifier = Modifier.padding(top = 12.dp, bottom = 28.dp),
-                text = formattedPlot,
+                text = "${
+                    tvShow.imdbRating.getImdbRating()
+                }/10 - ${tvShow.imdbVotes.toString().formatVotes()} IMDB Votes",
                 style = MaterialTheme.typography.bodySmall.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
-                maxLines = 3
+                fontWeight = FontWeight.Light
             )
+            Spacer(modifier = Modifier.width(8.dp))
+            IMDbLogo()
+        }
 
-            Spacer(modifier = Modifier.height(10.dp))
-//            DisplayFilmExtraInfo(getYear, combinedGenre, tvShow.duration)
-
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Row {
-                IMDbLogo()
-                Spacer(modifier = Modifier.width(8.dp))
-                DisplayFilmGenericText(
-                    modifier = Modifier.padding(top = 12.dp, bottom = 28.dp),
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
-                    maxLines = 3,
-                    text = "${
-                        tvShow.imdbRating.getImdbRating()
-                    }/10 - ${tvShow.imdbVotes.toString().formatVotes()} IMDB Votes"
-                )
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-            AnimatedVisibility(
-                visible = true,
-                content = {
-                    Row {
-                        MoreInfoButton(
-                            onClick = onMoreInfoClick,
-                            focusRequester = moreInfoButtonFocusRequester,
-                        )
-                    }
-                }
+        AnimatedVisibility(visible = isCarouselFocused) {
+            CustomFillButton(
+                onClick = onMoreInfoClick,
+                text = stringResource(R.string.more_info),
+                icon = R.drawable.ic_info,
+                iconTint = MaterialTheme.colorScheme.inverseOnSurface,
+                buttonColor = ButtonDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.inverseSurface,
+                    contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                    focusedContentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                ),
             )
         }
     }
+
 }
 
 

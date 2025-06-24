@@ -21,17 +21,30 @@ fun DisplayFilmExtraInfo(
     duration: Int?,
     style: TextStyle? = null,
 ) {
+    val year = getYear ?: return
+    val genre = combinedGenre ?: return
+
+    val text = buildString {
+        append(year)
+        append(" - ")
+        append(genre)
+        duration?.let {
+            append(" - ")
+            append(it.formatDuration())
+        }
+    }
+
     if (style != null) {
         Text(
             modifier = modifier,
-            text = "$getYear - $combinedGenre - ${duration?.formatDuration()}",
+            text = text,
             style = style,
             color = Color.White,
             maxLines = 1,
         )
     } else {
         Text(
-            text = "$getYear - $combinedGenre - ${duration?.formatDuration()}",
+            text = text,
             color = Color.White,
             style = MaterialTheme.typography.bodySmall.copy(
                 color = MaterialTheme.colorScheme.onSurface.copy(

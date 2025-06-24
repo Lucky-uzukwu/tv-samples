@@ -2,42 +2,49 @@ package com.google.jetstream.presentation.screens.tvshows
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.tv.foundation.lazy.list.TvLazyColumn
+import androidx.tv.material3.CarouselState
+import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import com.google.jetstream.data.models.Genre
 import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.presentation.common.Error
-import com.google.jetstream.presentation.common.ImmersiveListMoviesRow
 import com.google.jetstream.presentation.common.ImmersiveShowsList
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.TvShowHeroSectionCarousel
 import com.google.jetstream.presentation.screens.backgroundImageState
+import com.google.jetstream.presentation.screens.home.carouselSaver
 import kotlinx.coroutines.flow.StateFlow
 
+@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun TVShowScreen(
     onTVShowClick: (tvShow: TvShow) -> Unit,
@@ -47,6 +54,7 @@ fun TVShowScreen(
 ) {
     val uiState by tvShowScreenViewModel.uiState.collectAsStateWithLifecycle()
     val heroSectionTvShows = tvShowScreenViewModel.heroSectionTvShows.collectAsLazyPagingItems()
+    val carouselState = rememberSaveable(saver = carouselSaver) { CarouselState(0) }
 
     when (val currentState = uiState) {
         is TvShowScreenUiState.Loading -> Loading(modifier = Modifier.fillMaxSize())
@@ -61,12 +69,14 @@ fun TVShowScreen(
                 setSelectedTvShow = setSelectedTvShow,
                 goToVideoPlayer = goToVideoPlayer,
                 streamingProviders = currentState.streamingProviders,
+                carouselState = carouselState,
                 modifier = Modifier.fillMaxSize(),
             )
         }
     }
 }
 
+@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun Catalog(
     heroSectionTvShows: LazyPagingItems<TvShow>,
@@ -77,8 +87,8 @@ private fun Catalog(
     modifier: Modifier = Modifier,
     setSelectedTvShow: (tvShow: TvShow) -> Unit,
     streamingProviders: List<StreamingProvider>,
+    carouselState: CarouselState,
 ) {
-    val lazyListState = rememberLazyListState()
     val backgroundState = backgroundImageState()
     var isCarouselFocused by remember { mutableStateOf(true) }
 
@@ -126,9 +136,13 @@ private fun Catalog(
     }
 
 
-    LazyColumn(
-        state = lazyListState,
-        modifier = modifier
+    TvLazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .semantics { contentDescription = "Home Screen" },
+        verticalArrangement = Arrangement.spacedBy(40.dp),
+        contentPadding = PaddingValues(vertical = 40.dp)
     ) {
 
         item(contentType = "TvShowHeroSectionCarousel") {
@@ -144,23 +158,24 @@ private fun Catalog(
                     setSelectedTvShow(tvShow)
                 },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(400.dp),
-                isCarouselFocused = isCarouselFocused,
+                    .height(340.dp)
+                    .fillMaxWidth(),
+                carouselState = carouselState,
             )
         }
 
         items(
-            items = genreToLazyPagingItems.keys.toList(),
-            key = { genre -> genre.id }, // Use catalog ID as unique key
+            count = genreToLazyPagingItems.size,
+            key = { genre -> genre },
             contentType = { "GenreRow" }
         ) { genre ->
-            val tvShows: LazyPagingItems<TvShow>? = genreToLazyPagingItems[genre]
+            val genreKey = genreToLazyPagingItems.keys.elementAt(genre)
+            val tvShows: LazyPagingItems<TvShow>? = genreToLazyPagingItems[genreKey]
 
-            if (tvShows != null && tvShows.itemCount > 0) {
+            if (tvShows != null) {
                 ImmersiveShowsList(
                     tvShows = tvShows,
-                    sectionTitle = genre.name,
+                    sectionTitle = genreKey.name,
                     onTvShowClick = onTVShowClick,
                     setSelectedTvShow = { tvShow ->
                         val imageUrl =
@@ -176,28 +191,27 @@ private fun Catalog(
         }
 
         items(
-            items = catalogToLazyPagingItems.keys.toList(),
-            key = { catalog -> catalog.id }, //e catalog ID as unique key
+            count = catalogToLazyPagingItems.size,
+            key = { catalog -> catalog.hashCode() }, //e catalog ID as unique key
             contentType = { "GenreRow" }
-        ) { genre ->
-            val tvShows: LazyPagingItems<TvShow>? = catalogToLazyPagingItems[genre]
+        ) { catalog ->
+            val catalogKey = catalogToLazyPagingItems.keys.elementAt(catalog)
+            val tvShows: LazyPagingItems<TvShow>? = catalogToLazyPagingItems[catalogKey]
 
-            if (tvShows != null && tvShows.itemCount > 0) {
-                ImmersiveShowsList(
-                    tvShows = tvShows,
-                    sectionTitle = genre.name,
-                    onTvShowClick = onTVShowClick,
-                    setSelectedTvShow = { tvShow ->
-                        val imageUrl =
-                            "https://stage.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
-                        setSelectedTvShow(tvShow)
-                        backgroundState.load(
-                            url = imageUrl
-                        )
-                    },
-                    modifier = Modifier,
-                )
-            }
+            ImmersiveShowsList(
+                tvShows = tvShows!!,
+                sectionTitle = catalogKey.name,
+                onTvShowClick = onTVShowClick,
+                setSelectedTvShow = { tvShow ->
+                    val imageUrl =
+                        "https://stage.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
+                    setSelectedTvShow(tvShow)
+                    backgroundState.load(
+                        url = imageUrl
+                    )
+                },
+                modifier = Modifier,
+            )
         }
     }
 }
