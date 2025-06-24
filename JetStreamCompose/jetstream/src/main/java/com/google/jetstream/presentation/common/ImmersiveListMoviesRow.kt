@@ -1,13 +1,13 @@
 package com.google.jetstream.presentation.common
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,8 +19,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,11 +30,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
 import androidx.compose.ui.focus.FocusState
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -56,6 +50,9 @@ import com.google.jetstream.R
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import com.google.jetstream.presentation.utils.bringIntoViewIfChildrenAreFocused
+import com.google.jetstream.presentation.utils.formatPLot
+import com.google.jetstream.presentation.utils.formatVotes
+import com.google.jetstream.presentation.utils.getImdbRating
 
 @Composable
 fun ImmersiveListMoviesRow(
@@ -112,6 +109,7 @@ private fun ImmersiveList(
     onMovieClick: (MovieNew) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+
     Box(
         contentAlignment = Alignment.BottomStart,
         modifier = modifier
@@ -121,6 +119,7 @@ private fun ImmersiveList(
             visible = isListFocused,
             modifier = modifier
                 .height(500.dp)
+                .padding(horizontal = 10.dp)
                 .gradientOverlay(gradientColor)
         )
         Column {
@@ -131,7 +130,7 @@ private fun ImmersiveList(
                 )
             }
 
-            ImmersiveListMoviesRowNew(
+            ImmersiveListMoviesRow(
                 movies = movies,
                 itemDirection = ItemDirection.Horizontal,
                 title = sectionTitle,
@@ -142,6 +141,8 @@ private fun ImmersiveList(
             )
         }
     }
+
+
 }
 
 @Composable
@@ -153,8 +154,15 @@ private fun Background(
     val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
     AnimatedVisibility(
         visible = visible,
-        enter = fadeIn() + expandVertically(),
-        exit = fadeOut() + shrinkVertically(),
+        enter = slideInVertically(
+            animationSpec = tween(durationMillis = 200),
+            initialOffsetY = { -it }
+        ) + fadeIn(animationSpec = tween(durationMillis = 200)) + expandVertically(
+            animationSpec = tween(durationMillis = 200)
+        ),
+        exit = fadeOut(animationSpec = tween(durationMillis = 10)) + shrinkVertically(
+            animationSpec = tween(durationMillis = 10)
+        ),
         modifier = modifier
     ) {
         Crossfade(
@@ -180,39 +188,50 @@ private fun DisplayMovieDetails(
     val getYear = movie.releaseDate?.substring(0, 4)
 
     Column(
-        modifier = modifier.padding(
-            start = 10.dp
-        ),
+        modifier = modifier
+            .padding(horizontal = 34.dp)
+            .width(360.dp),
     ) {
-        Text(
-            modifier = Modifier.padding(top = 64.dp),
-            text = movie.title,
-            maxLines = 2,
-            color = Color.White,
-            fontWeight = FontWeight.W900,
+        Row(
+            modifier = Modifier.padding(bottom = 5.dp),
+        ) {
+            DisplayFilmExtraInfo(
+                getYear = getYear,
+                combinedGenre = combinedGenre,
+                duration = movie.duration
+            )
+        }
+        DisplayFilmTitle(
+            title = movie.title,
             style = MaterialTheme.typography.displaySmall.copy(
-                shadow = Shadow(
-                    color = Color.Black.copy(alpha = 0.5f),
-                    offset = Offset(x = 2f, y = 4f),
-                    blurRadius = 2f
-                )
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             ),
+            maxLines = 2
         )
-//        val formattedPlot = movie.plot.formatPLot()
-//        DisplayFilmGenericText(formattedPlot, maxLines = 2)
-        Spacer(modifier = Modifier.height(8.dp))
-        Row {
-//            DisplayFilmExtraInfo(getYear, combinedGenre, movie.duration)
-            Spacer(modifier = Modifier.width(8.dp))
-//            DisplayFilmGenericText(
-//                "${
-//                    movie.imdbRating.getImdbRating()
-//                }/10 - ${movie.imdbVotes.toString().formatVotes()} IMDB Votes"
-//            )
+        val formattedPlot = movie.plot.formatPLot()
+        DisplayFilmGenericText(
+            modifier = Modifier.padding(top = 4.dp),
+            text = formattedPlot,
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            maxLines = 3
+        )
+        Row(
+            modifier = Modifier.padding(top = 12.dp, bottom = 28.dp)
+        ) {
+            DisplayFilmGenericText(
+                text = "${
+                    movie.imdbRating.getImdbRating()
+                }/10 - ${movie.imdbVotes.toString().formatVotes()} IMDB Votes",
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                fontWeight = FontWeight.Light
+            )
             Spacer(modifier = Modifier.width(8.dp))
             IMDbLogo()
         }
-        Spacer(modifier = Modifier.height(28.dp))
     }
 }
 
@@ -272,81 +291,6 @@ fun ImmersiveListMoviesRow(
     onMovieSelected: (MovieNew) -> Unit = {},
     onMovieFocused: (MovieNew) -> Unit = {}
 ) {
-    val (lazyRow, firstItem) = remember { FocusRequester.createRefs() }
-
-    Column(
-        modifier = modifier
-            .padding(
-                start = 3.dp
-            )
-            .focusGroup()
-    ) {
-        if (title != null) {
-            Text(
-                text = title,
-                color = Color.White,
-                style = titleStyle,
-                modifier = Modifier
-                    .alpha(1f)
-                    .padding(vertical = 16.dp, horizontal = 9.dp)
-            )
-        }
-        AnimatedContent(
-            targetState = movies,
-            label = "",
-        ) { movieState ->
-            LazyRow(
-                contentPadding = PaddingValues(end = endPadding),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier
-                    .focusRequester(lazyRow)
-                    .focusRequester(firstItem)
-            ) {
-                itemsIndexed(
-                    movieState.itemSnapshotList.items,
-                    key = { _, movie ->
-                        movie.id
-                    }
-                ) { index, movie ->
-                    val itemModifier = if (index == 0) {
-                        Modifier.focusRequester(firstItem)
-                    } else {
-                        Modifier
-                    }
-                    MoviesRowItem(
-                        modifier = itemModifier.weight(1f),
-                        index = index,
-                        itemDirection = itemDirection,
-                        onMovieSelected = {
-                            lazyRow.saveFocusedChild()
-                            onMovieSelected(it)
-                        },
-                        onMovieFocused = onMovieFocused,
-                        movie = movie,
-                        showIndexOverImage = showIndexOverImage
-                    )
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-fun ImmersiveListMoviesRowNew(
-    movies: LazyPagingItems<MovieNew>,
-    modifier: Modifier = Modifier,
-    itemDirection: ItemDirection = ItemDirection.Vertical,
-    endPadding: Dp = rememberChildPadding().end,
-    title: String? = null,
-    titleStyle: TextStyle = MaterialTheme.typography.headlineSmall.copy(
-        fontWeight = FontWeight.Medium,
-        fontSize = 18.sp
-    ),
-    showIndexOverImage: Boolean = false,
-    onMovieSelected: (MovieNew) -> Unit = {},
-    onMovieFocused: (MovieNew) -> Unit = {}
-) {
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
@@ -362,7 +306,7 @@ fun ImmersiveListMoviesRowNew(
         }
 
         TvLazyRow(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(24.dp),
             verticalAlignment = Alignment.CenterVertically,
             contentPadding = PaddingValues(horizontal = 32.dp)
