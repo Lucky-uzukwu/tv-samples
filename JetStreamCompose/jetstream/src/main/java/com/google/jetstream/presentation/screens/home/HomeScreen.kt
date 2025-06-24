@@ -94,7 +94,6 @@ private fun Catalog(
     streamingProviders: List<StreamingProvider>,
     carouselState: CarouselState,
 ) {
-    val lazyListState = rememberLazyListState()
     val backgroundState = backgroundImageState()
     val catalogToLazyPagingItems = catalogToMovies.mapValues { (_, flow) ->
         flow.collectAsLazyPagingItems()

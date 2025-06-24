@@ -2,29 +2,31 @@ package com.google.jetstream.presentation.screens.movies
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.tv.foundation.lazy.list.TvLazyColumn
 import androidx.tv.material3.CarouselState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
@@ -37,6 +39,7 @@ import com.google.jetstream.presentation.common.ImmersiveListMoviesRow
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.MovieHeroSectionCarousel
 import com.google.jetstream.presentation.screens.backgroundImageState
+import com.google.jetstream.presentation.screens.home.carouselSaver
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
@@ -49,6 +52,7 @@ fun MoviesScreen(
 ) {
     val uiState by moviesScreenViewModel.uiState.collectAsStateWithLifecycle()
     val featuredMovies = moviesScreenViewModel.heroSectionMovies.collectAsLazyPagingItems()
+    val carouselState = rememberSaveable(saver = carouselSaver) { CarouselState(0) }
 
     when (val s = uiState) {
         is MoviesScreenUiState.Ready -> {
@@ -60,6 +64,7 @@ fun MoviesScreen(
                 setSelectedMovie = setSelectedMovie,
                 goToVideoPlayer = goToVideoPlayer,
                 streamingProviders = s.streamingProviders,
+                carouselState = carouselState,
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -80,10 +85,9 @@ private fun Catalog(
     modifier: Modifier = Modifier,
     setSelectedMovie: (movie: MovieNew) -> Unit,
     streamingProviders: List<StreamingProvider>,
+    carouselState: CarouselState,
 ) {
-    val lazyListState = rememberLazyListState()
     val backgroundState = backgroundImageState()
-
     val catalogToLazyPagingItems = catalogToMovies.mapValues { (_, flow) ->
         flow.collectAsLazyPagingItems()
     }
@@ -126,17 +130,20 @@ private fun Catalog(
             }
         }
     }
-
-    LazyColumn(
-        state = lazyListState,
-        modifier = modifier
+    TvLazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .semantics { contentDescription = "Home Screen" },
+        verticalArrangement = Arrangement.spacedBy(40.dp),
+        contentPadding = PaddingValues(vertical = 40.dp)
     ) {
+
         item(contentType = "HeroSectionCarousel") {
             MovieHeroSectionCarousel(
                 movies = featuredMovies,
                 goToVideoPlayer = goToVideoPlayer,
                 goToMoreInfo = onMovieClick,
-
                 setSelectedMovie = { movie ->
                     val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
                     backgroundState.load(
@@ -144,27 +151,25 @@ private fun Catalog(
                     )
                     setSelectedMovie(movie)
                 },
+                carouselState = carouselState,
                 modifier = Modifier
+                    .height(340.dp)
                     .fillMaxWidth()
-                    .height(400.dp),
-                carouselState = remember {
-                    CarouselState()
-                }
             )
-
         }
 
         items(
-            items = genreToLazyPagingItems.keys.toList(),
-            key = { genre -> genre.id }, // Use catalog ID as unique key
-            contentType = { "GenreRow" }
+            count = genreToLazyPagingItems.size,
+            key = { genre -> genre.hashCode() }, // Use catalog ID as unique key
+            contentType = { "MoviesRow" }
         ) { genre ->
-            val movies: LazyPagingItems<MovieNew>? = genreToLazyPagingItems[genre]
+            val genreKey = genreToLazyPagingItems.keys.elementAt(genre)
+            val movies = genreToLazyPagingItems[genreKey]
 
             if (movies != null && movies.itemCount > 0) {
                 ImmersiveListMoviesRow(
                     movies = movies,
-                    sectionTitle = genre.name,
+                    sectionTitle = genreKey.name,
                     onMovieClick = onMovieClick,
                     setSelectedMovie = { movie ->
                         val imageUrl =
@@ -174,23 +179,22 @@ private fun Catalog(
                             url = imageUrl
                         )
                     },
-                    modifier = Modifier,
                 )
             }
         }
 
-
         items(
-            items = catalogToLazyPagingItems.keys.toList(),
-            key = { catalog -> catalog.id }, // Use catalog ID as unique key
+            count = catalogToLazyPagingItems.size,
+            key = { catalog -> catalog.hashCode() }, // Use catalog ID as unique key
             contentType = { "MoviesRow" }
         ) { catalog ->
-            val movies: LazyPagingItems<MovieNew>? = catalogToLazyPagingItems[catalog]
+            val catalogKey = catalogToLazyPagingItems.keys.elementAt(catalog)
+            val movies = catalogToLazyPagingItems[catalogKey]
 
             if (movies != null && movies.itemCount > 0) {
                 ImmersiveListMoviesRow(
                     movies = movies,
-                    sectionTitle = catalog.name,
+                    sectionTitle = catalogKey.name,
                     onMovieClick = onMovieClick,
                     setSelectedMovie = { movie ->
                         val imageUrl =
@@ -200,7 +204,6 @@ private fun Catalog(
                             url = imageUrl
                         )
                     },
-                    modifier = Modifier
                 )
             }
         }

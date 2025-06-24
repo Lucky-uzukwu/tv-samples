@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -57,6 +58,12 @@ fun HomeDrawer(
     val backgroundContentPadding = 12.dp
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     var (selectedTab, setSelectedTab) = remember { mutableStateOf<String?>(Screens.Home()) }
+
+    LaunchedEffect(key1 = Unit) {
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            selectedTab = destination.route ?: return@addOnDestinationChangedListener
+        }
+    }
 
 
     ModalNavigationDrawer(
