@@ -70,7 +70,11 @@ fun MovieHeroSectionCarousel(
                 isCarouselFocused = it.hasFocus
             },
         itemCount = movies.itemCount,
-        carouselIndicator = {},
+        carouselIndicator = {
+//            CarouselIndicator(
+//                itemCount = movies.itemCount, activeItemIndex = carouselState.activeItemIndex
+//            )
+        },
         carouselState = carouselState,
         contentTransformStartToEnd = fadeIn(tween(1000)).togetherWith(fadeOut(tween(1000))),
         contentTransformEndToStart = fadeIn(tween(1000)).togetherWith(fadeOut(tween(1000))),
@@ -113,3 +117,5 @@ fun MovieHeroSectionCarousel(
         }
     }
 }
+
+
