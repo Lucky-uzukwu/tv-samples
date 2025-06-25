@@ -44,6 +44,13 @@ fun MovieHeroSectionCarousel(
     carouselState: CarouselState,
 ) {
     var isCarouselFocused by remember { mutableStateOf(false) }
+    val itemsPerPage = 5
+    val activeItemIndex = carouselState.activeItemIndex
+    val totalItems = movies.itemCount
+    val currentPage = activeItemIndex / itemsPerPage
+    val startIndex = currentPage * itemsPerPage
+    val endIndex = minOf(startIndex + itemsPerPage, totalItems)
+
 
     Carousel(
         modifier = modifier
@@ -71,9 +78,10 @@ fun MovieHeroSectionCarousel(
             },
         itemCount = movies.itemCount,
         carouselIndicator = {
-//            CarouselIndicator(
-//                itemCount = movies.itemCount, activeItemIndex = carouselState.activeItemIndex
-//            )
+            CarouselIndicator(
+                itemCount = minOf(itemsPerPage, totalItems - startIndex), // Show up to 5 items
+                activeItemIndex = activeItemIndex % itemsPerPage, // Relative index within the page
+            )
         },
         carouselState = carouselState,
         contentTransformStartToEnd = fadeIn(tween(1000)).togetherWith(fadeOut(tween(1000))),

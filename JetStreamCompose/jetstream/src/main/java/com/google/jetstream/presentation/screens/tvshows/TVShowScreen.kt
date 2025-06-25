@@ -164,54 +164,54 @@ private fun Catalog(
             )
         }
 
-        items(
-            count = genreToLazyPagingItems.size,
-            key = { genre -> genre },
-            contentType = { "GenreRow" }
-        ) { genre ->
-            val genreKey = genreToLazyPagingItems.keys.elementAt(genre)
-            val tvShows: LazyPagingItems<TvShow>? = genreToLazyPagingItems[genreKey]
+//        items(
+//            count = genreToLazyPagingItems.size,
+//            key = { genre -> genre },
+//            contentType = { "GenreRow" }
+//        ) { genre ->
+//            val genreKey = genreToLazyPagingItems.keys.elementAt(genre)
+//            val tvShows: LazyPagingItems<TvShow>? = genreToLazyPagingItems[genreKey]
+//
+//            if (tvShows != null) {
+//                ImmersiveShowsList(
+//                    tvShows = tvShows,
+//                    sectionTitle = genreKey.name,
+//                    onTvShowClick = onTVShowClick,
+//                    setSelectedTvShow = { tvShow ->
+//                        val imageUrl =
+//                            "https://stage.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
+//                        setSelectedTvShow(tvShow)
+//                        backgroundState.load(
+//                            url = imageUrl
+//                        )
+//                    },
+//                    modifier = Modifier,
+//                )
+//            }
+//        }
 
-            if (tvShows != null) {
-                ImmersiveShowsList(
-                    tvShows = tvShows,
-                    sectionTitle = genreKey.name,
-                    onTvShowClick = onTVShowClick,
-                    setSelectedTvShow = { tvShow ->
-                        val imageUrl =
-                            "https://stage.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
-                        setSelectedTvShow(tvShow)
-                        backgroundState.load(
-                            url = imageUrl
-                        )
-                    },
-                    modifier = Modifier,
-                )
-            }
-        }
-
-        items(
-            count = catalogToLazyPagingItems.size,
-            key = { catalog -> catalog.hashCode() }, //e catalog ID as unique key
-            contentType = { "GenreRow" }
-        ) { catalog ->
-            val catalogKey = catalogToLazyPagingItems.keys.elementAt(catalog)
-            val tvShows: LazyPagingItems<TvShow>? = catalogToLazyPagingItems[catalogKey]
-
-            ImmersiveShowsList(
-                tvShows = tvShows!!,
-                sectionTitle = catalogKey.name,
-                onTvShowClick = onTVShowClick,
-                setSelectedTvShow = { tvShow ->
-                    val imageUrl =
-                        "https://stage.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
-                    setSelectedTvShow(tvShow)
-                    backgroundState.load(
-                        url = imageUrl
-                    )
-                },
-                modifier = Modifier,
-            )
-        }
+//        items(
+//            count = catalogToLazyPagingItems.size,
+//            key = { catalog -> catalog.hashCode() }, //e catalog ID as unique key
+//            contentType = { "GenreRow" }
+//        ) { catalog ->
+//            val catalogKey = catalogToLazyPagingItems.keys.elementAt(catalog)
+//            val tvShows: LazyPagingItems<TvShow>? = catalogToLazyPagingItems[catalogKey]
+//
+//            ImmersiveShowsList(
+//                tvShows = tvShows!!,
+//                sectionTitle = catalogKey.name,
+//                onTvShowClick = onTVShowClick,
+//                setSelectedTvShow = { tvShow ->
+//                    val imageUrl =
+//                        "https://stage.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
+//                    setSelectedTvShow(tvShow)
+//                    backgroundState.load(
+//                        url = imageUrl
+//                    )
+//                },
+//                modifier = Modifier,
+//            )
+//        }
     }
 }
