@@ -2,18 +2,20 @@ package com.google.jetstream.presentation.screens.home
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -101,6 +103,8 @@ private fun Catalog(
         flow.collectAsLazyPagingItems()
     }
 
+    var carouselScrollEnabled by remember { mutableStateOf(true) }
+
     Box(modifier = modifier) {
         val targetBitmap by remember(backgroundState) { backgroundState.drawable }
 
@@ -140,6 +144,7 @@ private fun Catalog(
     TvLazyColumn(
         modifier = Modifier
             .fillMaxSize()
+            .padding(start = 28.dp)
             .semantics { contentDescription = "Home Screen" },
         verticalArrangement = Arrangement.spacedBy(40.dp),
         contentPadding = PaddingValues(vertical = 40.dp)
@@ -158,6 +163,7 @@ private fun Catalog(
                     setSelectedMovie(movie)
                 },
                 carouselState = carouselState,
+                carouselScrollEnabled = carouselScrollEnabled,
                 modifier = Modifier
                     .height(340.dp)
                     .fillMaxWidth()
@@ -178,6 +184,7 @@ private fun Catalog(
                     sectionTitle = catalogKey.name,
                     onMovieClick = onMovieClick,
                     setSelectedMovie = { movie ->
+                        carouselScrollEnabled = false
                         val imageUrl =
                             "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
                         setSelectedMovie(movie)
