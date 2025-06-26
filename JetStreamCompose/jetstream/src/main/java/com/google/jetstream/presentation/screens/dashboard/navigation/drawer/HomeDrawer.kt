@@ -129,8 +129,6 @@ fun NavigationDrawerScope.NavigationRow(
             }) {
             Text(
                 text = item.name,
-                style = if (isSelected) MaterialTheme.typography.labelLarge
-                else MaterialTheme.typography.labelMedium,
             )
         }
         if (isSelected) {
