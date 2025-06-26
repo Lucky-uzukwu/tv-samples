@@ -4,11 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -16,21 +15,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import androidx.paging.compose.LazyPagingItems
-import androidx.tv.foundation.lazy.list.TvLazyRow
 import androidx.tv.material3.DrawerValue
 import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
@@ -41,9 +32,6 @@ import androidx.tv.material3.NavigationDrawerItemScale
 import androidx.tv.material3.NavigationDrawerScope
 import androidx.tv.material3.Text
 import androidx.tv.material3.rememberDrawerState
-import com.google.jetstream.data.models.MovieNew
-import com.google.jetstream.presentation.common.ItemDirection
-import com.google.jetstream.presentation.common.MoviesRowItem
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.screens.dashboard.TopBarTabs
 
@@ -54,8 +42,6 @@ fun HomeDrawer(
     navController: NavController = rememberNavController(),
     onScreenSelected: ((screen: Screens) -> Unit)?
 ) {
-    val closeDrawerWidth = 80.dp
-    val backgroundContentPadding = 12.dp
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     var (selectedTab, setSelectedTab) = remember { mutableStateOf<String?>(Screens.Home()) }
 
@@ -77,7 +63,6 @@ fun HomeDrawer(
             Column(
                 Modifier
                     .fillMaxHeight()
-                    .padding(12.dp)
                     .selectableGroup(),
                 verticalArrangement = Arrangement.Center
             ) {
@@ -96,8 +81,6 @@ fun HomeDrawer(
     ) {
         Box(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)
-                .padding(start = closeDrawerWidth + backgroundContentPadding),
         ) {
             content()
         }
@@ -111,40 +94,53 @@ fun NavigationDrawerScope.NavigationRow(
     enabled: Boolean = true,
     onScreenSelected: ((screen: Screens) -> Unit)?
 ) {
-    NavigationDrawerItem(
-        selected = isSelected,
-        enabled = enabled,
-        shape = NavigationDrawerItemDefaults.shape(
-            shape = RoundedCornerShape(40)
-        ),
-        colors = NavigationDrawerItemDefaults.colors(
-            selectedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
-                alpha = 0.5f
+    val lineThickness = 2.dp
+    val lineColor = MaterialTheme.colorScheme.onSurface
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        NavigationDrawerItem(
+            selected = isSelected,
+            enabled = enabled,
+            colors = NavigationDrawerItemDefaults.colors(
+                selectedContainerColor = Color.Transparent, // No background for selected item
+                selectedContentColor = MaterialTheme.colorScheme.onSurface,
             ),
-            selectedContentColor = MaterialTheme.colorScheme.onSurface,
-        ),
-        scale = NavigationDrawerItemScale(
-            focusedScale = 0.7f,
-            pressedScale = 1f,
-            scale = 0.7f,
-            selectedScale = 0.7f,
-            disabledScale = 1f,
-            focusedSelectedScale = 0.9f,
-            focusedDisabledScale = 1f,
-            pressedSelectedScale = 0.8f,
-        ),
-        onClick = {
-            onScreenSelected?.invoke(item)
-        }, leadingContent = {
-            Icon(
-                imageVector = item.tabIcon ?: return@NavigationDrawerItem,
-                modifier = Modifier.size(24.dp),
-                contentDescription = item.name
+            shape = NavigationDrawerItemDefaults.shape(
+                shape = RoundedCornerShape(40)
+            ),
+            scale = NavigationDrawerItemScale(
+                focusedScale = 0.8f,
+                pressedScale = 1f,
+                scale = 0.7f,
+                selectedScale = 0.7f,
+                disabledScale = 1f,
+                focusedSelectedScale = 0.9f,
+                focusedDisabledScale = 1f,
+                pressedSelectedScale = 0.8f,
+            ),
+            onClick = {
+                onScreenSelected?.invoke(item)
+            }, leadingContent = {
+                Icon(
+                    imageVector = item.tabIcon ?: return@NavigationDrawerItem,
+                    modifier = Modifier.size(24.dp),
+                    contentDescription = item.name
+                )
+            }) {
+            Text(
+                text = item.name,
+                style = if (isSelected) MaterialTheme.typography.labelLarge
+                else MaterialTheme.typography.labelMedium,
             )
-        }) {
-        Text(
-            item.name,
-        )
+        }
+        if (isSelected) {
+            Box(
+                modifier = Modifier
+                    .width(20.dp) // Adjust width as needed
+                    .height(lineThickness)
+                    .background(lineColor)
+            )
+        }
     }
 }
 
