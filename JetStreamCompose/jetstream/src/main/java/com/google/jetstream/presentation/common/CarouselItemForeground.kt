@@ -48,7 +48,7 @@ fun CarouselItemForeground(
     onWatchNowClick: () -> Unit,
     isCarouselFocused: Boolean = false
 ) {
-    val combinedGenre = movie.genres.take(2).joinToString(" ") { genre -> genre.name }
+    val combinedGenre = movie.genres.take(2).joinToString(" · ") { genre -> genre.name }
     val getYear = movie.releaseDate?.substring(0, 4)
     Column(
         modifier = modifier

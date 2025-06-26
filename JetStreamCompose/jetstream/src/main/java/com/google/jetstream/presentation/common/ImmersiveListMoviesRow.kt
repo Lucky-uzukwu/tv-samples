@@ -172,7 +172,7 @@ private fun DisplayMovieDetails(
     movie: MovieNew,
     modifier: Modifier = Modifier,
 ) {
-    val combinedGenre = movie.genres.joinToString(" ") { genre -> genre.name }
+    val combinedGenre = movie.genres.take(2).joinToString(" · ") { genre -> genre.name }
     val getYear = movie.releaseDate?.substring(0, 4)
 
     Column(
