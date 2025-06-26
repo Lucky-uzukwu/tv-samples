@@ -142,7 +142,8 @@ fun SearchResult(
                     tonalElevation = 2.dp,
                     modifier = Modifier
                         .padding(horizontal = childPadding.start)
-                        .padding(top = 8.dp),
+                        .padding(start = 28.dp)
+                        .padding(top = 18.dp),
                     onClick = { tfFocusRequester.requestFocus() }
                 ) {
                     BasicTextField(

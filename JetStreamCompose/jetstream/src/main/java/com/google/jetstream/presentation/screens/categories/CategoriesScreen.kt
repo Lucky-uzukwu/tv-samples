@@ -82,7 +82,7 @@ private fun Catalog(
     ) { it ->
         LazyVerticalGrid(
             state = lazyGridState,
-            modifier = modifier,
+            modifier = modifier.padding(start = 28.dp),
             columns = GridCells.Fixed(gridColumns),
         ) {
             itemsIndexed(it) { index, movieCategory ->
