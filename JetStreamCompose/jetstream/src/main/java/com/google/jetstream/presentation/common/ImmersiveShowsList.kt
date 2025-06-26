@@ -83,7 +83,7 @@ fun ImmersiveShowsList(
             isListFocused = it.hasFocus
         },
         modifier = modifier.bringIntoViewIfChildrenAreFocused(
-            PaddingValues(bottom = 90.dp)
+            PaddingValues(bottom = 110.dp)
         )
     )
 
@@ -279,7 +279,7 @@ fun ImmersiveListShowsRow(
     val infiniteShowsCount = if (tvShows.itemCount > 0) Int.MAX_VALUE else 0
 
     Column(
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         if (title != null) {
             Text(
@@ -294,7 +294,7 @@ fun ImmersiveListShowsRow(
 
         TvLazyRow(
             modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically,
             contentPadding = PaddingValues(horizontal = 32.dp)
         ) {
