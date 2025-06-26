@@ -165,32 +165,6 @@ private fun Catalog(
         }
 
         items(
-            count = genreToLazyPagingItems.size,
-            key = { genre -> genre.hashCode() }, // Use catalog ID as unique key
-            contentType = { "MoviesRow" }
-        ) { genre ->
-            val genreKey = genreToLazyPagingItems.keys.elementAt(genre)
-            val movies = genreToLazyPagingItems[genreKey]
-
-            if (movies != null && movies.itemCount > 0) {
-                ImmersiveListMoviesRow(
-                    movies = movies,
-                    sectionTitle = genreKey.name,
-                    onMovieClick = onMovieClick,
-                    setSelectedMovie = { movie ->
-                        carouselScrollEnabled = false
-                        val imageUrl =
-                            "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
-                        setSelectedMovie(movie)
-                        backgroundState.load(
-                            url = imageUrl
-                        )
-                    },
-                )
-            }
-        }
-
-        items(
             count = catalogToLazyPagingItems.size,
             key = { catalog -> catalog.hashCode() }, // Use catalog ID as unique key
             contentType = { "MoviesRow" }
@@ -215,6 +189,31 @@ private fun Catalog(
                 )
             }
         }
-    }
 
+        items(
+            count = genreToLazyPagingItems.size,
+            key = { genre -> genre.hashCode() }, // Use catalog ID as unique key
+            contentType = { "MoviesRow" }
+        ) { genre ->
+            val genreKey = genreToLazyPagingItems.keys.elementAt(genre)
+            val movies = genreToLazyPagingItems[genreKey]
+
+            if (movies != null && movies.itemCount > 0) {
+                ImmersiveListMoviesRow(
+                    movies = movies,
+                    sectionTitle = genreKey.name,
+                    onMovieClick = onMovieClick,
+                    setSelectedMovie = { movie ->
+                        carouselScrollEnabled = false
+                        val imageUrl =
+                            "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
+                        setSelectedMovie(movie)
+                        backgroundState.load(
+                            url = imageUrl
+                        )
+                    },
+                )
+            }
+        }
+    }
 }
