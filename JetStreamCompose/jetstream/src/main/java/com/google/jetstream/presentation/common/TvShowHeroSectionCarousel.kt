@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,33 +45,25 @@ fun TvShowHeroSectionCarousel(
 ) {
 
     var isCarouselFocused by remember { mutableStateOf(false) }
+    val itemsPerPage = 5
+    val activeItemIndex = carouselState.activeItemIndex
+    val totalItems = tvShows.itemCount
+    val currentPage = activeItemIndex / itemsPerPage
+    val startIndex = currentPage * itemsPerPage
+    val endIndex = minOf(startIndex + itemsPerPage, totalItems)
 
     Carousel(
+        itemCount = tvShows.itemCount,
         modifier = modifier
-            .fillMaxSize()
-            .padding(PaddingValues(horizontal = 32.dp))
-            .conditional(
-                isCarouselFocused,
-                ifTrue = {
-                    shadowBox(
-                        color = Color(0x994B635B),
-                        blurRadius = 40.dp,
-                        offset = DpOffset(0.dp, 8.dp),
-                        shape = MaterialTheme.shapes.extraLarge,
-                    )
-                }
-            )
-            .border(
-                width = 3.dp,
-                color = MaterialTheme.colorScheme.border.copy(alpha = if (isCarouselFocused) 1f else 0f),
-                shape = MaterialTheme.shapes.extraLarge,
-            )
-            .clip(MaterialTheme.shapes.extraLarge)
             .onFocusChanged {
                 isCarouselFocused = it.hasFocus
             },
-        itemCount = tvShows.itemCount,
-        carouselIndicator = {},
+        carouselIndicator = {
+            CarouselIndicator(
+                itemCount = minOf(itemsPerPage, totalItems - startIndex), // Show up to 5 items
+                activeItemIndex = activeItemIndex % itemsPerPage, // Relative index within the page
+            )
+        },
         carouselState = carouselState,
         contentTransformStartToEnd = fadeIn(tween(1000)).togetherWith(fadeOut(tween(1000))),
         contentTransformEndToStart = fadeIn(tween(1000)).togetherWith(fadeOut(tween(1000))),
@@ -78,28 +71,10 @@ fun TvShowHeroSectionCarousel(
         Box(modifier = Modifier.fillMaxSize()) {
             val tvShow = tvShows[idx] ?: return@Carousel
 
-            CarouselItemImage(
-                tvShow = tvShow,
-                modifier = Modifier
-                    .fillMaxSize()
-            )
 
-            // Gradient overlay
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                Color.Black.copy(alpha = 1f), // Adjust alpha for desired opacity
-                                Color.Transparent
-                            ),
-                            startX = 0f,
-                            endX = Float.POSITIVE_INFINITY // Or a specific width if needed
-                        )
-                    )
-            )
-
+            LaunchedEffect(tvShow) {
+                setSelectedTvShow(tvShow)
+            }
             CarouselItemForeground(
                 tvShow = tvShow,
                 onMoreInfoClick = {
@@ -109,7 +84,7 @@ fun TvShowHeroSectionCarousel(
                 modifier = Modifier
                     .align(Alignment.BottomStart),
             )
-            setSelectedTvShow(tvShow)
+
         }
     }
 }

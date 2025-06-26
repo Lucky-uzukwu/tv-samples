@@ -139,8 +139,7 @@ private fun Catalog(
     TvLazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .semantics { contentDescription = "Home Screen" },
+            .semantics { contentDescription = "Shows Screen" },
         verticalArrangement = Arrangement.spacedBy(40.dp),
         contentPadding = PaddingValues(vertical = 40.dp)
     ) {
