@@ -135,8 +135,8 @@ private fun ImmersiveList(
                 itemDirection = ItemDirection.Horizontal,
                 title = sectionTitle,
                 showIndexOverImage = false,
-                onMovieSelected = onMovieClick,
-                onMovieFocused = onMovieFocused,
+                onShowSelected = onMovieClick,
+                onShowFocused = onMovieFocused,
                 modifier = Modifier.onFocusChanged(onFocusChanged)
             )
         }
@@ -282,9 +282,12 @@ fun ImmersiveListShowsRow(
         fontSize = 30.sp
     ),
     showIndexOverImage: Boolean = false,
-    onMovieSelected: (TvShow) -> Unit = {},
-    onMovieFocused: (TvShow) -> Unit = {}
+    onShowSelected: (TvShow) -> Unit = {},
+    onShowFocused: (TvShow) -> Unit = {}
 ) {
+    // Create infinite list by repeating the movies
+    val infiniteShowsCount = if (tvShows.itemCount > 0) Int.MAX_VALUE else 0
+
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
@@ -305,16 +308,26 @@ fun ImmersiveListShowsRow(
             verticalAlignment = Alignment.CenterVertically,
             contentPadding = PaddingValues(horizontal = 32.dp)
         ) {
-            items(tvShows.itemSnapshotList.items.size) { index ->
-                val tvShow = tvShows.itemSnapshotList.items[index]
+            items(
+                count = infiniteShowsCount,
+                key = { index ->
+                    val actualIndex = index % tvShows.itemCount
+                    tvShows[actualIndex]?.id ?: index
+                }) { index ->
+                val actualIndex = index % tvShows.itemCount
+                val tvShow = tvShows[actualIndex]
+                if (tvShow == null) {
+                    Spacer(modifier = Modifier.width(12.dp))
+                    return@items
+                }
                 ShowsRowItem(
                     modifier = Modifier.weight(1f),
                     index = index,
                     itemDirection = itemDirection,
                     onTvShowSelected = {
-                        onMovieSelected(it)
+                        onShowSelected(it)
                     },
-                    onTvShowFocused = onMovieFocused,
+                    onTvShowFocused = onShowFocused,
                     tvShow = tvShow,
                     showIndexOverImage = showIndexOverImage,
                 )

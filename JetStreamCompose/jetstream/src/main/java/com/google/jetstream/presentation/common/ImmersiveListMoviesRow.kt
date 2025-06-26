@@ -6,8 +6,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,11 +35,9 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.paging.compose.LazyPagingItems
@@ -48,7 +46,6 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.jetstream.R
 import com.google.jetstream.data.models.MovieNew
-import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import com.google.jetstream.presentation.utils.bringIntoViewIfChildrenAreFocused
 import com.google.jetstream.presentation.utils.formatPLot
 import com.google.jetstream.presentation.utils.formatVotes
@@ -280,7 +277,6 @@ fun ImmersiveListMoviesRow(
     movies: LazyPagingItems<MovieNew>,
     modifier: Modifier = Modifier,
     itemDirection: ItemDirection = ItemDirection.Vertical,
-    endPadding: Dp = rememberChildPadding().end,
     title: String? = null,
     titleStyle: TextStyle = MaterialTheme.typography.headlineSmall.copy(
         fontWeight = FontWeight.Medium,
@@ -290,6 +286,9 @@ fun ImmersiveListMoviesRow(
     onMovieSelected: (MovieNew) -> Unit = {},
     onMovieFocused: (MovieNew) -> Unit = {}
 ) {
+    // Create infinite list by repeating the movies
+    val infiniteMovieCount = if (movies.itemCount > 0) Int.MAX_VALUE else 0
+
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
@@ -306,12 +305,23 @@ fun ImmersiveListMoviesRow(
 
         TvLazyRow(
             modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
             contentPadding = PaddingValues(horizontal = 32.dp)
         ) {
-            items(movies.itemSnapshotList.items.size) { index ->
-                val movie = movies.itemSnapshotList.items[index]
+            items(
+                count = infiniteMovieCount,
+                key = { index ->
+                    val actualIndex = index % movies.itemCount
+                    movies[actualIndex]?.id ?: index
+                }
+            ) { index ->
+                val actualIndex = index % movies.itemCount
+                val movie = movies[actualIndex]
+                if (movie == null) {
+                    Spacer(modifier = Modifier.width(12.dp))
+                    return@items
+                }
                 MoviesRowItem(
                     modifier = Modifier.weight(1f),
                     index = index,

@@ -2,7 +2,6 @@ package com.google.jetstream.presentation.screens.tvshows
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -37,7 +36,6 @@ import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.presentation.common.Error
-import com.google.jetstream.presentation.common.ImmersiveShowsList
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.TvShowHeroSectionCarousel
 import com.google.jetstream.presentation.screens.backgroundImageState
