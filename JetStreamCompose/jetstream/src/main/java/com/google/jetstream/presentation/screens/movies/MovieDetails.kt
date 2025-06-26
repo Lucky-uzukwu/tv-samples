@@ -107,7 +107,7 @@ fun MovieDetails(
                         Spacer(modifier = Modifier.width(8.dp))
 //                        DisplayFilmGenericText(
 //                            "${imdbRating.getImdbRating()}/10 - " +
-//                                    "${imdbVotes.toString().formatVotes()} IMDB Votes"
+//                                    "${imdbVotes.toString().formatVotes()} Votes"
 //                        )
                     }
 

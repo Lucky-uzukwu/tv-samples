@@ -88,7 +88,7 @@ fun CarouselItemForeground(
             DisplayFilmGenericText(
                 text = "${
                     movie.imdbRating.getImdbRating()
-                }/10 - ${movie.imdbVotes.toString().formatVotes()} IMDB Votes",
+                }/10 - ${movie.imdbVotes.toString().formatVotes()} Votes",
                 style = MaterialTheme.typography.bodySmall.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
@@ -177,7 +177,7 @@ fun CarouselItemForeground(
             DisplayFilmGenericText(
                 text = "${
                     tvShow.imdbRating.getImdbRating()
-                }/10 - ${tvShow.imdbVotes.toString().formatVotes()} IMDB Votes",
+                }/10 - ${tvShow.imdbVotes.toString().formatVotes()} Votes",
                 style = MaterialTheme.typography.bodySmall.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 ),

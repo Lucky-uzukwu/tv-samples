@@ -208,7 +208,7 @@ private fun TvShowDescription(
             DisplayFilmGenericText(
                 text = "${
                     tvShow.imdbRating.getImdbRating()
-                }/10 - ${tvShow.imdbVotes.toString().formatVotes()} IMDB Votes",
+                }/10 - ${tvShow.imdbVotes.toString().formatVotes()} Votes",
                 style = MaterialTheme.typography.bodySmall.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 ),

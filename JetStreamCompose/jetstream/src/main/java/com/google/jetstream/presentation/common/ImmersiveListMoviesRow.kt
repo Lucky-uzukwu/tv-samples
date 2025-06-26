@@ -211,7 +211,7 @@ private fun DisplayMovieDetails(
             DisplayFilmGenericText(
                 text = "${
                     movie.imdbRating.getImdbRating()
-                }/10 - ${movie.imdbVotes.toString().formatVotes()} IMDB Votes",
+                }/10 - ${movie.imdbVotes.toString().formatVotes()} Votes",
                 style = MaterialTheme.typography.bodySmall.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 ),

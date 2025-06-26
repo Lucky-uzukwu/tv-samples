@@ -24,7 +24,7 @@ fun IMDbLogo(
             .padding(horizontal = 3.dp, vertical = 1.dp),
         color = textColor,
         style = MaterialTheme.typography.bodySmall.copy(
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Medium
         )
     )
 }
