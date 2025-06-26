@@ -51,7 +51,6 @@ fun App(
     val navController = rememberNavController()
     var isComingBackFromDifferentScreen by remember { mutableStateOf(false) }
     val userState by userStateHolder.userState.collectAsState()
-    Logger.i { "user token: ${userState.user?.token}" }
     val startDestination =
         if (userState.user?.token !== null) Screens.Dashboard() else Screens.AuthScreen()
 
