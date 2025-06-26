@@ -120,7 +120,6 @@ private fun ImmersiveList(
             visible = isListFocused,
             modifier = modifier
                 .height(500.dp)
-                .padding(horizontal = 10.dp)
                 .gradientOverlay(gradientColor)
         )
         Column {
