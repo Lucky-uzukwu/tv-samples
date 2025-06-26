@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -88,7 +89,6 @@ private fun Catalog(
     carouselState: CarouselState,
 ) {
     val backgroundState = backgroundImageState()
-    var isCarouselFocused by remember { mutableStateOf(true) }
 
     val catalogToLazyPagingItems = catalogToTvShows.mapValues { (_, flow) ->
         flow.collectAsLazyPagingItems()
@@ -96,6 +96,7 @@ private fun Catalog(
     val genreToLazyPagingItems = genreToTvShows.mapValues { (_, flow) ->
         flow.collectAsLazyPagingItems()
     }
+    var carouselScrollEnabled by remember { mutableStateOf(true) }
 
     Box(modifier = modifier) {
         val targetBitmap by remember(backgroundState) { backgroundState.drawable }
@@ -137,6 +138,7 @@ private fun Catalog(
     TvLazyColumn(
         modifier = Modifier
             .fillMaxSize()
+            .padding(start = 28.dp)
             .semantics { contentDescription = "Shows Screen" },
         verticalArrangement = Arrangement.spacedBy(40.dp),
         contentPadding = PaddingValues(vertical = 40.dp)
@@ -158,6 +160,7 @@ private fun Catalog(
                     .height(340.dp)
                     .fillMaxWidth(),
                 carouselState = carouselState,
+                carouselScrollEnabled = carouselScrollEnabled,
             )
         }
 

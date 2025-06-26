@@ -42,6 +42,7 @@ fun TvShowHeroSectionCarousel(
     setSelectedTvShow: (TvShow) -> Unit,
     modifier: Modifier = Modifier,
     carouselState: CarouselState,
+    carouselScrollEnabled: Boolean,
 ) {
 
     var isCarouselFocused by remember { mutableStateOf(false) }
@@ -73,7 +74,9 @@ fun TvShowHeroSectionCarousel(
 
 
             LaunchedEffect(tvShow) {
-                setSelectedTvShow(tvShow)
+                if (carouselScrollEnabled) {
+                    setSelectedTvShow(tvShow)
+                }
             }
             CarouselItemForeground(
                 tvShow = tvShow,

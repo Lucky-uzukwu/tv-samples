@@ -31,6 +31,7 @@ fun MovieHeroSectionCarousel(
     setSelectedMovie: (MovieNew) -> Unit,
     modifier: Modifier = Modifier,
     carouselState: CarouselState,
+    carouselScrollEnabled: Boolean,
 ) {
     var isCarouselFocused by remember { mutableStateOf(false) }
     val itemsPerPage = 5
@@ -64,7 +65,9 @@ fun MovieHeroSectionCarousel(
             val movie = movies[idx] ?: return@Carousel
 
             LaunchedEffect(movie) {
-                setSelectedMovie(movie)
+                if (carouselScrollEnabled) {
+                    setSelectedMovie(movie)
+                }
             }
             // Gradient overlay
 //            Box(
