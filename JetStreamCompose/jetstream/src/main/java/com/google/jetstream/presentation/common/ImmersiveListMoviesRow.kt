@@ -16,11 +16,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,13 +64,6 @@ fun ImmersiveListMoviesRow(
         mutableStateOf(movies.itemSnapshotList.firstOrNull())
     }
 
-    LaunchedEffect(Unit) {
-        if (movies.itemSnapshotList.items.isNotEmpty()) {
-            selectedMovie = movies.itemSnapshotList.items.first()
-            setSelectedMovie(selectedMovie!!)
-        }
-    }
-
     ImmersiveList(
         selectedMovie = selectedMovie ?: return,
         isListFocused = isListFocused,
@@ -88,7 +79,7 @@ fun ImmersiveListMoviesRow(
             isListFocused = it.hasFocus
         },
         modifier = modifier.bringIntoViewIfChildrenAreFocused(
-            PaddingValues(bottom = 50.dp)
+            PaddingValues(bottom = 90.dp)
         )
     )
 
@@ -111,13 +102,14 @@ private fun ImmersiveList(
         contentAlignment = Alignment.BottomStart,
         modifier = modifier
     ) {
-        Background(
-            movie = selectedMovie,
-            visible = isListFocused,
-            modifier = modifier
-                .height(500.dp)
-                .gradientOverlay(gradientColor)
-        )
+//        Background(
+//            movie = selectedMovie,
+//            visible = isListFocused,
+//            modifier = modifier
+//                .height(500.dp)
+//                .fillMaxWidth()
+//                .gradientOverlay(gradientColor)
+//        )
         Column {
             // TODO HERE you can add more details for each row
             if (isListFocused) {
@@ -202,7 +194,7 @@ private fun DisplayMovieDetails(
             style = MaterialTheme.typography.displaySmall.copy(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             ),
-            maxLines = 2
+            maxLines = 1
         )
         val formattedPlot = movie.plot.formatPLot()
         DisplayFilmGenericText(

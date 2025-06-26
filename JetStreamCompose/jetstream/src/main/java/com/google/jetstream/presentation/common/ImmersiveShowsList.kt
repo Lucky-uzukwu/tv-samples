@@ -16,11 +16,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,14 +68,6 @@ fun ImmersiveShowsList(
         mutableStateOf(tvShows.itemSnapshotList.firstOrNull())
     }
 
-    LaunchedEffect(Unit) {
-        if (tvShows.itemSnapshotList.items.isNotEmpty()) {
-            selectedTvShow = tvShows.itemSnapshotList.items.first()
-            setSelectedTvShow(selectedTvShow!!)
-        }
-    }
-
-
     ImmersiveList(
         selectedTvShow = selectedTvShow ?: return,
         isListFocused = isListFocused,
@@ -93,7 +83,7 @@ fun ImmersiveShowsList(
             isListFocused = it.hasFocus
         },
         modifier = modifier.bringIntoViewIfChildrenAreFocused(
-            PaddingValues(bottom = 50.dp)
+            PaddingValues(bottom = 90.dp)
         )
     )
 
@@ -115,13 +105,13 @@ private fun ImmersiveList(
         contentAlignment = Alignment.BottomStart,
         modifier = modifier
     ) {
-        Background(
-            movie = selectedTvShow,
-            visible = isListFocused,
-            modifier = modifier
-                .height(500.dp)
-                .gradientOverlay(gradientColor)
-        )
+//        Background(
+//            movie = selectedTvShow,
+//            visible = isListFocused,
+//            modifier = modifier
+//                .height(500.dp)
+//                .gradientOverlay(gradientColor)
+//        )
         Column {
             // TODO HERE you can add more deails for each row
             if (isListFocused) {
@@ -200,7 +190,7 @@ private fun TvShowDescription(
                 style = MaterialTheme.typography.displaySmall.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
-                maxLines = 2
+                maxLines = 1
             )
         }
         val formattedPlot = tvShow.plot.formatPLot()
