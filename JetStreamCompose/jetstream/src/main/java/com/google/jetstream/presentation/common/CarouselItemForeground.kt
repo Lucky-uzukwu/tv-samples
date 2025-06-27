@@ -1,13 +1,10 @@
 package com.google.jetstream.presentation.common
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -16,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -33,7 +29,6 @@ import com.google.jetstream.R
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.presentation.theme.JetStreamButtonShape
-import com.google.jetstream.presentation.utils.formatPLot
 import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.getImdbRating
 import md_theme_light_onTertiary
@@ -72,15 +67,17 @@ fun CarouselItemForeground(
             ),
             maxLines = 2
         )
-        val formattedPlot = movie.plot.formatPLot()
-        DisplayFilmGenericText(
-            modifier = Modifier.padding(top = 4.dp),
-            text = formattedPlot,
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            ),
-            maxLines = 3
-        )
+
+        movie.plot?.let {
+            DisplayFilmGenericText(
+                modifier = Modifier.padding(top = 4.dp),
+                text = it,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                maxLines = 3
+            )
+        }
 
         Row(
             modifier = Modifier.padding(top = 12.dp, bottom = 28.dp)
@@ -161,15 +158,16 @@ fun CarouselItemForeground(
                 maxLines = 2
             )
         }
-        val formattedPlot = tvShow.plot.formatPLot()
-        DisplayFilmGenericText(
-            modifier = Modifier.padding(top = 4.dp),
-            text = formattedPlot,
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            ),
-            maxLines = 3
-        )
+        tvShow.plot?.let {
+            DisplayFilmGenericText(
+                modifier = Modifier.padding(top = 4.dp),
+                text = it,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                maxLines = 3
+            )
+        }
 
         Row(
             modifier = Modifier.padding(top = 12.dp, bottom = 28.dp)

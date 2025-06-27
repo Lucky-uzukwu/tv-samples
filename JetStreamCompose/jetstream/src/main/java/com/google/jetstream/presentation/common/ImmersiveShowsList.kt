@@ -49,7 +49,6 @@ import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.presentation.theme.JetStreamBorderWidth
 import com.google.jetstream.presentation.theme.JetStreamCardShape
 import com.google.jetstream.presentation.utils.bringIntoViewIfChildrenAreFocused
-import com.google.jetstream.presentation.utils.formatPLot
 import com.google.jetstream.presentation.utils.formatVotes
 import com.google.jetstream.presentation.utils.getImdbRating
 
@@ -193,15 +192,17 @@ private fun TvShowDescription(
                 maxLines = 1
             )
         }
-        val formattedPlot = tvShow.plot.formatPLot()
-        DisplayFilmGenericText(
-            modifier = Modifier.padding(top = 4.dp),
-            text = formattedPlot,
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            ),
-            maxLines = 3
-        )
+
+        tvShow.plot?.let {
+            DisplayFilmGenericText(
+                modifier = Modifier.padding(top = 4.dp),
+                text = it,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                maxLines = 3
+            )
+        }
         Row(
             modifier = Modifier.padding(top = 12.dp, bottom = 28.dp)
         ) {

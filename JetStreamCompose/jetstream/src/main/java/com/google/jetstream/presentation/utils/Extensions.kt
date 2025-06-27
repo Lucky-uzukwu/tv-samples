@@ -38,24 +38,6 @@ fun Modifier.fadingEdge(brush: Brush) = this
         drawRect(brush = brush, blendMode = BlendMode.DstIn)
     }
 
-fun String?.formatPLot(): String {
-    val plotWords = this?.split(" ") ?: emptyList()
-    val formattedPlot = plotWords.chunked(10).joinToString("\n") { chunk ->
-        // Ensure the second line (and subsequent lines) are not more than 15 words
-        if (chunk.size > 10) chunk.take(10).joinToString(" ") + "..."
-        else chunk.joinToString(" ")
-    }.let {
-        // Ensure the ellipsis is added correctly if the original plot was truncated.
-        // and the original plot had more words than what's displayed (2 lines * 15 words = 30 words approx)
-        // and the current formatted plot doesn't already end with an ellipsis
-        if (plotWords.size > 30 && !it.endsWith("...")) {
-            // Trim potentially added newlines if ellipsis is added at the end of everything
-            it.trimEnd() + "..."
-        } else it
-    }
-    return formattedPlot
-}
-
 data class ListBPosition(val page: Int, val position: Int)
 
 fun getListBPosition(listAIndex: Int, pageSize: Int = 5): ListBPosition {
