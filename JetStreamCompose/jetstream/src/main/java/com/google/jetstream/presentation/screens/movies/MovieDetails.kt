@@ -20,8 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,13 +29,10 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.jetstream.data.models.Country
 import com.google.jetstream.data.models.Genre
-import com.google.jetstream.presentation.common.DisplayFilmGenericText
 import com.google.jetstream.presentation.common.IMDbLogo
 import com.google.jetstream.presentation.common.StreamingProviderIcon
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
 import com.google.jetstream.presentation.utils.formatDuration
-import com.google.jetstream.presentation.utils.formatVotes
-import com.google.jetstream.presentation.utils.getImdbRating
 import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.models.Video
 import kotlinx.coroutines.launch

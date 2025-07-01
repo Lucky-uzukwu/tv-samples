@@ -2,6 +2,7 @@ package com.google.jetstream.presentation.screens.home
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -42,6 +44,7 @@ import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.ImmersiveListMoviesRow
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.MovieHeroSectionCarousel
+import com.google.jetstream.presentation.common.StreamingProvidersRow
 import com.google.jetstream.presentation.screens.backgroundImageState
 import kotlinx.coroutines.flow.StateFlow
 
@@ -166,7 +169,24 @@ private fun Catalog(
                 carouselScrollEnabled = carouselScrollEnabled,
                 modifier = Modifier
                     .height(340.dp)
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
+            )
+        }
+
+
+//        item {
+//            StreamingProvidersRow(
+//                streamingProviders = streamingProviders,
+//                onClick = { /* Handle streaming provider click */ },
+//            )
+//        }
+
+        item {
+            StreamingProvidersRow(
+                streamingProviders = streamingProviders,
+                onClick = { /* Handle streaming provider click */ },
+                modifier = Modifier
+                    .padding(bottom = 16.dp) // Optional: Adjust padding for better spacing
             )
         }
 
