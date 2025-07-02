@@ -7,13 +7,11 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.google.jetstream.data.models.Genre
-import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.data.network.Catalog
-import com.google.jetstream.data.pagingsources.movie.MoviesHeroSectionPagingSource
-import com.google.jetstream.data.pagingsources.tvshow.TvShowPagingSources
-import com.google.jetstream.data.pagingsources.tvshow.TvShowsHeroSectionPagingSource
+import com.google.jetstream.data.paging.pagingsources.tvshow.TvShowPagingSources
+import com.google.jetstream.data.paging.pagingsources.tvshow.TvShowsHeroSectionPagingSource
 import com.google.jetstream.data.repositories.CatalogRepository
 import com.google.jetstream.data.repositories.GenreRepository
 import com.google.jetstream.data.repositories.StreamingProvidersRepository

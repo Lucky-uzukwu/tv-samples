@@ -9,6 +9,7 @@ compose-bom = "2025.02.00"
 converter-gson = "2.9.0"
 media3-exoplayer-hls = "1.7.1"
 retrofit = "2.9.0"
+room-compiler = "2.7.2"
 tv-material = "1.0.0"
 core-ktx = "1.15.0"
 core-splashscreen = "1.0.1"
@@ -32,6 +33,7 @@ media3-exoplayer = "1.3.0"
 constraint-layout = "1.0.1"
 espresso-core = "3.5.1"
 benchmark = "1.2.3"
+room_version = "2.7.2"
 
 
 [libraries]
@@ -54,6 +56,7 @@ androidx-media3-ui = { module = "androidx.media3:media3-ui-compose", version.ref
 androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 androidx-profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room-compiler" }
 androidx-tv-material = { module = "androidx.tv:tv-material", version.ref = "tv-material" }
 androidx-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil-compose" }
@@ -72,6 +75,9 @@ ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 constraint-layout = { group = "androidx.constraintlayout", name = "constraintlayout-compose", version.ref = "constraint-layout" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room_version" }
+room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room_version" }
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room_version" }
 
 
 

@@ -2,7 +2,6 @@ package com.google.jetstream.presentation.screens.home
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,7 +19,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -62,7 +60,7 @@ fun HomeScreen(
     homeScreeViewModel: HomeScreeViewModel = hiltViewModel(),
 ) {
     val uiState by homeScreeViewModel.uiState.collectAsStateWithLifecycle()
-    val featuredMovies = homeScreeViewModel.heroMovies.collectAsLazyPagingItems()
+    val featuredMovies = homeScreeViewModel.fetchHeroMovies().collectAsLazyPagingItems()
     val carouselState = rememberSaveable(saver = carouselSaver) { CarouselState(0) }
 
     when (val s = uiState) {

@@ -168,6 +168,10 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
 
+    implementation(libs.room.ktx)
+    implementation(libs.room.paging)
+    implementation(libs.room.runtime)
+    ksp(libs.androidx.room.compiler)
 
     // Baseline profile installer
     implementation(libs.androidx.profileinstaller)

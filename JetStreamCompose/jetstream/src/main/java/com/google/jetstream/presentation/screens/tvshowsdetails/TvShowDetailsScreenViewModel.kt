@@ -22,7 +22,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.google.jetstream.data.models.TvShow
-import com.google.jetstream.data.pagingsources.tvshow.TvShowPagingSources
+import com.google.jetstream.data.paging.pagingsources.tvshow.TvShowPagingSources
 import com.google.jetstream.data.repositories.TvShowsRepository
 import com.google.jetstream.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel

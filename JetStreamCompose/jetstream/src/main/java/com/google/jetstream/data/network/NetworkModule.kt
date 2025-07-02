@@ -1,8 +1,14 @@
 package com.google.jetstream.data.network
 
+import android.content.Context
+import androidx.room.Room
+import com.google.jetstream.AppDatabase
+import com.google.jetstream.data.dao.MovieRemoteKeyDao
+import com.google.jetstream.data.dao.MoviesDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import okhttp3.OkHttpClient
@@ -30,6 +36,23 @@ class NetworkModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
+
+    @Singleton
+    @Provides
+    fun provideMovieDatabase(@ApplicationContext context: Context): AppDatabase =
+        Room
+            .databaseBuilder(context, AppDatabase::class.java, "app_database")
+            .build()
+
+    @Singleton
+    @Provides
+    fun provideMoviesDao(moviesDatabase: AppDatabase): MoviesDao = moviesDatabase.getMoviesDao()
+
+    @Singleton
+    @Provides
+    fun provideRemoteKeysDao(moviesDatabase: AppDatabase): MovieRemoteKeyDao =
+        moviesDatabase.getMovieRemoteKeyDao()
+
 
     @Provides
     @Singleton

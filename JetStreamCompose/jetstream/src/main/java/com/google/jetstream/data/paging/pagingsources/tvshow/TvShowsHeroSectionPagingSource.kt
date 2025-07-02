@@ -1,4 +1,4 @@
-package com.google.jetstream.data.pagingsources.tvshow
+package com.google.jetstream.data.paging.pagingsources.tvshow
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState

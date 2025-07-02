@@ -2,23 +2,25 @@ package com.google.jetstream.presentation.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.google.jetstream.data.entities.MovieList
+import com.google.jetstream.AppDatabase
 import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.data.models.Genre
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.StreamingProvider
+import com.google.jetstream.data.network.remote_mediator.MoviesRemoteMediator
 import com.google.jetstream.data.repositories.CatalogRepository
 import com.google.jetstream.data.repositories.GenreRepository
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.StreamingProvidersRepository
 import com.google.jetstream.data.repositories.UserRepository
-import com.google.jetstream.data.pagingsources.movie.MoviesPagingSources
-import com.google.jetstream.data.pagingsources.movie.MoviesHeroSectionPagingSource
+import com.google.jetstream.data.paging.pagingsources.movie.MoviesPagingSources
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +31,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+const val PAGE_SIZE = 20
 
 @HiltViewModel
 class HomeScreeViewModel @Inject constructor(
@@ -36,17 +39,29 @@ class HomeScreeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val catalogRepository: CatalogRepository,
     private val genreRepository: GenreRepository,
+    private val appDatabase: AppDatabase,
     private val streamingProvidersRepository: StreamingProvidersRepository
 ) : ViewModel() {
 
-    private val _heroMovies = MutableStateFlow<PagingData<MovieNew>>(
-        PagingData.empty()
-    )
-    val heroMovies: StateFlow<PagingData<MovieNew>> get() = _heroMovies.asStateFlow()
 
-    init {
-        fetchHeroMovies()
-    }
+    @OptIn(ExperimentalPagingApi::class)
+    fun fetchHeroMovies(): Flow<PagingData<MovieNew>> =
+        Pager(
+            config = PagingConfig(
+                pageSize = PAGE_SIZE,
+                prefetchDistance = 10,
+                initialLoadSize = PAGE_SIZE,
+            ),
+            pagingSourceFactory = {
+                appDatabase.getMoviesDao().getMovies()
+            },
+            remoteMediator = MoviesRemoteMediator(
+                movieRepository = movieRepository,
+                appDatabase = appDatabase,
+                userRepository = userRepository
+            )
+        ).flow
+
 
     // UI State combining all data
     val uiState: StateFlow<HomeScreenUiState> = combine(
@@ -81,21 +96,6 @@ class HomeScreeViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = HomeScreenUiState.Loading
     )
-
-
-    private fun fetchHeroMovies() {
-        viewModelScope.launch {
-            Pager(
-                PagingConfig(pageSize = 5, initialLoadSize = 5)
-            ) {
-                MoviesHeroSectionPagingSource(movieRepository, userRepository)
-            }.flow
-                .cachedIn(viewModelScope)
-                .collect { pagingData ->
-                    _heroMovies.value = pagingData
-                }
-        }
-    }
 
     private suspend fun fetchCatalogsAndMovies(
         catalogRepository: CatalogRepository,
