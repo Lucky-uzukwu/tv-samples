@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.google.jetstream.data.dao.MoviesDao
 import com.google.jetstream.data.dao.MovieRemoteKeyDao
-import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.entities.MovieEntity
 import com.google.jetstream.data.models.MovieRemoteKey
 import com.google.jetstream.data.models.converters.AnyListConverter
 import com.google.jetstream.data.models.converters.CountryConverter
@@ -25,7 +25,7 @@ import com.google.jetstream.data.models.converters.SubtitleConverter
     SubtitleConverter::class
 )
 @Database(
-    entities = [MovieNew::class, MovieRemoteKey::class],
+    entities = [MovieEntity::class, MovieRemoteKey::class],
     version = 1,
 )
 abstract class AppDatabase : RoomDatabase() {

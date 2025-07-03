@@ -6,8 +6,10 @@ import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import com.google.jetstream.AppDatabase
+import com.google.jetstream.data.entities.MovieEntity
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.MovieRemoteKey
+import com.google.jetstream.data.models.toMovieEntity
 import com.google.jetstream.data.network.MovieResponse
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.UserRepository
@@ -21,7 +23,7 @@ class MoviesRemoteMediator(
     private val movieRepository: MovieRepository,
     private val userRepository: UserRepository,
     private val appDatabase: AppDatabase
-) : RemoteMediator<Int, MovieNew>() {
+) : RemoteMediator<Int, MovieEntity>() {
 
 
     override suspend fun initialize(): InitializeAction {
@@ -38,7 +40,7 @@ class MoviesRemoteMediator(
 
     override suspend fun load(
         loadType: LoadType,
-        state: PagingState<Int, MovieNew>
+        state: PagingState<Int, MovieEntity>
     ): MediatorResult {
         val page: Int = when (loadType) {
             LoadType.REFRESH -> {
@@ -93,7 +95,9 @@ class MoviesRemoteMediator(
 
                 appDatabase.getMovieRemoteKeyDao().insertAll(remoteKeys)
                 appDatabase.getMoviesDao()
-                    .insertAll(movies.member.onEachIndexed { _, movie -> movie.page = page })
+                    .insertAll(movies.member.map { it.toMovieEntity() }.onEachIndexed { _, movie ->
+                        movie.page = page
+                    })
             }
             return MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
         } catch (error: IOException) {
@@ -103,7 +107,7 @@ class MoviesRemoteMediator(
         }
     }
 
-    private suspend fun getRemoteKeyClosestToCurrentPosition(state: PagingState<Int, MovieNew>): MovieRemoteKey? {
+    private suspend fun getRemoteKeyClosestToCurrentPosition(state: PagingState<Int, MovieEntity>): MovieRemoteKey? {
         return state.anchorPosition?.let { position ->
             state.closestItemToPosition(position)?.id?.let { id ->
                 appDatabase.getMovieRemoteKeyDao().getRemoteKeyByMovieID(id)
@@ -111,7 +115,7 @@ class MoviesRemoteMediator(
         }
     }
 
-    private suspend fun getRemoteKeyForFirstItem(state: PagingState<Int, MovieNew>): MovieRemoteKey? {
+    private suspend fun getRemoteKeyForFirstItem(state: PagingState<Int, MovieEntity>): MovieRemoteKey? {
         return state.pages.firstOrNull {
             it.data.isNotEmpty()
         }?.data?.firstOrNull()?.let { movie ->
@@ -119,7 +123,7 @@ class MoviesRemoteMediator(
         }
     }
 
-    private suspend fun getRemoteKeyForLastItem(state: PagingState<Int, MovieNew>): MovieRemoteKey? {
+    private suspend fun getRemoteKeyForLastItem(state: PagingState<Int, MovieEntity>): MovieRemoteKey? {
         return state.pages.lastOrNull {
             it.data.isNotEmpty()
         }?.data?.lastOrNull()?.let { movie ->

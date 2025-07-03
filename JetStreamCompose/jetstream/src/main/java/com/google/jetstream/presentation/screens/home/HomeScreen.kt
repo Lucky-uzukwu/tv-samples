@@ -34,6 +34,7 @@ import androidx.tv.foundation.lazy.list.TvLazyColumn
 import androidx.tv.material3.CarouselState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
+import com.google.jetstream.data.entities.MovieEntity
 import com.google.jetstream.data.models.Genre
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.StreamingProvider
@@ -86,7 +87,7 @@ fun HomeScreen(
 @Composable
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalTvMaterial3Api::class)
 private fun Catalog(
-    featuredMovies: LazyPagingItems<MovieNew>,
+    featuredMovies: LazyPagingItems<MovieEntity>,
     catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
     genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>,
     onMovieClick: (movie: MovieNew) -> Unit,

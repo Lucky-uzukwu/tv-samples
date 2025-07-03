@@ -5,15 +5,15 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.entities.MovieEntity
 
 @Dao
 interface MoviesDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(movies: List<MovieNew>)
+    suspend fun insertAll(movies: List<MovieEntity>)
 
     @Query("Select * From movie")
-    fun getMovies(): PagingSource<Int, MovieNew>
+    fun getMovies(): PagingSource<Int, MovieEntity>
 
     @Query("Delete From movie")
     suspend fun clearAllMovies()

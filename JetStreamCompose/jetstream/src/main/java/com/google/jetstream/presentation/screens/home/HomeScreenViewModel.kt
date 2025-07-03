@@ -8,27 +8,25 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.google.jetstream.AppDatabase
-import com.google.jetstream.data.network.Catalog
+import com.google.jetstream.data.entities.MovieEntity
 import com.google.jetstream.data.models.Genre
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.StreamingProvider
+import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.data.network.remote_mediator.MoviesRemoteMediator
+import com.google.jetstream.data.paging.pagingsources.movie.MoviesPagingSources
 import com.google.jetstream.data.repositories.CatalogRepository
 import com.google.jetstream.data.repositories.GenreRepository
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.StreamingProvidersRepository
 import com.google.jetstream.data.repositories.UserRepository
-import com.google.jetstream.data.paging.pagingsources.movie.MoviesPagingSources
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 const val PAGE_SIZE = 20
@@ -45,7 +43,7 @@ class HomeScreeViewModel @Inject constructor(
 
 
     @OptIn(ExperimentalPagingApi::class)
-    fun fetchHeroMovies(): Flow<PagingData<MovieNew>> =
+    fun fetchHeroMovies(): Flow<PagingData<MovieEntity>> =
         Pager(
             config = PagingConfig(
                 pageSize = PAGE_SIZE,

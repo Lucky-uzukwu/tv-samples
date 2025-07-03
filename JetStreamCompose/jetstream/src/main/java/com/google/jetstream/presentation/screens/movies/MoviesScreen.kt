@@ -145,23 +145,23 @@ private fun Catalog(
     ) {
 
         item(contentType = "HeroSectionCarousel") {
-            MovieHeroSectionCarousel(
-                movies = featuredMovies,
-                goToVideoPlayer = goToVideoPlayer,
-                goToMoreInfo = onMovieClick,
-                setSelectedMovie = { movie ->
-                    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
-                    backgroundState.load(
-                        url = imageUrl
-                    )
-                    setSelectedMovie(movie)
-                },
-                carouselState = carouselState,
-                modifier = Modifier
-                    .height(340.dp)
-                    .fillMaxWidth(),
-                carouselScrollEnabled = carouselScrollEnabled,
-            )
+//            MovieHeroSectionCarousel(
+//                movies = featuredMovies,
+//                goToVideoPlayer = goToVideoPlayer,
+//                goToMoreInfo = onMovieClick,
+//                setSelectedMovie = { movie ->
+//                    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
+//                    backgroundState.load(
+//                        url = imageUrl
+//                    )
+//                    setSelectedMovie(movie)
+//                },
+//                carouselState = carouselState,
+//                modifier = Modifier
+//                    .height(340.dp)
+//                    .fillMaxWidth(),
+//                carouselScrollEnabled = carouselScrollEnabled,
+//            )
         }
 
         items(
