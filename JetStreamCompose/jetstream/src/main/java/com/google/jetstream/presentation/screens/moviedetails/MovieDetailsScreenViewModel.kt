@@ -22,16 +22,17 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.paging.pagingsources.movie.MoviesPagingSources
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.UserRepository
-import com.google.jetstream.data.paging.pagingsources.movie.MoviesPagingSources
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 @HiltViewModel
 class MovieDetailsScreenViewModel @Inject constructor(
@@ -52,11 +53,16 @@ class MovieDetailsScreenViewModel @Inject constructor(
                 token = userToken
             ).firstOrNull() ?: return@combine MovieDetailsScreenUiState.Error
 
-            val similarMovies = fetchMoviesByGenre(
-                genreId = details.genres.first().id,
-                movieRepository = movieRepository,
-                userRepository = userRepository
-            )
+
+            val similarMovies = if (details.genres.isNotEmpty()) {
+                fetchMoviesByGenre(
+                    genreId = details.genres.first().id,
+                    movieRepository = movieRepository,
+                    userRepository = userRepository
+                )
+            } else {
+                MutableStateFlow(PagingData.empty<MovieNew>())
+            }
             MovieDetailsScreenUiState.Done(
                 similarMovies = similarMovies,
                 movie = details

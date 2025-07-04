@@ -1,19 +1,3 @@
-/*
- * Copyright 2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.google.jetstream.presentation
 
 import AuthScreen
@@ -31,13 +15,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import co.touchlab.kermit.Logger
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.screens.categories.CategoryMovieListScreen
 import com.google.jetstream.presentation.screens.dashboard.DashboardScreen
 import com.google.jetstream.presentation.screens.moviedetails.MovieDetailsScreen
+import com.google.jetstream.presentation.screens.streamingprovider.StreamingProviderMoviesListScreen
 import com.google.jetstream.presentation.screens.tvshowsdetails.TvShowDetailsScreen
 import com.google.jetstream.presentation.screens.videoPlayer.VideoPlayerScreen
 import com.google.jetstream.state.UserStateHolder
@@ -94,6 +78,27 @@ fun App(
                 )
             ) {
                 CategoryMovieListScreen(
+                    onBackPressed = {
+                        if (navController.navigateUp()) {
+                            isComingBackFromDifferentScreen = true
+                        }
+                    },
+                    onMovieSelected = { movie ->
+                        navController.navigate(
+                            Screens.MovieDetails.withArgs(movie.id)
+                        )
+                    }
+                )
+            }
+            composable(
+                route = Screens.StreamingProviderMoviesList(),
+                arguments = listOf(
+                    navArgument(StreamingProviderMoviesListScreen.StreamingProviderIdBundleKey) {
+                        type = NavType.StringType
+                    }
+                )
+            ) {
+                StreamingProviderMoviesListScreen(
                     onBackPressed = {
                         if (navController.navigateUp()) {
                             isComingBackFromDifferentScreen = true
@@ -169,6 +174,11 @@ fun App(
                             Screens.CategoryMovieList.withArgs(categoryId)
                         )
                     },
+                    openStreamingProviderMovieList = { streamingProvider ->
+                        navController.navigate(
+                            Screens.StreamingProviderMoviesList.withArgs(streamingProvider.id)
+                        )
+                    },
                     openTvShowDetailsScreen = { tvShowId ->
                         navController.navigate(
                             Screens.TvShowDetails.withArgs(tvShowId)
@@ -182,12 +192,10 @@ fun App(
                     openVideoPlayer = { movieId ->
                         navController.navigate(Screens.VideoPlayer.withArgs(movieId))
                     },
-                    selectedMovie = selectedMovie.value,
                     setSelectedMovie = {
                         selectedMovie.value = it
                         selectedTvShow.value = null
                     },
-                    selectedTvShow = selectedTvShow.value,
                     setSelectedTvShow = {
                         selectedTvShow.value = it
                         selectedMovie.value = null
@@ -196,10 +204,6 @@ fun App(
                         userStateHolder.clearUser()
                         navController.navigate(Screens.AuthScreen())
                     },
-                    clearFilmSelection = {
-                        selectedMovie.value = null
-                        selectedTvShow.value = null
-                    }
                 )
             }
             composable(route = Screens.VideoPlayer()) {

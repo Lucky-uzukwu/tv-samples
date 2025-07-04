@@ -91,4 +91,10 @@ class NetworkModule {
     fun GenreService(retrofit: Retrofit): GenreService {
         return retrofit.create(GenreService::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun SearchService(retrofit: Retrofit): SearchService {
+        return retrofit.create(SearchService::class.java)
+    }
 }

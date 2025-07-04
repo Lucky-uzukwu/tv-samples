@@ -25,7 +25,7 @@ import com.google.jetstream.data.models.StreamingProvider
 @Composable
 fun StreamingProvidersRow(
     modifier: Modifier = Modifier,
-    onClick: () -> Unit,
+    onClick: (streamingProvider: StreamingProvider) -> Unit,
     streamingProviders: List<StreamingProvider>,
 ) {
     val lazyRowState = rememberTvLazyListState(initialFirstVisibleItemScrollOffset = 1)
@@ -56,7 +56,7 @@ fun StreamingProvidersRow(
             val streamingProvider = streamingProviders[index]
             val imageUrl = "https://stage.nortv.xyz/storage/${streamingProvider.logoPath}"
             CustomCard(
-                onClick = onClick,
+                onClick = { onClick(streamingProvider) },
                 modifier = Modifier
                     .width(180.dp),
                 imageUrl = imageUrl,

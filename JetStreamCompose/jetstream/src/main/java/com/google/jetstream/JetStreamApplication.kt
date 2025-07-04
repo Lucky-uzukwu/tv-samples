@@ -26,6 +26,8 @@ import com.google.jetstream.data.repositories.GenreRepository
 import com.google.jetstream.data.repositories.GenreRepositoryImpl
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.MovieRepositoryImpl
+import com.google.jetstream.data.repositories.SearchRepository
+import com.google.jetstream.data.repositories.SearchRepositoryImpl
 import com.google.jetstream.data.repositories.StreamingProvidersRepository
 import com.google.jetstream.data.repositories.StreamingProvidersRepositoryImpl
 import com.google.jetstream.data.repositories.TvShowsRepository
@@ -101,6 +103,16 @@ abstract class CatalogRepositoryModule {
     abstract fun bindCatalogRepository(
         catalogRepositoryImpl: CatalogRepositoryImpl
     ): CatalogRepository
+}
+
+@InstallIn(SingletonComponent::class)
+@Module
+abstract class SearchRepositoryModule {
+
+    @Binds
+    abstract fun bindSearchRepository(
+        searchRepositoryImpl: SearchRepositoryImpl
+    ): SearchRepository
 }
 
 

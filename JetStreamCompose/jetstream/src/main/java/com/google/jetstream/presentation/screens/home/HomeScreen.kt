@@ -57,6 +57,7 @@ val carouselSaver =
 fun HomeScreen(
     onMovieClick: (movie: MovieNew) -> Unit,
     goToVideoPlayer: (movie: MovieNew) -> Unit,
+    onStreamingProviderClick: (streamingProvider: StreamingProvider) -> Unit,
     setSelectedMovie: (movie: MovieNew) -> Unit,
     homeScreeViewModel: HomeScreeViewModel = hiltViewModel(),
 ) {
@@ -71,6 +72,7 @@ fun HomeScreen(
                 catalogToMovies = s.catalogToMovies,
                 genreToMovies = s.genreToMovies,
                 onMovieClick = onMovieClick,
+                onStreamingProviderClick = onStreamingProviderClick,
                 setSelectedMovie = setSelectedMovie,
                 goToVideoPlayer = goToVideoPlayer,
                 streamingProviders = s.streamingProviders,
@@ -91,6 +93,7 @@ private fun Catalog(
     catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
     genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>,
     onMovieClick: (movie: MovieNew) -> Unit,
+    onStreamingProviderClick: (streamingProvider: StreamingProvider) -> Unit,
     goToVideoPlayer: (movie: MovieNew) -> Unit,
     modifier: Modifier = Modifier,
     setSelectedMovie: (movie: MovieNew) -> Unit,
@@ -173,17 +176,10 @@ private fun Catalog(
         }
 
 
-//        item {
-//            StreamingProvidersRow(
-//                streamingProviders = streamingProviders,
-//                onClick = { /* Handle streaming provider click */ },
-//            )
-//        }
-
         item {
             StreamingProvidersRow(
                 streamingProviders = streamingProviders,
-                onClick = { /* Handle streaming provider click */ },
+                onClick = onStreamingProviderClick,
                 modifier = Modifier
                     .padding(bottom = 16.dp) // Optional: Adjust padding for better spacing
             )

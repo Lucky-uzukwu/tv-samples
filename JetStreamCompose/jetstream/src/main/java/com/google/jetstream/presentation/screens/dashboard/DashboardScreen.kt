@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.screens.categories.CategoriesScreen
@@ -47,10 +48,8 @@ fun DashboardScreen(
     openMovieDetailsScreen: (movieId: String) -> Unit = {},
     openTvShowDetailsScreen: (tvShowId: String) -> Unit = {},
     openVideoPlayer: (movieId: String) -> Unit = {},
-    selectedMovie: MovieNew? = null,
+    openStreamingProviderMovieList: (streamingProvider: StreamingProvider) -> Unit = {},
     setSelectedMovie: (movie: MovieNew) -> Unit,
-    selectedTvShow: TvShow? = null,
-    clearFilmSelection: () -> Unit,
     setSelectedTvShow: (tvShow: TvShow) -> Unit,
     onLogOutClick: () -> Unit
 ) {
@@ -69,7 +68,8 @@ fun DashboardScreen(
                 setSelectedMovie = setSelectedMovie,
                 setSelectedTvShow = setSelectedTvShow,
                 openTvShowDetailsScreen = openTvShowDetailsScreen,
-                onLogOutClick = onLogOutClick
+                onLogOutClick = onLogOutClick,
+                openStreamingProviderMovieList = openStreamingProviderMovieList
             )
         },
     ) { screen ->
@@ -81,6 +81,7 @@ fun DashboardScreen(
 private fun Body(
     modifier: Modifier = Modifier,
     openCategoryMovieList: (categoryId: String) -> Unit,
+    openStreamingProviderMovieList: (streamingProvider: StreamingProvider) -> Unit,
     openMovieDetailsScreen: (movieId: String) -> Unit,
     openTvShowDetailsScreen: (tvShowId: String) -> Unit,
     openVideoPlayer: (movieId: String) -> Unit,
@@ -106,7 +107,8 @@ private fun Body(
                 goToVideoPlayer = { selectedMovie ->
                     openVideoPlayer(selectedMovie.id.toString())
                 },
-                setSelectedMovie = setSelectedMovie
+                setSelectedMovie = setSelectedMovie,
+                onStreamingProviderClick = openStreamingProviderMovieList
             )
         }
 
@@ -162,10 +164,7 @@ fun DashboardScreenNewPreview() {
         openMovieDetailsScreen = { },
         openTvShowDetailsScreen = { },
         openVideoPlayer = { },
-        selectedMovie = null,
         setSelectedMovie = { },
-        selectedTvShow = null,
-        clearFilmSelection = { },
         setSelectedTvShow = { },
         onLogOutClick = { },
     )
