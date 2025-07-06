@@ -108,7 +108,7 @@ private fun MoviesGrid(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No shows available for this provider.",
+                        text = "No movie available for this provider.",
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(16.dp)
                     )

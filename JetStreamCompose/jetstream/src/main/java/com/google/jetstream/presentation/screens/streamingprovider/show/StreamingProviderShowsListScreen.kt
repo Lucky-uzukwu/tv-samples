@@ -109,7 +109,7 @@ private fun ShowsGrid(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No shows available for this provider.",
+                        text = "No show available for this provider.",
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(16.dp)
                     )
