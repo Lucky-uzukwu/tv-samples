@@ -176,7 +176,7 @@ fun App(
                     },
                     openStreamingProviderMovieList = { streamingProvider ->
                         navController.navigate(
-                            Screens.StreamingProviderMoviesList.withArgs(streamingProvider.id)
+                            Screens.StreamingProviderMoviesList.withArgs("${streamingProvider.id}-${streamingProvider.name}")
                         )
                     },
                     openTvShowDetailsScreen = { tvShowId ->

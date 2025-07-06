@@ -30,10 +30,12 @@ class StreamingProviderMoviesListScreenViewModel @Inject constructor(
         savedStateHandle.getStateFlow<String?>(
             StreamingProviderMoviesListScreen.StreamingProviderIdBundleKey,
             null
-        ).map { streamingProviderId ->
-            if (streamingProviderId == null) {
+        ).map { streamingProvider ->
+            if (streamingProvider == null) {
                 StreamingProviderMoviesListScreenUiState.Error
             } else {
+                val streamingProviderId = streamingProvider.split("-")[0]
+                val streamingProviderName = streamingProvider.split("-")[1]
                 val movies = SearchPagingSources().searchMovies(
                     query = "$streamingProviderId IN [‚id of sp‘]",
                     searchRepository = searchRepository,
@@ -44,7 +46,7 @@ class StreamingProviderMoviesListScreenViewModel @Inject constructor(
                     PagingData.empty()
                 )
                 StreamingProviderMoviesListScreenUiState.Done(
-                    streamingProviderName = streamingProviderId,
+                    streamingProviderName = streamingProviderName,
                     movies = movies
                 )
             }
