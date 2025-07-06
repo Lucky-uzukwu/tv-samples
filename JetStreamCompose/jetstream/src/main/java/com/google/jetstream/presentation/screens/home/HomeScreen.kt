@@ -181,7 +181,6 @@ private fun Catalog(
                 streamingProviders = streamingProviders,
                 onClick = onStreamingProviderClick,
                 modifier = Modifier
-                    .padding(bottom = 16.dp) // Optional: Adjust padding for better spacing
             )
         }
 

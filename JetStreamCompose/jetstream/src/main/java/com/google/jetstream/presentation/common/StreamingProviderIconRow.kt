@@ -1,8 +1,10 @@
 package com.google.jetstream.presentation.common
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,11 +15,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.tv.foundation.lazy.list.TvLazyRow
 import androidx.tv.foundation.lazy.list.rememberTvLazyListState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
+import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.Text
+import com.google.jetstream.R
 import com.google.jetstream.data.models.StreamingProvider
 
 
@@ -38,32 +48,49 @@ fun StreamingProvidersRow(
         }
     }
 
-    TvLazyRow(
-        state = lazyRowState,
-        modifier = modifier
-            .fillMaxWidth()
-            .onFocusChanged { focusState ->
-                hasFocus = focusState.hasFocus
-            },
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        contentPadding = PaddingValues(horizontal = 32.dp)
+    Column(
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(
-            count = streamingProviders.size,
-            key = { index -> streamingProviders[index].id }
-        ) { index ->
-            val streamingProvider = streamingProviders[index]
-            if (streamingProvider.logoPath != null) {
-                val imageUrl = "https://stage.nortv.xyz/storage/${streamingProvider.logoPath}"
-                CustomCard(
-                    onClick = { onClick(streamingProvider) },
-                    modifier = Modifier
-                        .width(180.dp),
-                    imageUrl = imageUrl,
-                )
-            }
+        Text(
+            text = stringResource(R.string.streaming_providers),
+            color = Color.White,
+            style = MaterialTheme.typography.headlineSmall.copy(
+                fontWeight = FontWeight.Medium,
+                fontSize = 18.sp
+            ),
+            modifier = Modifier
+                .padding(start = 32.dp)
+                .alpha(1f)
+        )
 
+        TvLazyRow(
+            state = lazyRowState,
+            modifier = modifier
+                .fillMaxWidth()
+                .onFocusChanged { focusState ->
+                    hasFocus = focusState.hasFocus
+                },
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            contentPadding = PaddingValues(horizontal = 32.dp)
+        ) {
+            items(
+                count = streamingProviders.size,
+                key = { index -> streamingProviders[index].id }
+            ) { index ->
+                val streamingProvider = streamingProviders[index]
+                if (streamingProvider.logoPath != null) {
+                    val imageUrl = "https://stage.nortv.xyz/storage/${streamingProvider.logoPath}"
+                    CustomCard(
+                        onClick = { onClick(streamingProvider) },
+                        modifier = Modifier
+                            .width(180.dp),
+                        imageUrl = imageUrl,
+                    )
+                }
+
+            }
         }
+
     }
 }
