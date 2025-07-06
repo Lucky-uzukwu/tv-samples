@@ -3,9 +3,11 @@ package com.google.jetstream.presentation.screens.streamingprovider.show
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -101,35 +103,47 @@ private fun ShowsGrid(
             label = "",
         ) { state ->
             val tvShows = state.collectAsLazyPagingItems().itemSnapshotList.items
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(6),
-                contentPadding = PaddingValues(bottom = JetStreamBottomListPadding)
-            ) {
-                itemsIndexed(tvShows, key = { _, tvShow -> tvShow.id }) { index, item ->
-                    MovieCard(
-                        onClick = { onShowSelected(item) },
-                        modifier = Modifier
-                            .aspectRatio(1 / 1.5f)
-                            .padding(8.dp)
-                            .then(
-                                if (index == 0)
-                                    Modifier.focusOnInitialVisibility(isFirstItemVisible)
-                                else Modifier
-                            ),
-                    ) {
-                        val imageUrl =
-                            "https://stage.nortv.xyz/" + "storage/" + item.posterImagePath
-                        item.title?.let {
-                            PosterImage(
-                                title = it,
-                                posterUrl = imageUrl,
-                                modifier = Modifier.fillMaxSize()
-                            )
+            if (tvShows.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No shows available for this provider.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(6),
+                    contentPadding = PaddingValues(bottom = JetStreamBottomListPadding)
+                ) {
+                    itemsIndexed(tvShows, key = { _, tvShow -> tvShow.id }) { index, item ->
+                        MovieCard(
+                            onClick = { onShowSelected(item) },
+                            modifier = Modifier
+                                .aspectRatio(1 / 1.5f)
+                                .padding(8.dp)
+                                .then(
+                                    if (index == 0)
+                                        Modifier.focusOnInitialVisibility(isFirstItemVisible)
+                                    else Modifier
+                                ),
+                        ) {
+                            val imageUrl =
+                                "https://stage.nortv.xyz/" + "storage/" + item.posterImagePath
+                            item.title?.let {
+                                PosterImage(
+                                    title = it,
+                                    posterUrl = imageUrl,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
                         }
                     }
                 }
             }
-
         }
     }
 }

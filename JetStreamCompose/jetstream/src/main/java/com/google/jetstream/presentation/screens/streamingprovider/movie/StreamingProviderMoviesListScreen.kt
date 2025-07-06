@@ -2,6 +2,7 @@ package com.google.jetstream.presentation.screens.streamingprovider.movie
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
@@ -101,29 +102,42 @@ private fun MoviesGrid(
             label = "",
         ) { state ->
             val movieList = state.collectAsLazyPagingItems().itemSnapshotList.items
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(6),
-                contentPadding = PaddingValues(bottom = JetStreamBottomListPadding)
-            ) {
-                itemsIndexed(movieList, key = { _, movie -> movie.id }) { index, movie ->
-                    MovieCard(
-                        onClick = { onMovieSelected(movie) },
-                        modifier = Modifier
-                            .aspectRatio(1 / 1.5f)
-                            .padding(8.dp)
-                            .then(
-                                if (index == 0)
-                                    Modifier.focusOnInitialVisibility(isFirstItemVisible)
-                                else Modifier
-                            ),
-                    ) {
-                        val imageUrl =
-                            "https://stage.nortv.xyz/" + "storage/" + movie.posterImagePath
-                        PosterImage(
-                            title = movie.title,
-                            posterUrl = imageUrl,
-                            modifier = Modifier.fillMaxSize()
-                        )
+            if (movieList.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No shows available for this provider.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(6),
+                    contentPadding = PaddingValues(bottom = JetStreamBottomListPadding)
+                ) {
+                    itemsIndexed(movieList, key = { _, movie -> movie.id }) { index, movie ->
+                        MovieCard(
+                            onClick = { onMovieSelected(movie) },
+                            modifier = Modifier
+                                .aspectRatio(1 / 1.5f)
+                                .padding(8.dp)
+                                .then(
+                                    if (index == 0)
+                                        Modifier.focusOnInitialVisibility(isFirstItemVisible)
+                                    else Modifier
+                                ),
+                        ) {
+                            val imageUrl =
+                                "https://stage.nortv.xyz/" + "storage/" + movie.posterImagePath
+                            PosterImage(
+                                title = movie.title,
+                                posterUrl = imageUrl,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
                 }
             }
