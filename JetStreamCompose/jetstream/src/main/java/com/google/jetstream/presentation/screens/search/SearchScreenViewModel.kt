@@ -18,18 +18,25 @@ package com.google.jetstream.presentation.screens.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.jetstream.data.entities.MovieList
-import com.google.jetstream.data.repositories.MovieRepository
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.models.TvShow
+import com.google.jetstream.data.paging.pagingsources.search.SearchPagingSources
+import com.google.jetstream.data.repositories.SearchRepository
+import com.google.jetstream.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class SearchScreenViewModel @Inject constructor(
-    private val movieRepository: MovieRepository
+    private val searchRepository: SearchRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val internalSearchState = MutableSharedFlow<SearchState>()
@@ -40,18 +47,51 @@ class SearchScreenViewModel @Inject constructor(
 
     private suspend fun postQuery(queryString: String) {
         internalSearchState.emit(SearchState.Searching)
-        val result = movieRepository.searchMovies(query = queryString)
-        internalSearchState.emit(SearchState.Done(result))
+
+//        val tvShowResults = searchRepository.searchTvShowsByQuery(
+//            token = token,
+//            query = queryString,
+//            itemsPerPage = 10,
+//            page = 1
+//        ).firstOrNull()?.member
+
+        val tvShows: StateFlow<PagingData<TvShow>> = SearchPagingSources().searchTvShows(
+            query = queryString,
+            searchRepository = searchRepository,
+            userRepository = userRepository
+        ).cachedIn(viewModelScope).stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            PagingData.empty()
+        )
+
+        val movies: StateFlow<PagingData<MovieNew>> = SearchPagingSources().searchMovies(
+            query = queryString,
+            searchRepository = searchRepository,
+            userRepository = userRepository
+        ).cachedIn(viewModelScope).stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            PagingData.empty()
+        )
+
+        internalSearchState.emit(SearchState.Done(shows = tvShows, movies = movies))
     }
 
     val searchState = internalSearchState.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = SearchState.Done(emptyList())
+        initialValue = SearchState.Done(
+            null,
+            null
+        )
     )
 }
 
 sealed interface SearchState {
     data object Searching : SearchState
-    data class Done(val movieList: MovieList) : SearchState
+    data class Done(
+        val shows: StateFlow<PagingData<TvShow>>?,
+        val movies: StateFlow<PagingData<MovieNew>>?
+    ) : SearchState
 }

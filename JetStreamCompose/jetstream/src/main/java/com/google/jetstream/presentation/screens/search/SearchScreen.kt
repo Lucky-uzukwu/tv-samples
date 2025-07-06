@@ -1,28 +1,35 @@
 package com.google.jetstream.presentation.screens.search
 
 import android.view.KeyEvent
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -38,6 +45,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.PagingData
+import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.tv.material3.Border
 import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.LocalContentColor
@@ -45,31 +54,29 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
 import com.google.jetstream.R
-import com.google.jetstream.data.entities.Movie
-import com.google.jetstream.data.entities.MovieList
-import com.google.jetstream.presentation.common.MoviesRow
+import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.models.TvShow
+import com.google.jetstream.presentation.common.MovieCard
+import com.google.jetstream.presentation.common.PosterImage
 import com.google.jetstream.presentation.screens.dashboard.rememberChildPadding
+import com.google.jetstream.presentation.theme.JetStreamBottomListPadding
 import com.google.jetstream.presentation.theme.JetStreamCardShape
+import kotlinx.coroutines.flow.StateFlow
+
+
+data class TargetState(
+    val movies: StateFlow<PagingData<MovieNew>>? = null,
+    val shows: StateFlow<PagingData<TvShow>>? = null
+)
 
 @Composable
 fun SearchScreen(
-    onMovieClick: (movie: Movie) -> Unit,
+    onMovieClick: (movie: MovieNew) -> Unit,
+    onShowClick: (show: TvShow) -> Unit,
     onScroll: (isTopBarVisible: Boolean) -> Unit,
     searchScreenViewModel: SearchScreenViewModel = hiltViewModel(),
 ) {
-    val lazyColumnState = rememberLazyListState()
-    val shouldShowTopBar by remember {
-        derivedStateOf {
-            lazyColumnState.firstVisibleItemIndex == 0 &&
-                    lazyColumnState.firstVisibleItemScrollOffset < 100
-        }
-    }
-
     val searchState by searchScreenViewModel.searchState.collectAsStateWithLifecycle()
-
-    LaunchedEffect(shouldShowTopBar) {
-        onScroll(shouldShowTopBar)
-    }
 
     when (val s = searchState) {
         is SearchState.Searching -> {
@@ -77,11 +84,12 @@ fun SearchScreen(
         }
 
         is SearchState.Done -> {
-            val movieList = s.movieList
             SearchResult(
-                movieList = movieList,
+                movies = s.movies,
+                shows = s.shows,
                 searchMovies = searchScreenViewModel::query,
-                onMovieClick = onMovieClick
+                onMovieClick = onMovieClick,
+                onShowClick = onShowClick
             )
         }
     }
@@ -90,9 +98,11 @@ fun SearchScreen(
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SearchResult(
-    movieList: MovieList,
+    movies: StateFlow<PagingData<MovieNew>>?,
+    shows: StateFlow<PagingData<TvShow>>?,
     searchMovies: (queryString: String) -> Unit,
-    onMovieClick: (movie: Movie) -> Unit,
+    onMovieClick: (movie: MovieNew) -> Unit,
+    onShowClick: (show: TvShow) -> Unit,
     modifier: Modifier = Modifier,
     lazyColumnState: LazyListState = rememberLazyListState(),
 ) {
@@ -103,6 +113,11 @@ fun SearchResult(
     val tfInteractionSource = remember { MutableInteractionSource() }
 
     val isTfFocused by tfInteractionSource.collectIsFocusedAsState()
+
+    val isMoviesEmpty =
+        movies?.collectAsLazyPagingItems()?.itemSnapshotList?.items?.isEmpty() == true
+    val isShowsEmpty =
+        shows?.collectAsLazyPagingItems()?.itemSnapshotList?.items?.isEmpty() == true
 
     Box(
         modifier = modifier
@@ -213,16 +228,135 @@ fun SearchResult(
                     )
                 }
             }
-// TODO: Uncomment and use
-//        item {
-//            MoviesRow(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .padding(top = childPadding.top * 2),
-//                movieList = movieList
-//            ) { selectedMovie -> onMovieClick(selectedMovie) }
-//        }
         }
+
+        AnimatedContent(
+            targetState = TargetState(movies, shows),
+            label = "",
+        ) { state ->
+            val movieList = state.movies?.collectAsLazyPagingItems()?.itemSnapshotList?.items
+            val showList = state.shows?.collectAsLazyPagingItems()?.itemSnapshotList?.items
+            if (isMoviesEmpty && isShowsEmpty && searchQuery != "") {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No result found",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            } else {
+                LazyVerticalGrid(
+                    modifier = Modifier.padding(top = 80.dp, start = 40.dp),
+                    columns = GridCells.Fixed(6),
+                    contentPadding = PaddingValues(bottom = JetStreamBottomListPadding)
+                ) {
+                    itemsIndexed(
+                        movieList.orEmpty(),
+                        contentType = { _, _ -> "movie" },
+                        key = { _, movie -> movie.id }) { index, movie ->
+                        MovieCard(
+                            onClick = { onMovieClick(movie) },
+                            modifier = Modifier
+                                .aspectRatio(1 / 1.5f)
+                                .padding(8.dp)
+                                .then(
+                                    Modifier
+                                ),
+                        ) {
+                            val imageUrl =
+                                "https://stage.nortv.xyz/" + "storage/" + movie.posterImagePath
+                            PosterImage(
+                                title = movie.title,
+                                posterUrl = imageUrl,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    }
+//                    itemsIndexed(
+//                        showList.orEmpty(),
+//                        contentType = { _, _ -> "show" },
+//                        key = { _, show -> show.id }) { index, show ->
+//                        MovieCard(
+//                            onClick = { onShowClick(show) },
+//                            modifier = Modifier
+//                                .aspectRatio(1 / 1.5f)
+//                                .padding(8.dp)
+//                                .then(
+//                                    Modifier
+//                                ),
+//                        ) {
+//                            val imageUrl =
+//                                "https://stage.nortv.xyz/" + "storage/" + show.posterImagePath
+//                            show.title?.let {
+//                                PosterImage(
+//                                    title = it,
+//                                    posterUrl = imageUrl,
+//                                    modifier = Modifier.fillMaxSize()
+//                                )
+//                            }
+//                        }
+//                    }
+                }
+            }
+        }
+
+
+        Column {
+
+//            AnimatedContent(
+//                targetState = shows,
+//                label = "",
+//            ) { state ->
+//                val showList = state?.collectAsLazyPagingItems()?.itemSnapshotList?.items
+//                if (isShowsEmpty && isMoviesEmpty && searchQuery != "") {
+//                    Box(
+//                        modifier = Modifier.fillMaxSize(),
+//                        contentAlignment = Alignment.Center
+//                    ) {
+//                        Text(
+//                            text = "No result found",
+//                            style = MaterialTheme.typography.bodyLarge,
+//                            modifier = Modifier.padding(16.dp)
+//                        )
+//                    }
+//                } else {
+//                    val paddingTop = if (isMoviesEmpty) 10.dp else 160.dp
+//                    LazyVerticalGrid(
+//                        modifier = Modifier.padding(top = paddingTop, start = 40.dp),
+//                        columns = GridCells.Fixed(6),
+//                        contentPadding = PaddingValues(bottom = JetStreamBottomListPadding)
+//                    ) {
+//                        itemsIndexed(
+//                            showList.orEmpty(),
+//                            key = { _, show -> show.id }) { index, show ->
+//                            MovieCard(
+//                                onClick = { onShowClick(show) },
+//                                modifier = Modifier
+//                                    .aspectRatio(1 / 1.5f)
+//                                    .padding(8.dp)
+//                                    .then(
+//                                        Modifier
+//                                    ),
+//                            ) {
+//                                val imageUrl =
+//                                    "https://stage.nortv.xyz/" + "storage/" + show.posterImagePath
+//                                show.title?.let {
+//                                    PosterImage(
+//                                        title = it,
+//                                        posterUrl = imageUrl,
+//                                        modifier = Modifier.fillMaxSize()
+//                                    )
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+        }
+
 
     }
 }

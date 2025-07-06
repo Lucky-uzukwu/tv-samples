@@ -146,8 +146,9 @@ private fun Body(
         }
         composable(Screens.Search()) {
             SearchScreen(
-                onMovieClick = { movie -> openMovieDetailsScreen(movie.id) },
-                onScroll = { }
+                onMovieClick = { movie -> openMovieDetailsScreen(movie.id.toString()) },
+                onScroll = { },
+                onShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) }
             )
         }
 
