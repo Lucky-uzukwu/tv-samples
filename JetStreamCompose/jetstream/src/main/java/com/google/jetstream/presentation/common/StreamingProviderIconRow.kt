@@ -4,10 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -15,19 +12,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.tv.foundation.lazy.list.TvLazyRow
 import androidx.tv.foundation.lazy.list.rememberTvLazyListState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
-import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
-import com.google.jetstream.R
 import com.google.jetstream.data.models.StreamingProvider
 
 
@@ -38,31 +27,10 @@ fun StreamingProvidersRow(
     onClick: (streamingProvider: StreamingProvider) -> Unit,
     streamingProviders: List<StreamingProvider>,
 ) {
-    val lazyRowState = rememberTvLazyListState(initialFirstVisibleItemScrollOffset = 1)
+    val lazyRowState = rememberTvLazyListState()
     var hasFocus by remember { mutableStateOf(false) }
 
-    // Scroll to the first item when the row gains focus
-    LaunchedEffect(hasFocus) {
-        if (hasFocus) {
-            lazyRowState.animateScrollToItem(0) // Ensure the first item is focused
-        }
-    }
-
-    Column(
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Text(
-            text = stringResource(R.string.streaming_providers),
-            color = Color.White,
-            style = MaterialTheme.typography.headlineSmall.copy(
-                fontWeight = FontWeight.Medium,
-                fontSize = 18.sp
-            ),
-            modifier = Modifier
-                .padding(start = 32.dp)
-                .alpha(1f)
-        )
-
+    Column {
         TvLazyRow(
             state = lazyRowState,
             modifier = modifier
