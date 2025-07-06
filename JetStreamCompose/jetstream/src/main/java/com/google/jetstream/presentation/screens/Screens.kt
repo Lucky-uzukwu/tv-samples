@@ -26,7 +26,8 @@ import androidx.compose.material.icons.filled.Tv
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.google.jetstream.presentation.screens.categories.CategoryMovieListScreen
 import com.google.jetstream.presentation.screens.moviedetails.MovieDetailsScreen
-import com.google.jetstream.presentation.screens.streamingprovider.StreamingProviderMoviesListScreen
+import com.google.jetstream.presentation.screens.streamingprovider.movie.StreamingProviderMoviesListScreen
+import com.google.jetstream.presentation.screens.streamingprovider.show.StreamingProviderShowsListScreen
 import com.google.jetstream.presentation.screens.tvshowsdetails.TvShowDetailsScreen
 import com.google.jetstream.presentation.screens.videoPlayer.VideoPlayerScreen
 
@@ -49,6 +50,7 @@ enum class Screens(
     //    Favourites(isTabItem = true),
     CategoryMovieList(listOf(CategoryMovieListScreen.CategoryIdBundleKey)),
     StreamingProviderMoviesList(listOf(StreamingProviderMoviesListScreen.StreamingProviderIdBundleKey)),
+    StreamingProviderShowsList(listOf(StreamingProviderShowsListScreen.StreamingProviderIdBundleKey)),
     MovieDetails(listOf(MovieDetailsScreen.MovieIdBundleKey)),
     TvShowDetails(listOf(TvShowDetailsScreen.TvShowIdBundleKey)),
     Dashboard,

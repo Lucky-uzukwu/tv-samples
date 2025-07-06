@@ -126,8 +126,8 @@ private fun CategoryDetails(
                         ),
                 ) {
                     PosterImage(
-                        movieTitle = movie.name,
-                        movieUri = movie.posterUri,
+                        title = movie.name,
+                        posterUrl = movie.posterUri,
                         modifier = Modifier.fillMaxSize()
                     )
                 }

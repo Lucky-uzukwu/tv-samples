@@ -7,9 +7,11 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.google.jetstream.data.models.Genre
+import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.data.network.Catalog
+import com.google.jetstream.data.paging.pagingsources.movie.MoviesHeroSectionPagingSource
 import com.google.jetstream.data.paging.pagingsources.tvshow.TvShowPagingSources
 import com.google.jetstream.data.paging.pagingsources.tvshow.TvShowsHeroSectionPagingSource
 import com.google.jetstream.data.repositories.CatalogRepository
@@ -37,14 +39,15 @@ class TvShowScreenViewModel @Inject constructor(
     private val streamingProvidersRepository: StreamingProvidersRepository
 ) : ViewModel() {
 
-    private val _heroSectionTvShows = MutableStateFlow<PagingData<TvShow>>(
+    val heroSectionTvShows: StateFlow<PagingData<TvShow>> = Pager(
+        PagingConfig(pageSize = 5, initialLoadSize = 5)
+    ) {
+        TvShowsHeroSectionPagingSource(tvShowRepository, userRepository)
+    }.flow.cachedIn(viewModelScope).stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
         PagingData.empty()
     )
-    val heroSectionTvShows: StateFlow<PagingData<TvShow>> get() = _heroSectionTvShows.asStateFlow()
-
-    init {
-        fetchHeroSectionTvShows()
-    }
 
     // UI State combining all data
     val uiState: StateFlow<TvShowScreenUiState> = combine(
@@ -79,20 +82,6 @@ class TvShowScreenViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = TvShowScreenUiState.Loading
     )
-
-    private fun fetchHeroSectionTvShows() {
-        viewModelScope.launch {
-            Pager(
-                PagingConfig(pageSize = 5, initialLoadSize = 5)
-            ) {
-                TvShowsHeroSectionPagingSource(tvShowRepository, userRepository)
-            }.flow
-                .cachedIn(viewModelScope)
-                .collect { pagingData ->
-                    _heroSectionTvShows.value = pagingData
-                }
-        }
-    }
 
     private suspend fun fetchCatalogsAndTvShows(
         catalogRepository: CatalogRepository,

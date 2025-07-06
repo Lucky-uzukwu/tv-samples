@@ -21,7 +21,8 @@ import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.screens.categories.CategoryMovieListScreen
 import com.google.jetstream.presentation.screens.dashboard.DashboardScreen
 import com.google.jetstream.presentation.screens.moviedetails.MovieDetailsScreen
-import com.google.jetstream.presentation.screens.streamingprovider.StreamingProviderMoviesListScreen
+import com.google.jetstream.presentation.screens.streamingprovider.movie.StreamingProviderMoviesListScreen
+import com.google.jetstream.presentation.screens.streamingprovider.show.StreamingProviderShowsListScreen
 import com.google.jetstream.presentation.screens.tvshowsdetails.TvShowDetailsScreen
 import com.google.jetstream.presentation.screens.videoPlayer.VideoPlayerScreen
 import com.google.jetstream.state.UserStateHolder
@@ -112,6 +113,27 @@ fun App(
                 )
             }
             composable(
+                route = Screens.StreamingProviderShowsList(),
+                arguments = listOf(
+                    navArgument(StreamingProviderShowsListScreen.StreamingProviderIdBundleKey) {
+                        type = NavType.StringType
+                    }
+                )
+            ) {
+                StreamingProviderShowsListScreen(
+                    onBackPressed = {
+                        if (navController.navigateUp()) {
+                            isComingBackFromDifferentScreen = true
+                        }
+                    },
+                    onShowSelected = { show ->
+                        navController.navigate(
+                            Screens.MovieDetails.withArgs(show.id)
+                        )
+                    }
+                )
+            }
+            composable(
                 route = Screens.MovieDetails(),
                 arguments = listOf(
                     navArgument(MovieDetailsScreen.MovieIdBundleKey) {
@@ -177,6 +199,11 @@ fun App(
                     openStreamingProviderMovieList = { streamingProvider ->
                         navController.navigate(
                             Screens.StreamingProviderMoviesList.withArgs("${streamingProvider.id}-${streamingProvider.name}")
+                        )
+                    },
+                    openStreamingProvideShowList = { streamingProvider ->
+                        navController.navigate(
+                            Screens.StreamingProviderShowsList.withArgs("${streamingProvider.id}-${streamingProvider.name}")
                         )
                     },
                     openTvShowDetailsScreen = { tvShowId ->

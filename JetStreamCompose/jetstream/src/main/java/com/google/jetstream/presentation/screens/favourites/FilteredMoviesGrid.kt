@@ -52,8 +52,8 @@ fun FilteredMoviesGrid(
                 modifier = Modifier.aspectRatio(1 / 1.5f),
             ) {
                 PosterImage(
-                    movieTitle = movie.name,
-                    movieUri = movie.posterUri, modifier = Modifier.fillMaxSize()
+                    title = movie.name,
+                    posterUrl = movie.posterUri, modifier = Modifier.fillMaxSize()
                 )
             }
         }

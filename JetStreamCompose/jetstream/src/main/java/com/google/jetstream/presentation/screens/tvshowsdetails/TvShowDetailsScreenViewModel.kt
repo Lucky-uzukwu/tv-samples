@@ -52,8 +52,11 @@ class TvShowDetailsScreenViewModel @Inject constructor(
                 token = userToken
             ).firstOrNull() ?: return@combine TvShowDetailsScreenUiState.Error
 
+            val genreId =
+                if (details.genres?.isNotEmpty() == true) details.genres.first().id else 0
+
             val similarTvShows = getTvShowsByGenre(
-                genreId = details.genres?.first()?.id ?: 0,
+                genreId = genreId,
                 tvShowRepository = tvShowRepository,
                 userRepository = userRepository
             )

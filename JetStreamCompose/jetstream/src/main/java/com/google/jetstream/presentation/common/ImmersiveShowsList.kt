@@ -152,8 +152,8 @@ private fun Background(
             ) {
             it.title?.let { movieTitle ->
                 PosterImage(
-                    movieTitle = movieTitle,
-                    movieUri = imageUrl,
+                    title = movieTitle,
+                    posterUrl = imageUrl,
                     modifier = Modifier.fillMaxSize()
                 )
             }

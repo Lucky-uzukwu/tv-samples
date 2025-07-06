@@ -49,6 +49,7 @@ fun DashboardScreen(
     openTvShowDetailsScreen: (tvShowId: String) -> Unit = {},
     openVideoPlayer: (movieId: String) -> Unit = {},
     openStreamingProviderMovieList: (streamingProvider: StreamingProvider) -> Unit = {},
+    openStreamingProvideShowList: (streamingProvider: StreamingProvider) -> Unit = {},
     setSelectedMovie: (movie: MovieNew) -> Unit,
     setSelectedTvShow: (tvShow: TvShow) -> Unit,
     onLogOutClick: () -> Unit
@@ -69,7 +70,8 @@ fun DashboardScreen(
                 setSelectedTvShow = setSelectedTvShow,
                 openTvShowDetailsScreen = openTvShowDetailsScreen,
                 onLogOutClick = onLogOutClick,
-                openStreamingProviderMovieList = openStreamingProviderMovieList
+                openStreamingProviderMovieList = openStreamingProviderMovieList,
+                openStreamingProvideShowList = openStreamingProvideShowList
             )
         },
     ) { screen ->
@@ -82,6 +84,7 @@ private fun Body(
     modifier: Modifier = Modifier,
     openCategoryMovieList: (categoryId: String) -> Unit,
     openStreamingProviderMovieList: (streamingProvider: StreamingProvider) -> Unit,
+    openStreamingProvideShowList: (streamingProvider: StreamingProvider) -> Unit ,
     openMovieDetailsScreen: (movieId: String) -> Unit,
     openTvShowDetailsScreen: (tvShowId: String) -> Unit,
     openVideoPlayer: (movieId: String) -> Unit,
@@ -131,7 +134,8 @@ private fun Body(
                 goToVideoPlayer = { selectedMovie ->
                     openVideoPlayer(selectedMovie.id.toString())
                 },
-                setSelectedTvShow = setSelectedTvShow
+                setSelectedTvShow = setSelectedTvShow,
+                onStreamingProviderClick = openStreamingProvideShowList
             )
         }
 

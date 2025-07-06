@@ -33,11 +33,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -293,8 +291,8 @@ private fun TvShowSeasonsAndEpisodes(
                                     val imageUrl =
                                         "https://stage.nortv.xyz/" + "storage/" + episode.posterImagePath
                                     PosterImage(
-                                        movieTitle = episode.title,
-                                        movieUri = imageUrl,
+                                        title = episode.title,
+                                        posterUrl = imageUrl,
                                         modifier = Modifier // Removed the passed modifier as it's from the Column
                                             .height(192.dp)
                                             .width(192.dp) // Consistent width for episode posters

@@ -1,15 +1,22 @@
 package com.google.jetstream.data.repositories
 
-import com.google.jetstream.data.network.SearchResponse
+import com.google.jetstream.data.network.MovieSearchResponse
+import com.google.jetstream.data.network.ShowSearchResponse
 import kotlinx.coroutines.flow.Flow
 
 interface SearchRepository {
 
-    fun searchWithQueryAndType(
+    fun searchMoviesByQuery(
         token: String,
         query: String,
-        type: String,
         itemsPerPage: Int,
         page: Int
-    ): Flow<SearchResponse>
+    ): Flow<MovieSearchResponse>
+
+    fun searchTvShowsByQuery(
+        token: String,
+        query: String,
+        itemsPerPage: Int,
+        page: Int
+    ): Flow<ShowSearchResponse>
 }

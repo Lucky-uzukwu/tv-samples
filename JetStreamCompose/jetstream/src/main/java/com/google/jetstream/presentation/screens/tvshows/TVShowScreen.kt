@@ -38,6 +38,7 @@ import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
+import com.google.jetstream.presentation.common.StreamingProvidersRow
 import com.google.jetstream.presentation.common.TvShowHeroSectionCarousel
 import com.google.jetstream.presentation.screens.backgroundImageState
 import com.google.jetstream.presentation.screens.home.carouselSaver
@@ -48,6 +49,7 @@ import kotlinx.coroutines.flow.StateFlow
 fun TVShowScreen(
     onTVShowClick: (tvShow: TvShow) -> Unit,
     goToVideoPlayer: (tvShow: TvShow) -> Unit,
+    onStreamingProviderClick: (streamingProvider: StreamingProvider) -> Unit,
     setSelectedTvShow: (tvShow: TvShow) -> Unit,
     tvShowScreenViewModel: TvShowScreenViewModel = hiltViewModel(),
 ) {
@@ -66,6 +68,7 @@ fun TVShowScreen(
                 genreToTvShows = currentState.genreToTvShows,
                 onTVShowClick = onTVShowClick,
                 setSelectedTvShow = setSelectedTvShow,
+                onStreamingProviderClick = onStreamingProviderClick,
                 goToVideoPlayer = goToVideoPlayer,
                 streamingProviders = currentState.streamingProviders,
                 carouselState = carouselState,
@@ -83,6 +86,7 @@ private fun Catalog(
     genreToTvShows: Map<Genre, StateFlow<PagingData<TvShow>>>,
     onTVShowClick: (tvShow: TvShow) -> Unit,
     goToVideoPlayer: (tvShow: TvShow) -> Unit,
+    onStreamingProviderClick: (streamingProvider: StreamingProvider) -> Unit,
     modifier: Modifier = Modifier,
     setSelectedTvShow: (tvShow: TvShow) -> Unit,
     streamingProviders: List<StreamingProvider>,
@@ -161,6 +165,14 @@ private fun Catalog(
                     .fillMaxWidth(),
                 carouselState = carouselState,
                 carouselScrollEnabled = carouselScrollEnabled,
+            )
+        }
+
+        item {
+            StreamingProvidersRow(
+                streamingProviders = streamingProviders,
+                onClick = onStreamingProviderClick,
+                modifier = Modifier
             )
         }
 

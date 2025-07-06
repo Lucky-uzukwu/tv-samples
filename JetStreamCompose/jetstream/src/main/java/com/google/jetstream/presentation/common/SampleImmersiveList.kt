@@ -118,8 +118,8 @@ private fun Background(
 
             ) {
             PosterImage(
-                movieTitle = it.title,
-                movieUri = imageUrl,
+                title = it.title,
+                posterUrl = imageUrl,
                 modifier = Modifier.fillMaxSize()
             )
         }

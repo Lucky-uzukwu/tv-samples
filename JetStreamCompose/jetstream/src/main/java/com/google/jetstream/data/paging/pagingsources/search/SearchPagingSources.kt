@@ -4,6 +4,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.data.repositories.SearchRepository
 import com.google.jetstream.data.repositories.UserRepository
@@ -27,6 +28,27 @@ class SearchPagingSources {
             )
         ) {
             MovieSearchPagingSource(
+                searchRepository,
+                userRepository,
+                query
+            )
+        }.flow
+    }
+
+    fun searchTvShows(
+        query: String,
+        searchRepository: SearchRepository,
+        userRepository: UserRepository
+    ): Flow<PagingData<TvShow>> {
+
+        return Pager(
+            PagingConfig(
+                pageSize = NETWORK_PAGE_SIZE,
+                initialLoadSize = 40,
+                enablePlaceholders = false
+            )
+        ) {
+            TvShowsSearchPagingSource(
                 searchRepository,
                 userRepository,
                 query

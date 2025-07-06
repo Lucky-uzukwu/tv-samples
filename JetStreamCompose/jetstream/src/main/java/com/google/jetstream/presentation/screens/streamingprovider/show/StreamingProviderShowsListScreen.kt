@@ -1,4 +1,4 @@
-package com.google.jetstream.presentation.screens.streamingprovider
+package com.google.jetstream.presentation.screens.streamingprovider.show
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -25,7 +25,7 @@ import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.google.jetstream.data.models.MovieNew
+import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.MovieCard
@@ -36,34 +36,34 @@ import com.google.jetstream.presentation.utils.focusOnInitialVisibility
 import kotlinx.coroutines.flow.StateFlow
 
 
-object StreamingProviderMoviesListScreen {
+object StreamingProviderShowsListScreen {
     const val StreamingProviderIdBundleKey = "streamingProviderId"
 }
 
 @Composable
-fun StreamingProviderMoviesListScreen(
+fun StreamingProviderShowsListScreen(
     onBackPressed: () -> Unit,
-    onMovieSelected: (MovieNew) -> Unit,
-    streamingProviderMoviesListScreenViewModel: StreamingProviderMoviesListScreenViewModel = hiltViewModel()
+    onShowSelected: (TvShow) -> Unit,
+    streamingProviderShowsListScreenViewModel: StreamingProviderShowsListScreenViewModel = hiltViewModel()
 ) {
-    val uiState by streamingProviderMoviesListScreenViewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by streamingProviderShowsListScreenViewModel.uiState.collectAsStateWithLifecycle()
 
     when (val s = uiState) {
-        StreamingProviderMoviesListScreenUiState.Loading -> {
+        StreamingProviderShowsListScreenUiState.Loading -> {
             Loading(modifier = Modifier.fillMaxSize())
         }
 
-        StreamingProviderMoviesListScreenUiState.Error -> {
+        StreamingProviderShowsListScreenUiState.Error -> {
             Error(modifier = Modifier.fillMaxSize())
         }
 
-        is StreamingProviderMoviesListScreenUiState.Done -> {
-            val moviesPagingData = s.movies
-            MoviesGrid(
+        is StreamingProviderShowsListScreenUiState.Done -> {
+            val showsPagingData = s.shows
+            ShowsGrid(
                 streamingProviderName = s.streamingProviderName,
-                movies = moviesPagingData,
+                tvShows = showsPagingData,
                 onBackPressed = onBackPressed,
-                onMovieSelected = onMovieSelected
+                onShowSelected = onShowSelected
             )
         }
     }
@@ -71,11 +71,11 @@ fun StreamingProviderMoviesListScreen(
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun MoviesGrid(
+private fun ShowsGrid(
     streamingProviderName: String,
-    movies: StateFlow<PagingData<MovieNew>>,
+    tvShows: StateFlow<PagingData<TvShow>>,
     onBackPressed: () -> Unit,
-    onMovieSelected: (MovieNew) -> Unit,
+    onShowSelected: (TvShow) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val childPadding = rememberChildPadding()
@@ -97,17 +97,17 @@ private fun MoviesGrid(
             )
         )
         AnimatedContent(
-            targetState = movies,
+            targetState = tvShows,
             label = "",
         ) { state ->
-            val movieList = state.collectAsLazyPagingItems().itemSnapshotList.items
+            val tvShows = state.collectAsLazyPagingItems().itemSnapshotList.items
             LazyVerticalGrid(
                 columns = GridCells.Fixed(6),
                 contentPadding = PaddingValues(bottom = JetStreamBottomListPadding)
             ) {
-                itemsIndexed(movieList, key = { _, movie -> movie.id }) { index, movie ->
+                itemsIndexed(tvShows, key = { _, tvShow -> tvShow.id }) { index, item ->
                     MovieCard(
-                        onClick = { onMovieSelected(movie) },
+                        onClick = { onShowSelected(item) },
                         modifier = Modifier
                             .aspectRatio(1 / 1.5f)
                             .padding(8.dp)
@@ -118,12 +118,14 @@ private fun MoviesGrid(
                             ),
                     ) {
                         val imageUrl =
-                            "https://stage.nortv.xyz/" + "storage/" + movie.posterImagePath
-                        PosterImage(
-                            movieTitle = movie.title,
-                            movieUri = imageUrl,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                            "https://stage.nortv.xyz/" + "storage/" + item.posterImagePath
+                        item.title?.let {
+                            PosterImage(
+                                title = it,
+                                posterUrl = imageUrl,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
                 }
             }

@@ -22,22 +22,21 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.google.jetstream.data.entities.Movie
 import com.google.jetstream.data.util.StringConstants
 
 @Composable
 fun PosterImage(
-    movieTitle: String,
-    movieUri: String,
+    title: String,
+    posterUrl: String,
     modifier: Modifier = Modifier,
 ) {
     AsyncImage(
         modifier = modifier,
         model = ImageRequest.Builder(LocalContext.current)
             .crossfade(true)
-            .data(movieUri)
+            .data(posterUrl)
             .build(),
-        contentDescription = StringConstants.Composable.ContentDescription.moviePoster(movieTitle),
+        contentDescription = StringConstants.Composable.ContentDescription.moviePoster(title),
         contentScale = ContentScale.Crop
     )
 }

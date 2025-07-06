@@ -1,11 +1,10 @@
-package com.google.jetstream.presentation.screens.streamingprovider
+package com.google.jetstream.presentation.screens.streamingprovider.movie
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.google.jetstream.data.entities.MovieCategoryDetails
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.paging.pagingsources.search.SearchPagingSources
 import com.google.jetstream.data.repositories.SearchRepository

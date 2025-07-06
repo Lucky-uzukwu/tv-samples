@@ -254,8 +254,8 @@ fun MoviesRowItemImage(
 ) {
     Box(contentAlignment = Alignment.CenterStart) {
         PosterImage(
-            movieTitle = movieTitle,
-            movieUri = movieUri,
+            title = movieTitle,
+            posterUrl = movieUri,
             modifier = modifier
                 .height(198.dp)
                 .width(150.dp)
