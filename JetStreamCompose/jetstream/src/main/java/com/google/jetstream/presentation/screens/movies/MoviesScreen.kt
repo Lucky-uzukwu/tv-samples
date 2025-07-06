@@ -2,7 +2,6 @@ package com.google.jetstream.presentation.screens.movies
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -41,6 +40,7 @@ import com.google.jetstream.presentation.common.Error
 import com.google.jetstream.presentation.common.ImmersiveListMoviesRow
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.MovieHeroSectionCarousel
+import com.google.jetstream.presentation.common.StreamingProvidersRow
 import com.google.jetstream.presentation.screens.backgroundImageState
 import com.google.jetstream.presentation.screens.home.carouselSaver
 import kotlinx.coroutines.flow.StateFlow
@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.StateFlow
 fun MoviesScreen(
     onMovieClick: (movie: MovieNew) -> Unit,
     goToVideoPlayer: (movie: MovieNew) -> Unit,
+    onStreamingProviderClick: (streamingProvider: StreamingProvider) -> Unit,
     setSelectedMovie: (movie: MovieNew) -> Unit,
     moviesScreenViewModel: MoviesScreenViewModel = hiltViewModel(),
 ) {
@@ -65,6 +66,7 @@ fun MoviesScreen(
                 genreToMovies = s.genreToMovies,
                 onMovieClick = onMovieClick,
                 setSelectedMovie = setSelectedMovie,
+                onStreamingProviderClick = onStreamingProviderClick,
                 goToVideoPlayer = goToVideoPlayer,
                 streamingProviders = s.streamingProviders,
                 carouselState = carouselState,
@@ -83,6 +85,7 @@ private fun Catalog(
     featuredMovies: LazyPagingItems<MovieNew>,
     catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
     genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>,
+    onStreamingProviderClick: (streamingProvider: StreamingProvider) -> Unit,
     onMovieClick: (movie: MovieNew) -> Unit,
     goToVideoPlayer: (movie: MovieNew) -> Unit,
     modifier: Modifier = Modifier,
@@ -140,7 +143,7 @@ private fun Catalog(
             .fillMaxSize()
             .padding(start = 28.dp)
             .semantics { contentDescription = "Movie Screen" },
-        verticalArrangement = Arrangement.spacedBy(40.dp),
+        verticalArrangement = Arrangement.spacedBy(30.dp),
         contentPadding = PaddingValues(vertical = 40.dp)
     ) {
 
@@ -161,6 +164,14 @@ private fun Catalog(
                     .height(340.dp)
                     .fillMaxWidth(),
                 carouselScrollEnabled = carouselScrollEnabled,
+            )
+        }
+
+        item {
+            StreamingProvidersRow(
+                streamingProviders = streamingProviders,
+                onClick = onStreamingProviderClick,
+                modifier = Modifier
             )
         }
 

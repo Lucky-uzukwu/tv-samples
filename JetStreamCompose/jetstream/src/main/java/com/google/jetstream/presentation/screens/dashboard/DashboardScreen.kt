@@ -120,7 +120,8 @@ private fun Body(
                 goToVideoPlayer = { selectedMovie ->
                     openVideoPlayer(selectedMovie.id.toString())
                 },
-                setSelectedMovie = setSelectedMovie
+                setSelectedMovie = setSelectedMovie,
+                onStreamingProviderClick = openStreamingProviderMovieList
             )
         }
 
