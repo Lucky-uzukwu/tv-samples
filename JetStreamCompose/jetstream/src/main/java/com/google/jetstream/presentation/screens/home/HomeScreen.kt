@@ -62,7 +62,7 @@ fun HomeScreen(
     homeScreeViewModel: HomeScreeViewModel = hiltViewModel(),
 ) {
     val uiState by homeScreeViewModel.uiState.collectAsStateWithLifecycle()
-    val featuredMovies = homeScreeViewModel.fetchHeroMovies().collectAsLazyPagingItems()
+    val featuredMovies = homeScreeViewModel.heroSectionMovies.collectAsLazyPagingItems()
     val carouselState = rememberSaveable(saver = carouselSaver) { CarouselState(0) }
 
     when (val s = uiState) {
@@ -89,7 +89,7 @@ fun HomeScreen(
 @Composable
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalTvMaterial3Api::class)
 private fun Catalog(
-    featuredMovies: LazyPagingItems<MovieEntity>,
+    featuredMovies: LazyPagingItems<MovieNew>,
     catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
     genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>,
     onMovieClick: (movie: MovieNew) -> Unit,

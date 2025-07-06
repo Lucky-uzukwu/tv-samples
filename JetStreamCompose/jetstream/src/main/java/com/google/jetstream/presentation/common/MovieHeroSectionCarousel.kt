@@ -19,7 +19,6 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.tv.material3.Carousel
 import androidx.tv.material3.CarouselState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
-import com.google.jetstream.data.entities.MovieEntity
 import com.google.jetstream.data.entities.toMovieNew
 import com.google.jetstream.data.models.MovieNew
 
@@ -27,7 +26,7 @@ import com.google.jetstream.data.models.MovieNew
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun MovieHeroSectionCarousel(
-    movies: LazyPagingItems<MovieEntity>,
+    movies: LazyPagingItems<MovieNew>,
     goToVideoPlayer: (movie: MovieNew) -> Unit,
     goToMoreInfo: (movie: MovieNew) -> Unit,
     setSelectedMovie: (MovieNew) -> Unit,
@@ -64,7 +63,7 @@ fun MovieHeroSectionCarousel(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            val movie = movies[idx]?.toMovieNew() ?: return@Carousel
+            val movie = movies[idx] ?: return@Carousel
 
             LaunchedEffect(movie) {
                 if (carouselScrollEnabled) {
@@ -90,7 +89,7 @@ fun MovieHeroSectionCarousel(
             CarouselItemForeground(
                 movie = movie,
                 onWatchNowClick = {
-                    goToVideoPlayer(movies.itemSnapshotList.items[idx].toMovieNew())
+                    goToVideoPlayer(movies.itemSnapshotList.items[idx])
                 },
                 isCarouselFocused = isCarouselFocused,
                 modifier = Modifier

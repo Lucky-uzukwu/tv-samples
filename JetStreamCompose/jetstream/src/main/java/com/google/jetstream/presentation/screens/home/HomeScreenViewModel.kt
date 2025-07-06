@@ -14,6 +14,7 @@ import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.data.network.remote_mediator.MoviesRemoteMediator
+import com.google.jetstream.data.paging.pagingsources.movie.MoviesHeroSectionPagingSource
 import com.google.jetstream.data.paging.pagingsources.movie.MoviesPagingSources
 import com.google.jetstream.data.repositories.CatalogRepository
 import com.google.jetstream.data.repositories.GenreRepository
@@ -42,23 +43,33 @@ class HomeScreeViewModel @Inject constructor(
 ) : ViewModel() {
 
 
-    @OptIn(ExperimentalPagingApi::class)
-    fun fetchHeroMovies(): Flow<PagingData<MovieEntity>> =
-        Pager(
-            config = PagingConfig(
-                pageSize = PAGE_SIZE,
-                prefetchDistance = 10,
-                initialLoadSize = PAGE_SIZE,
-            ),
-            pagingSourceFactory = {
-                appDatabase.getMoviesDao().getMovies()
-            },
-            remoteMediator = MoviesRemoteMediator(
-                movieRepository = movieRepository,
-                appDatabase = appDatabase,
-                userRepository = userRepository
-            )
-        ).flow
+//    @OptIn(ExperimentalPagingApi::class)
+//    fun fetchHeroMovies(): Flow<PagingData<MovieEntity>> =
+//        Pager(
+//            config = PagingConfig(
+//                pageSize = PAGE_SIZE,
+//                prefetchDistance = 10,
+//                initialLoadSize = PAGE_SIZE,
+//            ),
+//            pagingSourceFactory = {
+//                appDatabase.getMoviesDao().getMovies()
+//            },
+//            remoteMediator = MoviesRemoteMediator(
+//                movieRepository = movieRepository,
+//                appDatabase = appDatabase,
+//                userRepository = userRepository
+//            )
+//        ).flow
+
+    val heroSectionMovies: StateFlow<PagingData<MovieNew>> = Pager(
+        PagingConfig(pageSize = 5, initialLoadSize = 5)
+    ) {
+        MoviesHeroSectionPagingSource(movieRepository, userRepository)
+    }.flow.cachedIn(viewModelScope).stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        PagingData.empty()
+    )
 
 
     // UI State combining all data
