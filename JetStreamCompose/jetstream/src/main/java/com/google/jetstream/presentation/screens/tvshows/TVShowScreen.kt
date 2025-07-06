@@ -37,6 +37,7 @@ import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.presentation.common.Error
+import com.google.jetstream.presentation.common.ImmersiveShowsList
 import com.google.jetstream.presentation.common.Loading
 import com.google.jetstream.presentation.common.StreamingProvidersRow
 import com.google.jetstream.presentation.common.TvShowHeroSectionCarousel
@@ -176,54 +177,56 @@ private fun Catalog(
             )
         }
 
-//        items(
-//            count = genreToLazyPagingItems.size,
-//            key = { genre -> genre },
-//            contentType = { "GenreRow" }
-//        ) { genre ->
-//            val genreKey = genreToLazyPagingItems.keys.elementAt(genre)
-//            val tvShows: LazyPagingItems<TvShow>? = genreToLazyPagingItems[genreKey]
-//
-//            if (tvShows != null) {
-//                ImmersiveShowsList(
-//                    tvShows = tvShows,
-//                    sectionTitle = genreKey.name,
-//                    onTvShowClick = onTVShowClick,
-//                    setSelectedTvShow = { tvShow ->
-//                        val imageUrl =
-//                            "https://stage.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
-//                        setSelectedTvShow(tvShow)
-//                        backgroundState.load(
-//                            url = imageUrl
-//                        )
-//                    },
-//                    modifier = Modifier,
-//                )
-//            }
-//        }
+        items(
+            count = genreToLazyPagingItems.size,
+            key = { genre -> genre },
+            contentType = { "GenreRow" }
+        ) { genre ->
+            val genreKey = genreToLazyPagingItems.keys.elementAt(genre)
+            val tvShows: LazyPagingItems<TvShow>? = genreToLazyPagingItems[genreKey]
 
-//        items(
-//            count = catalogToLazyPagingItems.size,
-//            key = { catalog -> catalog.hashCode() }, //e catalog ID as unique key
-//            contentType = { "GenreRow" }
-//        ) { catalog ->
-//            val catalogKey = catalogToLazyPagingItems.keys.elementAt(catalog)
-//            val tvShows: LazyPagingItems<TvShow>? = catalogToLazyPagingItems[catalogKey]
-//
-//            ImmersiveShowsList(
-//                tvShows = tvShows!!,
-//                sectionTitle = catalogKey.name,
-//                onTvShowClick = onTVShowClick,
-//                setSelectedTvShow = { tvShow ->
-//                    val imageUrl =
-//                        "https://stage.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
-//                    setSelectedTvShow(tvShow)
-//                    backgroundState.load(
-//                        url = imageUrl
-//                    )
-//                },
-//                modifier = Modifier,
-//            )
-//        }
+            if (tvShows != null && tvShows.itemCount > 0) {
+                ImmersiveShowsList(
+                    tvShows = tvShows,
+                    sectionTitle = genreKey.name,
+                    onTvShowClick = onTVShowClick,
+                    setSelectedTvShow = { tvShow ->
+                        carouselScrollEnabled = false
+                        val imageUrl =
+                            "https://stage.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
+                        setSelectedTvShow(tvShow)
+                        backgroundState.load(
+                            url = imageUrl
+                        )
+                    },
+                )
+            }
+        }
+
+        items(
+            count = catalogToLazyPagingItems.size,
+            key = { catalog -> catalog.hashCode() }, //e catalog ID as unique key
+            contentType = { "catalogRow" }
+        ) { catalog ->
+            val catalogKey = catalogToLazyPagingItems.keys.elementAt(catalog)
+            val tvShows: LazyPagingItems<TvShow>? = catalogToLazyPagingItems[catalogKey]
+
+            if (tvShows != null && tvShows.itemCount > 0) {
+                ImmersiveShowsList(
+                    tvShows = tvShows,
+                    sectionTitle = catalogKey.name,
+                    onTvShowClick = onTVShowClick,
+                    setSelectedTvShow = { tvShow ->
+                        carouselScrollEnabled = false
+                        val imageUrl =
+                            "https://stage.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
+                        setSelectedTvShow(tvShow)
+                        backgroundState.load(
+                            url = imageUrl
+                        )
+                    },
+                )
+            }
+        }
     }
 }

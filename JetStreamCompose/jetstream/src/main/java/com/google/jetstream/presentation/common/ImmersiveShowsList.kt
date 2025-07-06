@@ -104,13 +104,6 @@ private fun ImmersiveList(
         contentAlignment = Alignment.BottomStart,
         modifier = modifier
     ) {
-//        Background(
-//            movie = selectedTvShow,
-//            visible = isListFocused,
-//            modifier = modifier
-//                .height(500.dp)
-//                .gradientOverlay(gradientColor)
-//        )
         Column {
             // TODO HERE you can add more deails for each row
             if (isListFocused) {
