@@ -1,27 +1,28 @@
 package com.google.jetstream.presentation.screens.dashboard.navigation.drawer
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.tv.material3.DrawerState
 import androidx.tv.material3.DrawerValue
 import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
@@ -34,6 +35,7 @@ import androidx.tv.material3.Text
 import androidx.tv.material3.rememberDrawerState
 import com.google.jetstream.presentation.screens.Screens
 import com.google.jetstream.presentation.screens.dashboard.TopBarTabs
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -44,6 +46,10 @@ fun HomeDrawer(
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     var (selectedTab, setSelectedTab) = remember { mutableStateOf<String?>(Screens.Home()) }
+    val coroutineScope = rememberCoroutineScope()
+    val focusRequesters = remember {
+        List(TopBarTabs.size) { FocusRequester() }
+    }
 
     LaunchedEffect(key1 = Unit) {
         navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -69,12 +75,20 @@ fun HomeDrawer(
                 TopBarTabs.forEachIndexed { index, item ->
                     NavigationRow(
                         item = item,
+                        focusRequester = focusRequesters[index],
+                        isFirstItemAfterOpen = drawerState.currentValue == DrawerValue.Open &&
+                                TopBarTabs.indexOfFirst { it.name == selectedTab } == index,
                         isSelected = selectedTab == item.name,
+                        modifier = Modifier.focusRequester(focusRequesters[index]),
                         onScreenSelected = {
                             setSelectedTab(item.name)
-                            drawerState.setValue(DrawerValue.Closed)
+                            coroutineScope.launch {
+                                drawerState.setValue(DrawerValue.Closed)
+                            }
                             onScreenSelected?.invoke(item)
-                        })
+                        },
+                        drawerState = drawerState
+                    )
                 }
             }
         }
@@ -89,21 +103,36 @@ fun HomeDrawer(
 
 @Composable
 fun NavigationDrawerScope.NavigationRow(
+    modifier: Modifier = Modifier,
     item: Screens,
     isSelected: Boolean,
     enabled: Boolean = true,
-    onScreenSelected: ((screen: Screens) -> Unit)?
+    focusRequester: FocusRequester,
+    isFirstItemAfterOpen: Boolean,
+    onScreenSelected: ((screen: Screens) -> Unit)?,
+    drawerState: DrawerState
 ) {
     val lineThickness = 2.dp
+
+    LaunchedEffect(isFirstItemAfterOpen) {
+        if (isFirstItemAfterOpen) {
+            focusRequester.requestFocus()
+        }
+    }
     val lineColor = MaterialTheme.colorScheme.onSurface
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    val focusedContainerColor = if (drawerState.currentValue == DrawerValue.Open) {
+        MaterialTheme.colorScheme.inverseSurface
+    } else Color.Transparent
+
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         NavigationDrawerItem(
             selected = isSelected,
             enabled = enabled,
             colors = NavigationDrawerItemDefaults.colors(
                 selectedContainerColor = Color.Transparent, // No background for selected item
-                selectedContentColor = MaterialTheme.colorScheme.onSurface,
+                focusedContainerColor = focusedContainerColor,
+                selectedContentColor = Color.White, // Change selected text color,
             ),
             shape = NavigationDrawerItemDefaults.shape(
                 shape = RoundedCornerShape(40)
@@ -131,14 +160,15 @@ fun NavigationDrawerScope.NavigationRow(
                 text = item.name,
             )
         }
-        if (isSelected) {
-            Box(
-                modifier = Modifier
-                    .width(20.dp) // Adjust width as needed
-                    .height(lineThickness)
-                    .background(lineColor)
-            )
-        }
+//        if (isSelected && drawerState.currentValue == DrawerValue.Closed) {
+//            Box(
+//                modifier = Modifier
+//                    .width(20.dp) // Adjust width as needed
+//                    .padding(top = 1.dp)
+//                    .height(lineThickness)
+//                    .background(lineColor)
+//            )
+//        }
     }
 }
 

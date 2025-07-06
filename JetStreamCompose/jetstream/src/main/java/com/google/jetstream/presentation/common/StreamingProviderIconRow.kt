@@ -54,13 +54,16 @@ fun StreamingProvidersRow(
             key = { index -> streamingProviders[index].id }
         ) { index ->
             val streamingProvider = streamingProviders[index]
-            val imageUrl = "https://stage.nortv.xyz/storage/${streamingProvider.logoPath}"
-            CustomCard(
-                onClick = { onClick(streamingProvider) },
-                modifier = Modifier
-                    .width(180.dp),
-                imageUrl = imageUrl,
-            )
+            if (streamingProvider.logoPath != null) {
+                val imageUrl = "https://stage.nortv.xyz/storage/${streamingProvider.logoPath}"
+                CustomCard(
+                    onClick = { onClick(streamingProvider) },
+                    modifier = Modifier
+                        .width(180.dp),
+                    imageUrl = imageUrl,
+                )
+            }
+
         }
     }
 }
