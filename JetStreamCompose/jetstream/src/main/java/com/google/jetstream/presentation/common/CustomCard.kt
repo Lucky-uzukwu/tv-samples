@@ -4,9 +4,10 @@ package com.google.jetstream.presentation.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,13 +30,16 @@ fun CustomCard(
 ) {
     Column(
         modifier = Modifier
-            .size(width = 196.dp, height = 158.25.dp)
+            .fillMaxSize()
+            .padding(all = 4.dp)
+            .height(100.dp)
+            .width(100.dp)
     ) {
 
         Card(
             onClick = onClick,
             modifier = modifier
-                .aspectRatio(cardAspectRatio)
+//                .aspectRatio(cardAspectRatio)
                 .background(Color.Transparent, RoundedCornerShape(16.dp)),
         ) {
             AsyncImage(

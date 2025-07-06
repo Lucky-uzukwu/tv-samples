@@ -83,8 +83,7 @@ fun StreamingProvidersRow(
                     val imageUrl = "https://stage.nortv.xyz/storage/${streamingProvider.logoPath}"
                     CustomCard(
                         onClick = { onClick(streamingProvider) },
-                        modifier = Modifier
-                            .width(180.dp),
+                        modifier = Modifier,
                         imageUrl = imageUrl,
                     )
                 }

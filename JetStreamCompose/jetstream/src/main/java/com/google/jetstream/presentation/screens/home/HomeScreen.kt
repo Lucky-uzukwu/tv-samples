@@ -151,7 +151,7 @@ private fun Catalog(
             .fillMaxSize()
             .padding(start = 28.dp)
             .semantics { contentDescription = "Home Screen" },
-        verticalArrangement = Arrangement.spacedBy(40.dp),
+        verticalArrangement = Arrangement.spacedBy(30.dp),
         contentPadding = PaddingValues(vertical = 40.dp)
     ) {
 
