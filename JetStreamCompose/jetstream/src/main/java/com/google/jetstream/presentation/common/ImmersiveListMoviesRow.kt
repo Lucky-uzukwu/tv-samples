@@ -301,19 +301,8 @@ fun ImmersiveListMoviesRow(
             verticalAlignment = Alignment.CenterVertically,
             contentPadding = PaddingValues(horizontal = 32.dp)
         ) {
-            items(
-                count = infiniteMovieCount,
-                key = { index ->
-                    val actualIndex = index % movies.itemCount
-                    movies[actualIndex]?.id ?: index
-                }
-            ) { index ->
-                val actualIndex = index % movies.itemCount
-                val movie = movies[actualIndex]
-                if (movie == null) {
-                    Spacer(modifier = Modifier.width(12.dp))
-                    return@items
-                }
+            items(movies.itemSnapshotList.items.size) { index ->
+                val movie = movies.itemSnapshotList.items[index]
                 MoviesRowItem(
                     modifier = Modifier.weight(1f),
                     index = index,
@@ -326,6 +315,31 @@ fun ImmersiveListMoviesRow(
                     showIndexOverImage = showIndexOverImage
                 )
             }
+//            items(
+//                count = infiniteMovieCount,
+//                key = { index ->
+//                    val actualIndex = index % movies.itemCount
+//                    movies[actualIndex]?.id ?: index
+//                }
+//            ) { index ->
+//                val actualIndex = index % movies.itemCount
+//                val movie = movies[actualIndex]
+//                if (movie == null) {
+//                    Spacer(modifier = Modifier.width(12.dp))
+//                    return@items
+//                }
+//                MoviesRowItem(
+//                    modifier = Modifier.weight(1f),
+//                    index = index,
+//                    itemDirection = itemDirection,
+//                    onMovieSelected = {
+//                        onMovieSelected(it)
+//                    },
+//                    onMovieFocused = onMovieFocused,
+//                    movie = movie,
+//                    showIndexOverImage = showIndexOverImage
+//                )
+//            }
         }
 
     }

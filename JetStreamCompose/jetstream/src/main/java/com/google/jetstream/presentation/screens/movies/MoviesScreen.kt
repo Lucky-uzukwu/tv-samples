@@ -167,7 +167,10 @@ private fun Catalog(
             )
         }
 
-        item {
+        item(
+            contentType = "StreamingProvidersRow",
+            key = "movieScreenStreamingProvidersRow"
+        ) {
             StreamingProvidersRow(
                 streamingProviders = streamingProviders,
                 onClick = onStreamingProviderClick,

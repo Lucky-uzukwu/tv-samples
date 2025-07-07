@@ -169,7 +169,10 @@ private fun Catalog(
             )
         }
 
-        item {
+        item(
+            contentType = "StreamingProvidersRow",
+            key = "showScreenStreamingProvidersRow"
+        ) {
             StreamingProvidersRow(
                 streamingProviders = streamingProviders,
                 onClick = onStreamingProviderClick,
