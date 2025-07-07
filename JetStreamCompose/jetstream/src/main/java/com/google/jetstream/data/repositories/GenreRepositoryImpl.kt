@@ -32,7 +32,7 @@ class GenreRepositoryImpl @Inject constructor(
             // Handle HTTP error codes
             val errorBody =
                 response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
+            Logger.e { "API Error for getMovieGenre: ${response.code()} - ${response.message()}. Error body: $errorBody" }
             val loginResponse = user.password?.let {
                 customerRepository.login(
                     deviceMacAddress = user.deviceMacAddress,
@@ -59,7 +59,7 @@ class GenreRepositoryImpl @Inject constructor(
     override fun getTvShowsGenre(): Flow<List<Genre>> = flow {
         val user = userRepository.getUser() ?: return@flow
         val response = genreService.getGenres(
-            authToken = "Bearer $user",
+            authToken = "Bearer ${user.token}",
             isTvShowGenre = 1
         )
 
@@ -74,7 +74,7 @@ class GenreRepositoryImpl @Inject constructor(
             // Handle HTTP error codes
             val errorBody =
                 response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
+            Logger.e { "API Error for getTvShowsGenre: ${response.code()} - ${response.message()}. Error body: $errorBody" }
             val loginResponse = user.password?.let {
                 customerRepository.login(
                     deviceMacAddress = user.deviceMacAddress,

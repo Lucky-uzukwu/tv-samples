@@ -237,7 +237,6 @@ class MovieRepositoryImpl @Inject constructor(
         itemsPerPage: Int,
         page: Int
     ): Flow<MovieResponse> = flow {
-        Logger.i { "Fetching movies for genre section with token: $token" }
         val user = userRepository.getUser() ?: return@flow
         val response = movieService.getMovies(
             authToken = "Bearer $token",

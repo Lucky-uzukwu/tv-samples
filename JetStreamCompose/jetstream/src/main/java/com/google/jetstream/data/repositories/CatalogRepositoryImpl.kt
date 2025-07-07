@@ -1,7 +1,6 @@
 package com.google.jetstream.data.repositories
 
 import co.touchlab.kermit.Logger
-import com.google.jetstream.data.entities.MovieListNew
 import com.google.jetstream.data.network.Catalog
 import com.google.jetstream.data.network.CatalogService
 import kotlinx.coroutines.flow.Flow
@@ -33,7 +32,7 @@ class CatalogRepositoryImpl @Inject constructor(
             // Handle HTTP error codes
             val errorBody =
                 response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
+            Logger.e { "API Error for getMovieCatalog:  ${response.code()} - ${response.message()}. Error body: $errorBody" }
             val loginResponse = user.password?.let {
                 customerRepository.login(
                     deviceMacAddress = user.deviceMacAddress,
@@ -69,7 +68,7 @@ class CatalogRepositoryImpl @Inject constructor(
         if (response.isSuccessful) {
             val categories = response.body()
             Logger.i { "API Response: $categories" }
-            Logger.i { "Successfully fetched ${categories?.member?.size} categories for movie section." }
+            Logger.i { "Successfully fetched ${categories?.member?.size} categories for tv show section." }
             if (categories != null) {
                 emit(categories.member)
             }
@@ -77,7 +76,7 @@ class CatalogRepositoryImpl @Inject constructor(
             // Handle HTTP error codes
             val errorBody =
                 response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
+            Logger.e { "API Error for tv shows: ${response.code()} - ${response.message()}. Error body: $errorBody" }
             val loginResponse = user.password?.let {
                 customerRepository.login(
                     deviceMacAddress = user.deviceMacAddress,

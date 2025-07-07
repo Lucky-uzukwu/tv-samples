@@ -180,7 +180,7 @@ private fun Catalog(
 
         items(
             count = catalogToLazyPagingItems.size,
-            key = { catalog -> catalog.hashCode() }, // Use catalog ID as unique key
+            key = { catalog -> catalogToLazyPagingItems.keys.elementAt(catalog).id }, // Use catalog ID as unique key
             contentType = { "MoviesRow" }
         ) { catalog ->
             val catalogKey = catalogToLazyPagingItems.keys.elementAt(catalog)
@@ -206,7 +206,7 @@ private fun Catalog(
 
         items(
             count = genreToLazyPagingItems.size,
-            key = { genre -> genre.hashCode() }, // Use catalog ID as unique key
+            key = { genre -> genreToLazyPagingItems.keys.elementAt(genre).id }, // Use catalog ID as unique key
             contentType = { "MoviesRow" }
         ) { genre ->
             val genreKey = genreToLazyPagingItems.keys.elementAt(genre)

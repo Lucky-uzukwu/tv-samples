@@ -38,7 +38,7 @@ class TvShowsRepositoryImpl @Inject constructor(
             // Handle HTTP error codes
             val errorBody =
                 response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
+            Logger.e { "API Error for getTvShowsToShowInHeroSection : ${response.code()} - ${response.message()}. Error body: $errorBody" }
             val loginResponse = user.password?.let {
                 customerRepository.login(
                     deviceMacAddress = user.deviceMacAddress,
@@ -64,43 +64,49 @@ class TvShowsRepositoryImpl @Inject constructor(
         catalogId: String,
         itemsPerPage: Int,
         page: Int
-    ): Flow<TvShowsResponse> = flow {
-        val user = userRepository.getUser() ?: return@flow
-        val response = tvShowService.getTvShows(
-            authToken = "Bearer $token",
-            catalogId = catalogId,
-            itemsPerPage = itemsPerPage,
-            page = page
-        )
-
-        if (response.isSuccessful) {
-            val tvShowResponse = response.body()
-            Logger.i { "Successfully fetched ${tvShowResponse?.member?.size} tv shows for catalog $catalogId." }
-            if (tvShowResponse != null) {
-                emit(tvShowResponse)
-            }
-        } else {
-            // Handle HTTP error codes
-            val errorBody =
-                response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-            val loginResponse = user.password?.let {
-                customerRepository.login(
-                    deviceMacAddress = user.deviceMacAddress,
-                    clientIp = user.clientIp,
-                    deviceName = user.deviceName,
-                    identifier = user.accessCode,
-                    password = it
+    ): Flow<TvShowsResponse> {
+        var retries = 0
+        return flow {
+            val user = userRepository.getUser() ?: return@flow
+            while (retries < 3) {
+                val response = tvShowService.getTvShows(
+                    authToken = "Bearer $token",
+                    catalogId = catalogId,
+                    itemsPerPage = itemsPerPage,
+                    page = page
                 )
-            }
-            when (loginResponse?.code()) {
-                201 -> {
-                    userRepository.saveUserToken(loginResponse.body()!!.token)
-                    getTvShowsToShowInCatalogSection(token, catalogId, itemsPerPage, page)
+
+                if (response.isSuccessful) {
+                    val tvShowResponse = response.body()
+                    Logger.i { "Successfully fetched ${tvShowResponse?.member?.size} tv shows for catalog $catalogId." }
+                    if (tvShowResponse != null) {
+                        emit(tvShowResponse)
+                        return@flow // Success, exit flow
+                    }
+                } else {
+                    // Handle HTTP error codes
+                    val errorBody =
+                        response.errorBody()?.string() // Get error message from server if available
+                    Logger.e { "API Error when getting tvshows in catalog section for $catalogId: ${response.code()} - ${response.message()}. Error body: $errorBody" }
+                    val loginResponse = user.password?.let {
+                        customerRepository.login(
+                            deviceMacAddress = user.deviceMacAddress,
+                            clientIp = user.clientIp,
+                            deviceName = user.deviceName,
+                            identifier = user.accessCode,
+                            password = it
+                        )
+                    }
+                    when (loginResponse?.code()) {
+                        201 -> {
+                            userRepository.saveUserToken(loginResponse.body()!!.token)
+                            retries++ // Increment retries and continue loop
+                        }
+                        else -> Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+                    }
                 }
             }
-
-            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+            Logger.e { "Failed to fetch tv shows for catalog $catalogId after $retries retries." }
         }
     }
 
@@ -109,50 +115,51 @@ class TvShowsRepositoryImpl @Inject constructor(
         genreId: Int,
         itemsPerPage: Int,
         page: Int
-    ): Flow<TvShowsResponse> = flow {
-        val user = userRepository.getUser() ?: return@flow
-        val response = tvShowService.getTvShows(
-            authToken = "Bearer $token",
-            genreId = genreId,
-            itemsPerPage = itemsPerPage,
-            page = page
-        )
-
-        if (response.isSuccessful) {
-            val tvShowsResponse = response.body()
-            Logger.i { "Successfully fetched ${tvShowsResponse?.member?.size} tv shows for genre $genreId." }
-            if (tvShowsResponse != null) {
-                emit(tvShowsResponse)
-            }
-        } else {
-            // Handle HTTP error codes
-            val errorBody =
-                response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-            val loginResponse = user.password?.let {
-                customerRepository.login(
-                    deviceMacAddress = user.deviceMacAddress,
-                    clientIp = user.clientIp,
-                    deviceName = user.deviceName,
-                    identifier = user.accessCode,
-                    password = it
+    ): Flow<TvShowsResponse> {
+        var retries = 0
+        return flow {
+            val user = userRepository.getUser() ?: return@flow
+            while (retries < 3) {
+                val response = tvShowService.getTvShows(
+                    authToken = "Bearer $token",
+                    genreId = genreId,
+                    itemsPerPage = itemsPerPage,
+                    page = page
                 )
-            }
-            when (loginResponse?.code()) {
-                201 -> {
-                    userRepository.saveUserToken(loginResponse.body()!!.token)
-                    getTvShowsToShowInGenreSection(token, genreId, itemsPerPage, page)
-                }
 
-                else -> {
-                    Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
-                    // todo navigate to login
+                if (response.isSuccessful) {
+                    val tvShowsResponse = response.body()
+                    Logger.i { "Successfully fetched ${tvShowsResponse?.member?.size} tv shows for genre $genreId." }
+                    if (tvShowsResponse != null) {
+                        emit(tvShowsResponse)
+                        return@flow // Success, exit flow
+                    }
+                } else {
+                    // Handle HTTP error codes
+                    val errorBody =
+                        response.errorBody()?.string() // Get error message from server if available
+                    Logger.e { "API Error for getTvShowsToShowInGenreSection: ${response.code()} - ${response.message()}. Error body: $errorBody" }
+                    val loginResponse = user.password?.let {
+                        customerRepository.login(
+                            deviceMacAddress = user.deviceMacAddress,
+                            clientIp = user.clientIp,
+                            deviceName = user.deviceName,
+                            identifier = user.accessCode,
+                            password = it
+                        )
+                    }
+                    when (loginResponse?.code()) {
+                        201 -> {
+                            userRepository.saveUserToken(loginResponse.body()!!.token)
+                            retries++ // Increment retries and continue loop
+                        }
+
+                        else -> Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+                    }
                 }
             }
-
-            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+            Logger.e { "Failed to fetch tv shows for genre $genreId after $retries retries." }
         }
-
     }
 
     override fun getTvShowsDetails(
@@ -175,7 +182,7 @@ class TvShowsRepositoryImpl @Inject constructor(
             // Handle HTTP error codes
             val errorBody =
                 response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
+            Logger.e { "API Error for getTvShowsDetails: ${response.code()} - ${response.message()}. Error body: $errorBody" }
             val loginResponse = user.password?.let {
                 customerRepository.login(
                     deviceMacAddress = user.deviceMacAddress,

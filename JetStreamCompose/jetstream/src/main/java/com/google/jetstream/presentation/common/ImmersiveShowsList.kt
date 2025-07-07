@@ -261,9 +261,9 @@ fun ImmersiveListShowsRow(
     modifier: Modifier = Modifier,
     itemDirection: ItemDirection = ItemDirection.Vertical,
     title: String? = null,
-    titleStyle: TextStyle = MaterialTheme.typography.headlineLarge.copy(
+    titleStyle: TextStyle = MaterialTheme.typography.headlineSmall.copy(
         fontWeight = FontWeight.Medium,
-        fontSize = 30.sp
+        fontSize = 18.sp
     ),
     showIndexOverImage: Boolean = false,
     onShowSelected: (TvShow) -> Unit = {},
@@ -292,18 +292,8 @@ fun ImmersiveListShowsRow(
             verticalAlignment = Alignment.CenterVertically,
             contentPadding = PaddingValues(horizontal = 32.dp)
         ) {
-            items(
-                count = infiniteShowsCount,
-                key = { index ->
-                    val actualIndex = index % tvShows.itemCount
-                    tvShows[actualIndex]?.id ?: index
-                }) { index ->
-                val actualIndex = index % tvShows.itemCount
-                val tvShow = tvShows[actualIndex]
-                if (tvShow == null) {
-                    Spacer(modifier = Modifier.width(12.dp))
-                    return@items
-                }
+            items(tvShows.itemSnapshotList.items.size) { index ->
+                val tvShow = tvShows.itemSnapshotList.items[index]
                 ShowsRowItem(
                     modifier = Modifier.weight(1f),
                     index = index,
@@ -350,7 +340,7 @@ private fun ShowsRowItem(
             }
             .focusProperties {
                 left = if (index == 0) {
-                    FocusRequester.Cancel
+                    FocusRequester.Default
                 } else {
                     FocusRequester.Default
                 }

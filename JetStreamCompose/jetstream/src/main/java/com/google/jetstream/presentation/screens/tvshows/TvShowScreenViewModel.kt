@@ -7,11 +7,9 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.google.jetstream.data.models.Genre
-import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.models.TvShow
 import com.google.jetstream.data.network.Catalog
-import com.google.jetstream.data.paging.pagingsources.movie.MoviesHeroSectionPagingSource
 import com.google.jetstream.data.paging.pagingsources.tvshow.TvShowPagingSources
 import com.google.jetstream.data.paging.pagingsources.tvshow.TvShowsHeroSectionPagingSource
 import com.google.jetstream.data.repositories.CatalogRepository
@@ -20,14 +18,11 @@ import com.google.jetstream.data.repositories.StreamingProvidersRepository
 import com.google.jetstream.data.repositories.TvShowsRepository
 import com.google.jetstream.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel

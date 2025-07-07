@@ -45,8 +45,8 @@ import com.google.jetstream.presentation.screens.backgroundImageState
 import com.google.jetstream.presentation.screens.home.carouselSaver
 import kotlinx.coroutines.flow.StateFlow
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
+@OptIn(ExperimentalTvMaterial3Api::class)
 fun TVShowScreen(
     onTVShowClick: (tvShow: TvShow) -> Unit,
     goToVideoPlayer: (tvShow: TvShow) -> Unit,
@@ -59,9 +59,6 @@ fun TVShowScreen(
     val carouselState = rememberSaveable(saver = carouselSaver) { CarouselState(0) }
 
     when (val currentState = uiState) {
-        is TvShowScreenUiState.Loading -> Loading(modifier = Modifier.fillMaxSize())
-        is TvShowScreenUiState.Error -> Error(modifier = Modifier.fillMaxSize())
-
         is TvShowScreenUiState.Ready -> {
             Catalog(
                 heroSectionTvShows = heroSectionTvShows,
@@ -76,11 +73,15 @@ fun TVShowScreen(
                 modifier = Modifier.fillMaxSize(),
             )
         }
+
+        is TvShowScreenUiState.Loading -> Loading(modifier = Modifier.fillMaxSize())
+        is TvShowScreenUiState.Error -> Error(modifier = Modifier.fillMaxSize())
+
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
+@OptIn(ExperimentalTvMaterial3Api::class)
 private fun Catalog(
     heroSectionTvShows: LazyPagingItems<TvShow>,
     catalogToTvShows: Map<Catalog, StateFlow<PagingData<TvShow>>>,
@@ -180,35 +181,35 @@ private fun Catalog(
             )
         }
 
-        items(
-            count = genreToLazyPagingItems.size,
-            key = { genre -> genre },
-            contentType = { "GenreRow" }
-        ) { genre ->
-            val genreKey = genreToLazyPagingItems.keys.elementAt(genre)
-            val tvShows: LazyPagingItems<TvShow>? = genreToLazyPagingItems[genreKey]
-
-            if (tvShows != null && tvShows.itemCount > 0) {
-                ImmersiveShowsList(
-                    tvShows = tvShows,
-                    sectionTitle = genreKey.name,
-                    onTvShowClick = onTVShowClick,
-                    setSelectedTvShow = { tvShow ->
-                        carouselScrollEnabled = false
-                        val imageUrl =
-                            "https://stage.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
-                        setSelectedTvShow(tvShow)
-                        backgroundState.load(
-                            url = imageUrl
-                        )
-                    },
-                )
-            }
-        }
+//        items(
+//            count = genreToLazyPagingItems.size,
+//            key = { genre -> genreToLazyPagingItems.keys.elementAt(genre).id },
+//            contentType = { "GenreRow" }
+//        ) { genre ->
+//            val genreKey = genreToLazyPagingItems.keys.elementAt(genre)
+//            val tvShows: LazyPagingItems<TvShow>? = genreToLazyPagingItems[genreKey]
+//
+//            if (tvShows != null && tvShows.itemCount > 0) {
+//                ImmersiveShowsList(
+//                    tvShows = tvShows,
+//                    sectionTitle = genreKey.name,
+//                    onTvShowClick = onTVShowClick,
+//                    setSelectedTvShow = { tvShow ->
+//                        carouselScrollEnabled = false
+//                        val imageUrl =
+//                            "https://stage.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
+//                        setSelectedTvShow(tvShow)
+//                        backgroundState.load(
+//                            url = imageUrl
+//                        )
+//                    },
+//                )
+//            }
+//        }
 
         items(
             count = catalogToLazyPagingItems.size,
-            key = { catalog -> catalog.hashCode() }, //e catalog ID as unique key
+            key = { catalog -> catalogToLazyPagingItems.keys.elementAt(catalog).id }, //e catalog ID as unique key
             contentType = { "catalogRow" }
         ) { catalog ->
             val catalogKey = catalogToLazyPagingItems.keys.elementAt(catalog)
