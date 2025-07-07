@@ -30,7 +30,7 @@ https://www.apache.org/licenses/LICENSE-2.0
     <string name="revenue">Revenue</string>
     <string name="reviews">Reviews</string>
     <string name="delete_account_dialog_title">Delete account?</string>
-    <string name="delete_account_dialog_text">"By deactivating your account, you will no longer be able to sign in, your activity will be removed from JetStream and your profile preferences will go away.\n\nDo you wish to continue?\n"</string>
+    <string name="delete_account_dialog_text">"By deactivating your account, you will no longer be able to sign in, your activity will be removed from NorTv and your profile preferences will go away.\n\nDo you wish to continue?\n"</string>
     <string name="yes_delete_account">Yes, delete my account</string>
     <string name="no_keep_it">No, keep it</string>
     <string name="search_screen_et_placeholder">Search for movies, shows and more…</string>
