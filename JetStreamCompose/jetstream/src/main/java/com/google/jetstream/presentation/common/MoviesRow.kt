@@ -224,7 +224,7 @@ fun TvShowRowItem(
             }
             .focusProperties {
                 left = if (index == 0) {
-                    FocusRequester.Cancel
+                    FocusRequester.Default
                 } else {
                     FocusRequester.Default
                 }

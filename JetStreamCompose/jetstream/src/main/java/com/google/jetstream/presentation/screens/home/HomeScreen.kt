@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -31,6 +32,7 @@ import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.tv.foundation.lazy.list.TvLazyColumn
+import androidx.tv.foundation.lazy.list.rememberTvLazyListState
 import androidx.tv.material3.CarouselState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
@@ -107,6 +109,9 @@ private fun Catalog(
         flow.collectAsLazyPagingItems()
     }
 
+    val (carouselFocusRequester, firstLazyRowItemUnderCarouselRequester) = remember { FocusRequester.createRefs() }
+    val lazyRowState = rememberTvLazyListState()
+
     var carouselScrollEnabled by remember { mutableStateOf(true) }
 
     Box(modifier = modifier) {
@@ -171,6 +176,9 @@ private fun Catalog(
                 modifier = Modifier
                     .height(340.dp)
                     .fillMaxWidth(),
+                firstLazyRowItemUnderCarouselRequester = firstLazyRowItemUnderCarouselRequester,
+                carouselFocusRequester = carouselFocusRequester,
+                lazyRowState = lazyRowState
             )
         }
 
@@ -182,7 +190,10 @@ private fun Catalog(
             StreamingProvidersRow(
                 streamingProviders = streamingProviders,
                 onClick = onStreamingProviderClick,
-                modifier = Modifier
+                modifier = Modifier,
+                firstItemFocusRequester = firstLazyRowItemUnderCarouselRequester,
+                aboveFocusRequester = carouselFocusRequester,
+                lazyRowState = lazyRowState
             )
         }
 

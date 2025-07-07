@@ -17,6 +17,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -29,6 +32,7 @@ import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.tv.foundation.lazy.list.TvLazyColumn
+import androidx.tv.foundation.lazy.list.rememberTvLazyListState
 import androidx.tv.material3.CarouselState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
@@ -102,6 +106,10 @@ private fun Catalog(
     val genreToLazyPagingItems = genreToTvShows.mapValues { (_, flow) ->
         flow.collectAsLazyPagingItems()
     }
+
+    val (carouselFocusRequester, firstLazyRowItemUnderCarouselRequester) = remember { FocusRequester.createRefs() }
+    val lazyRowState = rememberTvLazyListState()
+
     var carouselScrollEnabled by remember { mutableStateOf(true) }
 
     Box(modifier = modifier) {
@@ -167,6 +175,9 @@ private fun Catalog(
                     .fillMaxWidth(),
                 carouselState = carouselState,
                 carouselScrollEnabled = carouselScrollEnabled,
+                firstLazyRowItemUnderCarouselRequester = firstLazyRowItemUnderCarouselRequester,
+                carouselFocusRequester = carouselFocusRequester,
+                lazyRowState = lazyRowState
             )
         }
 
@@ -177,35 +188,38 @@ private fun Catalog(
             StreamingProvidersRow(
                 streamingProviders = streamingProviders,
                 onClick = onStreamingProviderClick,
-                modifier = Modifier
+                modifier = Modifier,
+                firstItemFocusRequester = firstLazyRowItemUnderCarouselRequester,
+                aboveFocusRequester = carouselFocusRequester,
+                lazyRowState = lazyRowState
             )
         }
 
-//        items(
-//            count = genreToLazyPagingItems.size,
-//            key = { genre -> genreToLazyPagingItems.keys.elementAt(genre).id },
-//            contentType = { "GenreRow" }
-//        ) { genre ->
-//            val genreKey = genreToLazyPagingItems.keys.elementAt(genre)
-//            val tvShows: LazyPagingItems<TvShow>? = genreToLazyPagingItems[genreKey]
-//
-//            if (tvShows != null && tvShows.itemCount > 0) {
-//                ImmersiveShowsList(
-//                    tvShows = tvShows,
-//                    sectionTitle = genreKey.name,
-//                    onTvShowClick = onTVShowClick,
-//                    setSelectedTvShow = { tvShow ->
-//                        carouselScrollEnabled = false
-//                        val imageUrl =
-//                            "https://stage.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
-//                        setSelectedTvShow(tvShow)
-//                        backgroundState.load(
-//                            url = imageUrl
-//                        )
-//                    },
-//                )
-//            }
-//        }
+        items(
+            count = genreToLazyPagingItems.size,
+            key = { genre -> genreToLazyPagingItems.keys.elementAt(genre).id },
+            contentType = { "GenreRow" }
+        ) { genre ->
+            val genreKey = genreToLazyPagingItems.keys.elementAt(genre)
+            val tvShows: LazyPagingItems<TvShow>? = genreToLazyPagingItems[genreKey]
+
+            if (tvShows != null && tvShows.itemCount > 0) {
+                ImmersiveShowsList(
+                    tvShows = tvShows,
+                    sectionTitle = genreKey.name,
+                    onTvShowClick = onTVShowClick,
+                    setSelectedTvShow = { tvShow ->
+                        carouselScrollEnabled = false
+                        val imageUrl =
+                            "https://stage.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
+                        setSelectedTvShow(tvShow)
+                        backgroundState.load(
+                            url = imageUrl
+                        )
+                    },
+                )
+            }
+        }
 
         items(
             count = catalogToLazyPagingItems.size,

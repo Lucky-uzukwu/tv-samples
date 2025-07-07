@@ -11,15 +11,19 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.paging.compose.LazyPagingItems
+import androidx.tv.foundation.lazy.list.TvLazyListState
 import androidx.tv.material3.Carousel
 import androidx.tv.material3.CarouselState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
-import com.google.jetstream.data.entities.toMovieNew
 import com.google.jetstream.data.models.MovieNew
 
 
@@ -33,6 +37,9 @@ fun MovieHeroSectionCarousel(
     modifier: Modifier = Modifier,
     carouselState: CarouselState,
     carouselScrollEnabled: Boolean,
+    carouselFocusRequester: FocusRequester,
+    firstLazyRowItemUnderCarouselRequester: FocusRequester,
+    lazyRowState: TvLazyListState
 ) {
     var isCarouselFocused by remember { mutableStateOf(false) }
     val itemsPerPage = 5
@@ -41,14 +48,25 @@ fun MovieHeroSectionCarousel(
     val currentPage = activeItemIndex / itemsPerPage
     val startIndex = currentPage * itemsPerPage
     val endIndex = minOf(startIndex + itemsPerPage, totalItems)
-
+    val coroutineScope = rememberCoroutineScope()
 
     Carousel(
         itemCount = movies.itemCount,
-        modifier = modifier
+        modifier = Modifier
+            .then(
+                if (lazyRowState.firstVisibleItemIndex == 0) {
+                    modifier
+                        .focusProperties {
+                            down = firstLazyRowItemUnderCarouselRequester
+                        }
+                } else {
+                    modifier
+                }
+            )
             .onFocusChanged {
                 isCarouselFocused = it.hasFocus
-            },
+            }
+            .focusRequester(carouselFocusRequester),
         carouselIndicator = {
             CarouselIndicator(
                 itemCount = minOf(itemsPerPage, totalItems - startIndex), // Show up to 5 items
