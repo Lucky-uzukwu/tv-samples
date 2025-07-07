@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -22,7 +21,6 @@ import androidx.tv.foundation.lazy.list.TvLazyListState
 import androidx.tv.foundation.lazy.list.TvLazyRow
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import com.google.jetstream.data.models.StreamingProvider
-import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalTvMaterial3Api::class)
@@ -35,7 +33,6 @@ fun StreamingProvidersRow(
     aboveFocusRequester: FocusRequester,
     lazyRowState: TvLazyListState
 ) {
-    val coroutineScope = rememberCoroutineScope()
     var hasFocus by remember { mutableStateOf(false) }
 
     Column {
@@ -65,14 +62,6 @@ fun StreamingProvidersRow(
                         modifier = Modifier
                             .focusProperties {
                                 up = aboveFocusRequester
-                            }
-                            .onFocusChanged {
-                                if (index == 0) {
-                                    // Scroll to index 0 when it gains focus
-                                    coroutineScope.launch {
-                                        lazyRowState.scrollToItem(0)
-                                    }
-                                }
                             }
                             .then(
                                 if (index == 0) Modifier.focusRequester(
