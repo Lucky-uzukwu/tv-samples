@@ -37,7 +37,6 @@ class UserStateHolder @Inject constructor(
                 userRepository.userDeviceName,
                 userRepository.userDeviceMacAddress,
             ) { user ->
-                Logger.i(user.contentToString())
                 UserState(
                     user = User(
                         id = user[0] ?: "",
@@ -61,8 +60,6 @@ class UserStateHolder @Inject constructor(
 
     suspend fun updateUser(user: User) {
         // Atomic read-modify-write
-        Logger.i { "User to update ${userState.value.user}" }
-        Logger.i { "new user received $user" }
         _userState.update { current ->
             current.copy(user = user)
         }
