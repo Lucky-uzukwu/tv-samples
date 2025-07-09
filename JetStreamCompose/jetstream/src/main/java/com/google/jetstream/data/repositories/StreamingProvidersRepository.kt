@@ -4,5 +4,5 @@ import com.google.jetstream.data.models.StreamingProvider
 import kotlinx.coroutines.flow.Flow
 
 interface StreamingProvidersRepository {
-    fun getStreamingProviders(): Flow<List<StreamingProvider>>
+    fun getStreamingProviders(type: String): Flow<List<StreamingProvider>>
 }

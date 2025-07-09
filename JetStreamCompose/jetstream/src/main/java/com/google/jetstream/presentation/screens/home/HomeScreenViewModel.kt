@@ -91,7 +91,9 @@ class HomeScreeViewModel @Inject constructor(
                 )
 
                 val streamingProviders =
-                    streamingProvidersRepository.getStreamingProviders().firstOrNull()
+                    streamingProvidersRepository.getStreamingProviders(
+                        type = "App\\Models\\Movie"
+                    ).firstOrNull()
 
                 HomeScreenUiState.Ready(
                     catalogToMovies = catalogToMovies,

@@ -63,7 +63,9 @@ class TvShowScreenViewModel @Inject constructor(
                 )
 
                 val streamingProviders =
-                    streamingProvidersRepository.getStreamingProviders().firstOrNull()
+                    streamingProvidersRepository.getStreamingProviders(
+                        type = "App\\Models\\TvShow"
+                    ).firstOrNull()
 
                 TvShowScreenUiState.Ready(
                     catalogToTvShows = catalogAndTvShows,

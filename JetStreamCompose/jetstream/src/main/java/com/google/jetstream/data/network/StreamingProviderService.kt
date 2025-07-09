@@ -15,6 +15,7 @@ interface StreamingProviderService {
         @Header("Accept") accept: String = "application/ld+json",
         @Query("page") page: Int? = 1,
         @Query("itemsPerPage") itemsPerPage: Int? = 15,
+        @Query("type") type: String,
     ): Response<StreamingProviderResponse>
 }
 

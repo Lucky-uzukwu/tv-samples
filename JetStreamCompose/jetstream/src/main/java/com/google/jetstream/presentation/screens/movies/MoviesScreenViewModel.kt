@@ -64,7 +64,9 @@ class MoviesScreenViewModel @Inject constructor(
                 )
 
                 val streamingProviders =
-                    streamingProvidersRepository.getStreamingProviders().firstOrNull()
+                    streamingProvidersRepository.getStreamingProviders(
+                        type = "App\\Models\\Movie"
+                    ).firstOrNull()
 
                 MoviesScreenUiState.Ready(
                     catalogToMovies = catalogToMovies,

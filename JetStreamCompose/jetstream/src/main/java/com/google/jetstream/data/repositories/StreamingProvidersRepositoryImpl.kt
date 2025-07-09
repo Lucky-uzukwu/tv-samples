@@ -14,10 +14,11 @@ class StreamingProvidersRepositoryImpl @Inject constructor(
     private val userRepository: UserRepository,
     private val streamingProviderService: StreamingProviderService
 ) : StreamingProvidersRepository {
-    override fun getStreamingProviders(): Flow<List<StreamingProvider>> = flow {
+    override fun getStreamingProviders(type: String): Flow<List<StreamingProvider>> = flow {
         val user = userRepository.getUser() ?: return@flow
         val response = streamingProviderService.getStreamingProviders(
-            authToken = "Bearer ${user.token}"
+            authToken = "Bearer ${user.token}",
+            type = type
         )
 
         if (response.isSuccessful) {
@@ -44,7 +45,7 @@ class StreamingProvidersRepositoryImpl @Inject constructor(
             when (loginResponse?.code()) {
                 201 -> {
                     userRepository.saveUserToken(loginResponse.body()!!.token)
-                    getStreamingProviders()
+                    getStreamingProviders(type)
                 }
 
                 else -> {
