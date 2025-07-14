@@ -101,9 +101,7 @@ fun App(
             ) {
                 StreamingProviderMoviesListScreen(
                     onBackPressed = {
-                        if (navController.navigateUp()) {
-                            isComingBackFromDifferentScreen = true
-                        }
+                        navController.popBackStack()
                     },
                     onMovieSelected = { movie ->
                         navController.navigate(

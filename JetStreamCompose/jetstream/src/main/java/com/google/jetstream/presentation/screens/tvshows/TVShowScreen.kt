@@ -181,19 +181,19 @@ private fun Catalog(
             )
         }
 
-        item(
-            contentType = "StreamingProvidersRow",
-            key = "showScreenStreamingProvidersRow"
-        ) {
-            StreamingProvidersRow(
-                streamingProviders = streamingProviders,
-                onClick = onStreamingProviderClick,
-                modifier = Modifier,
-                firstItemFocusRequester = firstLazyRowItemUnderCarouselRequester,
-                aboveFocusRequester = carouselFocusRequester,
-                lazyRowState = lazyRowState
-            )
-        }
+//        item(
+//            contentType = "StreamingProvidersRow",
+//            key = "showScreenStreamingProvidersRow"
+//        ) {
+//            StreamingProvidersRow(
+//                streamingProviders = streamingProviders,
+//                onClick = onStreamingProviderClick,
+//                modifier = Modifier,
+//                firstItemFocusRequester = firstLazyRowItemUnderCarouselRequester,
+//                aboveFocusRequester = carouselFocusRequester,
+//                lazyRowState = lazyRowState
+//            )
+//        }
 
         items(
             count = genreToLazyPagingItems.size,

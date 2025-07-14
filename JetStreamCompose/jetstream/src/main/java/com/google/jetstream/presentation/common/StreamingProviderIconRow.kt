@@ -27,7 +27,7 @@ import com.google.jetstream.data.models.StreamingProvider
 @Composable
 fun StreamingProvidersRow(
     modifier: Modifier = Modifier,
-    onClick: (streamingProvider: StreamingProvider) -> Unit,
+    onClick: (streamingProvider: StreamingProvider, index: Int) -> Unit,
     streamingProviders: List<StreamingProvider>,
     firstItemFocusRequester: FocusRequester,
     aboveFocusRequester: FocusRequester,
@@ -58,7 +58,7 @@ fun StreamingProvidersRow(
                 if (streamingProvider.logoPath != null) {
                     val imageUrl = "https://stage.nortv.xyz/storage/${streamingProvider.logoPath}"
                     CustomCard(
-                        onClick = { onClick(streamingProvider) },
+                        onClick = { onClick(streamingProvider, index) },
                         modifier = Modifier
                             .focusProperties {
                                 up = aboveFocusRequester

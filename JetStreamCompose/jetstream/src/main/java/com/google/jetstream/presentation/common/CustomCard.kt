@@ -31,7 +31,7 @@ fun CustomCard(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(all = 4.dp)
+            .padding(all = 3.dp)
             .height(100.dp)
             .width(100.dp)
     ) {

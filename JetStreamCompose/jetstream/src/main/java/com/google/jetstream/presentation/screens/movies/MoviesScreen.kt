@@ -177,19 +177,19 @@ private fun Catalog(
             )
         }
 //
-        item(
-            contentType = "StreamingProvidersRow",
-            key = "movieScreenStreamingProvidersRow"
-        ) {
-            StreamingProvidersRow(
-                streamingProviders = streamingProviders,
-                onClick = onStreamingProviderClick,
-                modifier = Modifier,
-                firstItemFocusRequester = firstLazyRowItemUnderCarouselRequester,
-                aboveFocusRequester = carouselFocusRequester,
-                lazyRowState = lazyRowState
-            )
-        }
+//        item(
+//            contentType = "StreamingProvidersRow",
+//            key = "movieScreenStreamingProvidersRow"
+//        ) {
+//            StreamingProvidersRow(
+//                streamingProviders = streamingProviders,
+//                onClick = onStreamingProviderClick,
+//                modifier = Modifier,
+//                firstItemFocusRequester = firstLazyRowItemUnderCarouselRequester,
+//                aboveFocusRequester = carouselFocusRequester,
+//                lazyRowState = lazyRowState
+//            )
+//        }
 
         items(
             count = catalogToLazyPagingItems.size,

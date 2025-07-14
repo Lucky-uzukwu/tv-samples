@@ -15,6 +15,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.createGraph
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.models.TvShow
@@ -84,7 +85,7 @@ private fun Body(
     modifier: Modifier = Modifier,
     openCategoryMovieList: (categoryId: String) -> Unit,
     openStreamingProviderMovieList: (streamingProvider: StreamingProvider) -> Unit,
-    openStreamingProvideShowList: (streamingProvider: StreamingProvider) -> Unit ,
+    openStreamingProvideShowList: (streamingProvider: StreamingProvider) -> Unit,
     openMovieDetailsScreen: (movieId: String) -> Unit,
     openTvShowDetailsScreen: (tvShowId: String) -> Unit,
     openVideoPlayer: (movieId: String) -> Unit,
@@ -92,75 +93,68 @@ private fun Body(
     setSelectedTvShow: (tvShow: TvShow) -> Unit,
     navController: NavHostController = rememberNavController(),
     onLogOutClick: () -> Unit
-) =
-    NavHost(
-        navController = navController,
-        startDestination = Screens.Home(),
-    ) {
-        composable(Screens.Profile()) {
-            ProfileScreen(
-                logOutOnClick = onLogOutClick
-            )
-        }
-        composable(Screens.Home()) {
-            HomeScreen(
-                onMovieClick = { selectedMovie ->
-                    openMovieDetailsScreen(selectedMovie.id.toString())
-                },
-                goToVideoPlayer = { selectedMovie ->
-                    openVideoPlayer(selectedMovie.id.toString())
-                },
-                setSelectedMovie = setSelectedMovie,
-                onStreamingProviderClick = openStreamingProviderMovieList
-            )
-        }
+) {
+    val navGraph = remember(navController) {
+        navController.createGraph(startDestination = Screens.Home()) {
+            composable(Screens.Profile()) {
+                ProfileScreen(
+                    logOutOnClick = onLogOutClick
+                )
+            }
+            composable(Screens.Home()) {
+                HomeScreen(
+                    onMovieClick = { selectedMovie ->
+                        openMovieDetailsScreen(selectedMovie.id.toString())
+                    },
+                    goToVideoPlayer = { selectedMovie ->
+                        openVideoPlayer(selectedMovie.id.toString())
+                    },
+                    setSelectedMovie = setSelectedMovie,
+                    onStreamingProviderClick = openStreamingProviderMovieList,
+                    navController = navController
+                )
+            }
 
-        composable(Screens.Movies()) {
-            MoviesScreen(
-                onMovieClick = { selectedMovie ->
-                    openMovieDetailsScreen(selectedMovie.id.toString())
-                },
-                goToVideoPlayer = { selectedMovie ->
-                    openVideoPlayer(selectedMovie.id.toString())
-                },
-                setSelectedMovie = setSelectedMovie,
-                onStreamingProviderClick = openStreamingProviderMovieList
-            )
-        }
+            composable(Screens.Movies()) {
+                MoviesScreen(
+                    onMovieClick = { selectedMovie ->
+                        openMovieDetailsScreen(selectedMovie.id.toString())
+                    },
+                    goToVideoPlayer = { selectedMovie ->
+                        openVideoPlayer(selectedMovie.id.toString())
+                    },
+                    setSelectedMovie = setSelectedMovie,
+                    onStreamingProviderClick = openStreamingProviderMovieList
+                )
+            }
 
-        composable(Screens.Shows()) {
-            TVShowScreen(
-                onTVShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) },
-                goToVideoPlayer = { selectedMovie ->
-                    openVideoPlayer(selectedMovie.id.toString())
-                },
-                setSelectedTvShow = setSelectedTvShow,
-                onStreamingProviderClick = openStreamingProvideShowList
-            )
-        }
+            composable(Screens.Shows()) {
+                TVShowScreen(
+                    onTVShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) },
+                    goToVideoPlayer = { selectedMovie ->
+                        openVideoPlayer(selectedMovie.id.toString())
+                    },
+                    setSelectedTvShow = setSelectedTvShow,
+                    onStreamingProviderClick = openStreamingProvideShowList
+                )
+            }
 
-        composable(Screens.Categories()) {
-            CategoriesScreen(
-                onCategoryClick = openCategoryMovieList,
-            )
+            composable(Screens.Categories()) {
+                CategoriesScreen(
+                    onCategoryClick = openCategoryMovieList,
+                )
+            }
+            composable(Screens.Search()) {
+                SearchScreen(
+                    onMovieClick = { movie -> openMovieDetailsScreen(movie.id.toString()) },
+                    onScroll = { },
+                    onShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) }
+                )
+            }
         }
-        composable(Screens.Search()) {
-            SearchScreen(
-                onMovieClick = { movie -> openMovieDetailsScreen(movie.id.toString()) },
-                onScroll = { },
-                onShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) }
-            )
-        }
-
-
-////        composable(Screens.Favourites()) {
-////            FavouritesScreen(
-////                onMovieClick = openMovieDetailsScreen,
-////                onScroll = updateTopBarVisibility,
-////                isTopBarVisible = isTopBarVisible
-////            )
-////        }
     }
+    NavHost(navController, navGraph)
+}
 
 @Preview(showBackground = true, device = "id:tv_4k")
 @Composable

@@ -51,11 +51,11 @@ fun HomeDrawer(
         List(TopBarTabs.size) { FocusRequester() }
     }
 
-    LaunchedEffect(key1 = Unit) {
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            selectedTab = destination.route ?: return@addOnDestinationChangedListener
-        }
-    }
+//    LaunchedEffect(key1 = Unit) {
+//        navController.addOnDestinationChangedListener { _, destination, _ ->
+//            selectedTab = destination.route ?: return@addOnDestinationChangedListener
+//        }
+//    }
 
 
     ModalNavigationDrawer(
@@ -65,7 +65,8 @@ fun HomeDrawer(
                 Color.Transparent
             )
         ),
-        drawerState = drawerState, drawerContent = { _ ->
+        drawerState = drawerState,
+        drawerContent = { _ ->
             Column(
                 Modifier
                     .fillMaxHeight()
