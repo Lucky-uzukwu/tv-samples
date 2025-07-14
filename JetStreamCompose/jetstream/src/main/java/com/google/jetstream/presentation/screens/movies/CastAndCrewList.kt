@@ -75,7 +75,7 @@ private fun CastAndCrewItem(
     modifier: Modifier = Modifier,
 ) {
     val castImageUrl =
-        "https://stage.nortv.xyz/" + "storage/" + personToCharacter.person.profilePath
+        "https://api.nortv.xyz/" + "storage/" + personToCharacter.person.profilePath
     ClassicCard(
         modifier = modifier
             .padding(end = 20.dp, bottom = 16.dp)

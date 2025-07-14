@@ -220,7 +220,7 @@ private fun MovieImageWithGradients(
     backdropImagePath: String,
     modifier: Modifier = Modifier,
 ) {
-    val imageUrl = "https://stage.nortv.xyz/storage/$backdropImagePath"
+    val imageUrl = "https://api.nortv.xyz/storage/$backdropImagePath"
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current).data(imageUrl)
             .crossfade(true).build(),
@@ -289,7 +289,7 @@ private fun TvShowSeasonsAndEpisodes(
                             ) {
                                 if (episode.posterImagePath != null) {
                                     val imageUrl =
-                                        "https://stage.nortv.xyz/" + "storage/" + episode.posterImagePath
+                                        "https://api.nortv.xyz/" + "storage/" + episode.posterImagePath
                                     PosterImage(
                                         title = episode.title,
                                         posterUrl = imageUrl,

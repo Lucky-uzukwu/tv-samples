@@ -40,7 +40,7 @@ fun StreamingProviderIcon(
         }
     },
 ) {
-    val imageUrl = "https://stage.nortv.xyz/storage/$logoPath"
+    val imageUrl = "https://api.nortv.xyz/storage/$logoPath"
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier

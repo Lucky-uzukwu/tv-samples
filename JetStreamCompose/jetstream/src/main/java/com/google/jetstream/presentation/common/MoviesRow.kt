@@ -159,7 +159,7 @@ fun MoviesRowItem(
     onMovieFocused: (MovieNew) -> Unit = {},
 ) {
     var isFocused by remember { mutableStateOf(false) }
-    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.posterImagePath
+    val imageUrl = "https://api.nortv.xyz/" + "storage/" + movie.posterImagePath
 
     MovieCard(
         onClick = { onMovieSelected(movie) },
@@ -206,7 +206,7 @@ fun TvShowRowItem(
     onTvShowFocused: (TvShow) -> Unit = {},
 ) {
     var isFocused by remember { mutableStateOf(false) }
-    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + tvShow.posterImagePath
+    val imageUrl = "https://api.nortv.xyz/" + "storage/" + tvShow.posterImagePath
 
     MovieCard(
         onClick = { onTvShowSelected(tvShow) },

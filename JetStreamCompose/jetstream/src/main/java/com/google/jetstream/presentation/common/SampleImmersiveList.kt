@@ -105,7 +105,7 @@ private fun Background(
     visible: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
+    val imageUrl = "https://api.nortv.xyz/" + "storage/" + movie.backdropImagePath
     AnimatedVisibility(
         visible = visible,
         enter = fadeIn() + expandVertically(),

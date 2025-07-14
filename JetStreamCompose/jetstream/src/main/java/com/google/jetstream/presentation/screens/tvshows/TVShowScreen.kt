@@ -164,7 +164,7 @@ private fun Catalog(
                 goToMoreInfo = onTVShowClick,
                 setSelectedTvShow = { tvShow ->
                     val imageUrl =
-                        "https://stage.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
+                        "https://api.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
                     backgroundState.load(
                         url = imageUrl
                     )
@@ -211,7 +211,7 @@ private fun Catalog(
                     setSelectedTvShow = { tvShow ->
                         carouselScrollEnabled = false
                         val imageUrl =
-                            "https://stage.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
+                            "https://api.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
                         setSelectedTvShow(tvShow)
                         backgroundState.load(
                             url = imageUrl
@@ -237,7 +237,7 @@ private fun Catalog(
                     setSelectedTvShow = { tvShow ->
                         carouselScrollEnabled = false
                         val imageUrl =
-                            "https://stage.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
+                            "https://api.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
                         setSelectedTvShow(tvShow)
                         backgroundState.load(
                             url = imageUrl

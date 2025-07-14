@@ -18,7 +18,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 @Module
 @InstallIn(SingletonComponent::class)
 class NetworkModule {
-    private val BASE_URL = "https://stage.nortv.xyz/"
+    private val BASE_URL = "https://api.nortv.xyz/"
 
     @Provides
     @Singleton

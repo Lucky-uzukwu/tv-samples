@@ -132,7 +132,7 @@ private fun ShowsGrid(
                                 ),
                         ) {
                             val imageUrl =
-                                "https://stage.nortv.xyz/" + "storage/" + item.posterImagePath
+                                "https://api.nortv.xyz/" + "storage/" + item.posterImagePath
                             item.title?.let {
                                 PosterImage(
                                     title = it,

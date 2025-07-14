@@ -131,7 +131,7 @@ private fun MoviesGrid(
                                 ),
                         ) {
                             val imageUrl =
-                                "https://stage.nortv.xyz/" + "storage/" + movie.posterImagePath
+                                "https://api.nortv.xyz/" + "storage/" + movie.posterImagePath
                             PosterImage(
                                 title = movie.title,
                                 posterUrl = imageUrl,

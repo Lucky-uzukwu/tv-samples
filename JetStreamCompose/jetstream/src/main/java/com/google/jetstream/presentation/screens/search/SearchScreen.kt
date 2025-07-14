@@ -267,7 +267,7 @@ fun SearchResult(
                                 ),
                         ) {
                             val imageUrl =
-                                "https://stage.nortv.xyz/" + "storage/" + movie.posterImagePath
+                                "https://api.nortv.xyz/" + "storage/" + movie.posterImagePath
                             PosterImage(
                                 title = movie.title,
                                 posterUrl = imageUrl,
@@ -289,7 +289,7 @@ fun SearchResult(
 //                                ),
 //                        ) {
 //                            val imageUrl =
-//                                "https://stage.nortv.xyz/" + "storage/" + show.posterImagePath
+//                                "https://api.nortv.xyz/" + "storage/" + show.posterImagePath
 //                            show.title?.let {
 //                                PosterImage(
 //                                    title = it,
@@ -342,7 +342,7 @@ fun SearchResult(
 //                                    ),
 //                            ) {
 //                                val imageUrl =
-//                                    "https://stage.nortv.xyz/" + "storage/" + show.posterImagePath
+//                                    "https://api.nortv.xyz/" + "storage/" + show.posterImagePath
 //                                show.title?.let {
 //                                    PosterImage(
 //                                        title = it,

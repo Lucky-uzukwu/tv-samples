@@ -53,7 +53,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "SERVER_URL", "https://stage.nortv.xyz")
+            buildConfigField("String", "SERVER_URL", "https://api.nortv.xyz")
         }
     }
     buildFeatures {

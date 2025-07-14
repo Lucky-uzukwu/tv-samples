@@ -217,7 +217,7 @@ private fun Catalog(
                 goToVideoPlayer = goToVideoPlayer,
                 goToMoreInfo = onMovieClick,
                 setSelectedMovie = { movie ->
-                    val imageUrl = "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
+                    val imageUrl = "https://api.nortv.xyz/" + "storage/" + movie.backdropImagePath
                     backgroundState.load(
                         url = imageUrl
                     )
@@ -287,7 +287,7 @@ private fun Catalog(
 //                    setSelectedMovie = { movie ->
 //                        carouselScrollEnabled = false
 //                        val imageUrl =
-//                            "https://stage.nortv.xyz/" + "storage/" + movie.backdropImagePath
+//                            "https://api.nortv.xyz/" + "storage/" + movie.backdropImagePath
 //                        setSelectedMovie(movie)
 //                        backgroundState.load(
 //                            url = imageUrl
