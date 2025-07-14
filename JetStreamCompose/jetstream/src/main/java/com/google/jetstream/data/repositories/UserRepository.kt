@@ -16,6 +16,21 @@ import javax.inject.Singleton
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user")
 
+
+val defaultUser = User(
+    id = "id",
+    accessCode = "accessCode",
+    name = "name",
+    email = "email",
+    password = "password",
+    clientIp = "clientIp",
+    deviceName = "deviceName",
+    deviceMacAddress = "deviceMacAddress",
+    profilePhotoPath = "profilePhotoPath",
+    profilePhotoUrl = "profilePhotoUrl",
+    token = "token"
+)
+
 @Singleton
 class UserRepository @Inject constructor(
     private val context: Context
@@ -35,20 +50,35 @@ class UserRepository @Inject constructor(
     }
 
     // Reading methods
-    val userToken: Flow<String?> = context.dataStore.data.map { it[KEY_USER_TOKEN] }
-    val userId: Flow<String?> = context.dataStore.data.map { it[KEY_USER_ID] }
-    val userEmail: Flow<String?> = context.dataStore.data.map { it[KEY_USER_EMAIL] }
-    val userAccessCode: Flow<String?> = context.dataStore.data.map { it[KEY_USER_ACCESS_CODE] }
-    val userName: Flow<String?> = context.dataStore.data.map { it[KEY_USER_NAME] }
-    val userPassword: Flow<String?> = context.dataStore.data.map { it[KEY_USER_PASSWORD] }
-    val userClientIp: Flow<String?> = context.dataStore.data.map { it[KEY_USER_CLIENT_IP] }
-    val userDeviceName: Flow<String?> = context.dataStore.data.map { it[KEY_USER_DEVICE_NAME] }
+    val userToken: Flow<String?> =
+        context.dataStore.data.map { it[KEY_USER_TOKEN] ?: defaultUser.token }
+    val userId: Flow<String?> = context.dataStore.data.map { it[KEY_USER_ID] ?: defaultUser.id }
+    val userEmail: Flow<String?> =
+        context.dataStore.data.map { it[KEY_USER_EMAIL] ?: defaultUser.email }
+    val userAccessCode: Flow<String?> =
+        context.dataStore.data.map { it[KEY_USER_ACCESS_CODE] ?: defaultUser.accessCode }
+    val userName: Flow<String?> =
+        context.dataStore.data.map { it[KEY_USER_NAME] ?: defaultUser.name }
+    val userPassword: Flow<String?> =
+        context.dataStore.data.map { it[KEY_USER_PASSWORD] ?: defaultUser.password }
+    val userClientIp: Flow<String?> =
+        context.dataStore.data.map { it[KEY_USER_CLIENT_IP] ?: defaultUser.clientIp }
+    val userDeviceName: Flow<String?> =
+        context.dataStore.data.map {
+            it[KEY_USER_DEVICE_NAME] ?: defaultUser.deviceName
+        }
     val userDeviceMacAddress: Flow<String?> =
-        context.dataStore.data.map { it[KEY_USER_DEVICE_MAC_ADDRESS] }
+        context.dataStore.data.map {
+            it[KEY_USER_DEVICE_MAC_ADDRESS] ?: defaultUser.deviceMacAddress
+        }
     val userProfilePhotoPath: Flow<String?> =
-        context.dataStore.data.map { it[KEY_USER_PROFILE_PHOTO_PATH] }
+        context.dataStore.data.map {
+            it[KEY_USER_PROFILE_PHOTO_PATH] ?: defaultUser.profilePhotoPath
+        }
     val userProfilePhotoUrl: Flow<String?> =
-        context.dataStore.data.map { it[KEY_USER_PROFILE_PHOTO_URL] }
+        context.dataStore.data.map {
+            it[KEY_USER_PROFILE_PHOTO_URL] ?: defaultUser.profilePhotoUrl
+        }
 
     // Writing methods
     suspend fun saveUserToken(token: String) {

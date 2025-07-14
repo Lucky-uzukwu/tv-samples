@@ -27,12 +27,6 @@ import kotlinx.coroutines.flow.Flow
 interface MovieRepository {
     fun getMovieCategories(): Flow<MovieCategoryList>
     suspend fun getMovieCategoryDetails(categoryId: String): MovieCategoryDetails
-    suspend fun searchMovies(query: String): MovieList
-    fun getMoviesWithLongThumbnail(): Flow<MovieList>
-    fun getPopularFilmsThisWeek(): Flow<MovieList>
-    fun getTVShows(): Flow<MovieList>
-    fun getBingeWatchDramas(): Flow<MovieList>
-    fun getFavouriteMovies(): Flow<MovieList>
     fun getMoviesToShowInHeroSection(
         token: String,
         page: Int,
@@ -58,6 +52,4 @@ interface MovieRepository {
         movieId: String
     ): Flow<MovieNew>
 
-
-    suspend fun getMovieDetails(movieId: String): MovieDetails
 }

@@ -1,29 +1,29 @@
-/*
- * Copyright 2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.google.jetstream
 
 import android.app.Application
 import android.content.Context
+import com.google.jetstream.data.network.CatalogService
+import com.google.jetstream.data.network.CustomerService
+import com.google.jetstream.data.network.GenreService
+import com.google.jetstream.data.network.MovieService
+import com.google.jetstream.data.network.SearchService
+import com.google.jetstream.data.network.StreamingProviderService
+import com.google.jetstream.data.network.TvShowsService
 import com.google.jetstream.data.repositories.CatalogRepository
 import com.google.jetstream.data.repositories.CatalogRepositoryImpl
 import com.google.jetstream.data.repositories.CustomerRepository
 import com.google.jetstream.data.repositories.CustomerRepositoryImpl
 import com.google.jetstream.data.repositories.GenreRepository
 import com.google.jetstream.data.repositories.GenreRepositoryImpl
+import com.google.jetstream.data.repositories.MockCatalogRepositoryImpl
+import com.google.jetstream.data.repositories.MockCustomerRepositoryImpl
+import com.google.jetstream.data.repositories.MockGenreRepositoryImpl
+import com.google.jetstream.data.repositories.MockMovieRepositoryImpl
+import com.google.jetstream.data.repositories.MockSearchRepositoryImpl
+import com.google.jetstream.data.repositories.MockStreamingProvidersRepositoryImpl
+import com.google.jetstream.data.repositories.MockTvShowsRepositoryImpl
+import com.google.jetstream.data.repositories.MovieCategoryDataSource
+import com.google.jetstream.data.repositories.MovieDataSource
 import com.google.jetstream.data.repositories.MovieRepository
 import com.google.jetstream.data.repositories.MovieRepositoryImpl
 import com.google.jetstream.data.repositories.SearchRepository
@@ -40,79 +40,183 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.HiltAndroidApp
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Named
 import javax.inject.Singleton
 
 @HiltAndroidApp
 class JetStreamApplication : Application()
 
+
 @InstallIn(SingletonComponent::class)
 @Module
-abstract class MovieRepositoryModule {
+object MovieRepositoryModule {
+    @Provides
+    @Singleton
+    fun provideMovieRepository(
+        movieDataSource: MovieDataSource,
+        movieCategoryDataSource: MovieCategoryDataSource,
+        movieService: MovieService,
+        customerRepository: CustomerRepository,
+        userRepository: UserRepository,
+        @Named("isMock") isMock: Boolean
+    ): MovieRepository {
+        return if (isMock) {
+            MockMovieRepositoryImpl(
+                movieDataSource,
+                movieCategoryDataSource,
+            )
+        } else {
+            MovieRepositoryImpl(
+                movieDataSource,
+                movieCategoryDataSource,
+                movieService,
+                customerRepository,
+                userRepository
+            )
+        }
+    }
 
-    @Binds
-    abstract fun bindMovieRepository(
-        movieRepositoryImpl: MovieRepositoryImpl
-    ): MovieRepository
+    @Provides
+    @Named("isMock")
+    fun provideIsMock(): Boolean {
+        // Enable mock mode for debug builds or offline scenarios
+        return BuildConfig.DEBUG // Or check network status
+    }
 }
 
 @InstallIn(SingletonComponent::class)
 @Module
-abstract class TvShowsRepositoryModule {
-
-    @Binds
-    abstract fun bindTvShowsRepository(
-        tvShowsRepositoryImpl: TvShowsRepositoryImpl
-    ): TvShowsRepository
+object TvShowsRepositoryModule {
+    @Provides
+    @Singleton
+    fun provideMovieRepository(
+        tvShowService: TvShowsService,
+        customerRepository: CustomerRepository,
+        userRepository: UserRepository,
+        @Named("isMock") isMock: Boolean
+    ): TvShowsRepository {
+        return if (isMock) {
+            MockTvShowsRepositoryImpl()
+        } else {
+            TvShowsRepositoryImpl(
+                tvShowService,
+                customerRepository,
+                userRepository
+            )
+        }
+    }
 }
 
 @InstallIn(SingletonComponent::class)
 @Module
-abstract class CustomerRepositoryModule {
-
-    @Binds
-    abstract fun bindCustomerRepository(
-        customerRepositoryImpl: CustomerRepositoryImpl
-    ): CustomerRepository
+object CustomerRepositoryModule {
+    @Provides
+    @Singleton
+    fun provideMovieRepository(
+        customerService: CustomerService,
+        @Named("isMock") isMock: Boolean
+    ): CustomerRepository {
+        return if (isMock) {
+            MockCustomerRepositoryImpl()
+        } else {
+            CustomerRepositoryImpl(
+                customerService
+            )
+        }
+    }
 }
 
 @InstallIn(SingletonComponent::class)
 @Module
-abstract class GenreRepositoryModule {
-
-    @Binds
-    abstract fun bindGenreRepository(
-        genreRepositoryImpl: GenreRepositoryImpl
-    ): GenreRepository
+object GenreRepositoryModule {
+    @Provides
+    @Singleton
+    fun provideMovieRepository(
+        genreService: GenreService,
+        customerRepository: CustomerRepository,
+        userRepository: UserRepository,
+        @Named("isMock") isMock: Boolean
+    ): GenreRepository {
+        return if (isMock) {
+            MockGenreRepositoryImpl()
+        } else {
+            GenreRepositoryImpl(
+                genreService,
+                customerRepository,
+                userRepository
+            )
+        }
+    }
 }
 
 @InstallIn(SingletonComponent::class)
 @Module
-abstract class StreamingProvidersRepositoryModule {
+object StreamingProvidersRepositoryModule {
+    @Provides
+    @Singleton
+    fun provideMovieRepository(
+        customerRepository: CustomerRepository,
+        userRepository: UserRepository,
+        streamingProviderService: StreamingProviderService,
+        @Named("isMock") isMock: Boolean
+    ): StreamingProvidersRepository {
+        return if (isMock) {
+            MockStreamingProvidersRepositoryImpl()
+        } else {
+            StreamingProvidersRepositoryImpl(
+                customerRepository,
+                userRepository,
+                streamingProviderService
+            )
+        }
+    }
+}
 
-    @Binds
-    abstract fun bindStreamingProvidersRepository(
-        streamingProvidersRepositoryImpl: StreamingProvidersRepositoryImpl
-    ): StreamingProvidersRepository
+
+@InstallIn(SingletonComponent::class)
+@Module
+object CatalogRepositoryModule {
+    @Provides
+    @Singleton
+    fun provideMovieRepository(
+        catalogService: CatalogService,
+        customerRepository: CustomerRepository,
+        userRepository: UserRepository,
+        @Named("isMock") isMock: Boolean
+    ): CatalogRepository {
+        return if (isMock) {
+            MockCatalogRepositoryImpl()
+        } else {
+            CatalogRepositoryImpl(
+                catalogService,
+                customerRepository,
+                userRepository
+            )
+        }
+    }
 }
 
 @InstallIn(SingletonComponent::class)
 @Module
-abstract class CatalogRepositoryModule {
-
-    @Binds
-    abstract fun bindCatalogRepository(
-        catalogRepositoryImpl: CatalogRepositoryImpl
-    ): CatalogRepository
-}
-
-@InstallIn(SingletonComponent::class)
-@Module
-abstract class SearchRepositoryModule {
-
-    @Binds
-    abstract fun bindSearchRepository(
-        searchRepositoryImpl: SearchRepositoryImpl
-    ): SearchRepository
+object SearchRepositoryModule {
+    @Provides
+    @Singleton
+    fun provideMovieRepository(
+        customerRepository: CustomerRepository,
+        userRepository: UserRepository,
+        searchService: SearchService,
+        @Named("isMock") isMock: Boolean
+    ): SearchRepository {
+        return if (isMock) {
+            MockSearchRepositoryImpl()
+        } else {
+            SearchRepositoryImpl(
+                customerRepository,
+                userRepository,
+                searchService
+            )
+        }
+    }
 }
 
 
