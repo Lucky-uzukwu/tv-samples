@@ -1,13 +1,21 @@
 package com.google.jetstream.presentation.screens.auth
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import co.touchlab.kermit.Logger
 import com.google.jetstream.data.network.CustomerDataResponse
-import com.google.jetstream.data.network.TokenForCustomerResponse
-import com.google.jetstream.data.repositories.CustomerRepository
+import com.google.jetstream.data.network.TokenResponse
+import com.google.jetstream.data.network.UserResponse
+import com.google.jetstream.data.repositories.AuthRepository
+import com.google.jetstream.data.repositories.UserRepository
+import com.google.jetstream.presentation.screens.auth.AuthScreenUiStateNew
+import com.google.jetstream.presentation.screens.auth.AuthScreenUiStateNew.Idle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import retrofit2.Response
 import javax.inject.Inject
@@ -24,6 +32,13 @@ data class AuthScreenUiState(
     val passwordError: String? = null
 )
 
+sealed class AuthScreenUiStateNew {
+    object Idle : AuthScreenUiStateNew()
+    object Loading : AuthScreenUiStateNew()
+    data class Success<T>(val body: T, val message: String) : AuthScreenUiStateNew()
+    data class Error(val message: String) : AuthScreenUiStateNew()
+}
+
 sealed class AuthScreenUiEvent {
     object NavigateToLogin : AuthScreenUiEvent()
     object NavigateToRegister : AuthScreenUiEvent()
@@ -32,88 +47,98 @@ sealed class AuthScreenUiEvent {
 
 @HiltViewModel
 class AuthScreenViewModel @Inject constructor(
-    private val customerRepository: CustomerRepository,
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository,
 ) : ViewModel() {
 
     // Expose screen UI state
-    private val _uiState = MutableStateFlow(AuthScreenUiState())
-    val uiState: StateFlow<AuthScreenUiState> = _uiState
+    private val _uiState = MutableStateFlow<AuthScreenUiStateNew>(Idle)
+    val uiState: StateFlow<AuthScreenUiStateNew> = _uiState
 
     // Expose screen UI events
     private val _uiEvent = MutableStateFlow<AuthScreenUiEvent?>(null)
     val uiEvent: StateFlow<AuthScreenUiEvent?> = _uiEvent
 
-    suspend fun requestTokenForCustomer(
+
+    fun loginWithTv(
+        identifier: String,
+        password: String,
         deviceMacAddress: String,
         clientIp: String,
         deviceName: String,
-    ): Response<TokenForCustomerResponse> {
-
-        _uiState.update { it.copy(isRequestTokenForCustomerLoading = true) }
-
-        val response = customerRepository.requestTokenForCustomer(
+    ): Flow<TokenResponse?> = flow {
+        _uiState.update { AuthScreenUiStateNew.Loading }
+        val response = authRepository.loginWithTv(
+            identifier = identifier,
+            password = password,
             deviceMacAddress = deviceMacAddress,
             clientIp = clientIp,
             deviceName = deviceName
         )
-        if (response.isSuccessful) {
-            _uiState.update {
-                it.copy(
-                    generatedAccessCode = response.body()?.identifier.toString(),
-                    isRequestTokenForCustomerLoading = false
-                )
-            }
+        response.collect { responsePair ->
+            val code = responsePair.first
+            val body = responsePair.second
 
-            Logger.i { "Customer access code: ${response.body()?.identifier}" }
+            when (code) {
+                201 -> {
+                    _uiState.update {
+                        AuthScreenUiStateNew.Success(
+                            body = body,
+                            message = "Login successful"
+                        )
+                    }
+                    emit(body)
+                    _uiEvent.update { AuthScreenUiEvent.NavigateToLogin }
+                }
 
-        } else {
-            // Handle error response
-            _uiState.update {
-                it.copy(
-                    accessCodeError = "Error: ${response.code()}",
-                    isRequestTokenForCustomerLoading = false
-                )
+                400 -> {
+                    _uiState.update { AuthScreenUiStateNew.Error("Invalid input") }
+                    emit(null)
+
+                }
+
+                404 -> {
+                    _uiState.update { AuthScreenUiStateNew.Error("User not found please check identifer or password") }
+                    _uiEvent.update { AuthScreenUiEvent.NavigateToRegister }
+                    emit(null)
+                }
+
+                422 -> {
+                    _uiState.update { AuthScreenUiStateNew.Error("Validation error") }
+                    emit(null)
+                }
             }
         }
-
-        return response
     }
 
-    suspend fun getCustomer(identifier: String) {
-        _uiState.update { it.copy(isGetCustomerLoading = true) }
+    fun getUser(identifier: String): Flow<UserResponse?> = flow {
+        _uiState.update { AuthScreenUiStateNew.Loading }
+        val token = userRepository.userToken.firstOrNull() ?: return@flow emit(null)
+        val response = authRepository.getUser(
+            token = token,
+            identifier = identifier
+        )
 
-        val response = customerRepository.getCustomer(identifier = identifier)
-
-        when (response.code()) {
-            404 -> _uiState.update {
-                it.copy(
-                    accessCodeError = "Something went wrong. Ensure the access code is correctly inputed",
-                    isGetCustomerLoading = false
-                )
-            }
-
-            200 -> {
-                _uiState.update {
-                    it.copy(
-                        customerData = response.body(),
-                        isGetCustomerLoading = false,
-                        userInputedAccessCode = response.body()?.identifier!!
-                    )
+        response.collect { userResponse ->
+            when (userResponse) {
+                null -> {
+                    _uiState.update { AuthScreenUiStateNew.Error("User not found") }
+                    emit(userResponse)
                 }
-                _uiEvent.value = AuthScreenUiEvent.NavigateToLogin
-            }
 
-            202 -> {
-                _uiState.update {
-                    it.copy(
-                        customerData = response.body(),
-                        isGetCustomerLoading = false,
-                        userInputedAccessCode = response.body()?.identifier!!
-                    )
+                else -> {
+                    _uiState.update {
+                        AuthScreenUiStateNew.Success(
+                            body = userResponse,
+                            message = "User found"
+                        )
+                    }
+                    emit(userResponse)
                 }
-                _uiEvent.value = AuthScreenUiEvent.NavigateToRegister
             }
         }
+
+
     }
 
     fun clearEvent() {
