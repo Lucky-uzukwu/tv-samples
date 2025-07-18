@@ -8,7 +8,7 @@ import retrofit2.http.Query
 
 interface GenreService {
 
-    @GET("api/genres")
+    @GET("/genres")
     suspend fun getGenres(
         @Header("Authorization") authToken: String,
         @Header("Accept") accept: String = "application/ld+json",

@@ -11,7 +11,7 @@ import javax.inject.Singleton
 @Singleton
 class GenreRepositoryImpl @Inject constructor(
     private val genreService: GenreService,
-    private val customerRepository: CustomerRepository,
+    private val authRepository: AuthRepository,
     private val userRepository: UserRepository
 ) : GenreRepository {
     override fun getMovieGenre(): Flow<List<Genre>> = flow {
@@ -34,11 +34,11 @@ class GenreRepositoryImpl @Inject constructor(
                 response.errorBody()?.string() // Get error message from server if available
             Logger.e { "API Error for getMovieGenre: ${response.code()} - ${response.message()}. Error body: $errorBody" }
             val loginResponse = user.password?.let {
-                customerRepository.login(
+                authRepository.login(
                     deviceMacAddress = user.deviceMacAddress,
                     clientIp = user.clientIp,
                     deviceName = user.deviceName,
-                    identifier = user.accessCode,
+                    identifier = user.identifier,
                     password = it
                 )
             }
@@ -76,11 +76,11 @@ class GenreRepositoryImpl @Inject constructor(
                 response.errorBody()?.string() // Get error message from server if available
             Logger.e { "API Error for getTvShowsGenre: ${response.code()} - ${response.message()}. Error body: $errorBody" }
             val loginResponse = user.password?.let {
-                customerRepository.login(
+                authRepository.login(
                     deviceMacAddress = user.deviceMacAddress,
                     clientIp = user.clientIp,
                     deviceName = user.deviceName,
-                    identifier = user.accessCode,
+                    identifier = user.identifier,
                     password = it
                 )
             }
