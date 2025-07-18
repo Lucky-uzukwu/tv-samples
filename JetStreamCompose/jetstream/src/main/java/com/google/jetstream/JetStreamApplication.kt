@@ -8,15 +8,17 @@ import com.google.jetstream.data.network.GenreService
 import com.google.jetstream.data.network.MovieService
 import com.google.jetstream.data.network.SearchService
 import com.google.jetstream.data.network.StreamingProviderService
+import com.google.jetstream.data.network.TokenService
 import com.google.jetstream.data.network.TvShowsService
+import com.google.jetstream.data.network.UserService
 import com.google.jetstream.data.repositories.CatalogRepository
 import com.google.jetstream.data.repositories.CatalogRepositoryImpl
-import com.google.jetstream.data.repositories.CustomerRepository
-import com.google.jetstream.data.repositories.CustomerRepositoryImpl
+import com.google.jetstream.data.repositories.AuthRepository
+import com.google.jetstream.data.repositories.AuthRepositoryImpl
 import com.google.jetstream.data.repositories.GenreRepository
 import com.google.jetstream.data.repositories.GenreRepositoryImpl
 import com.google.jetstream.data.repositories.MockCatalogRepositoryImpl
-import com.google.jetstream.data.repositories.MockCustomerRepositoryImpl
+import com.google.jetstream.data.repositories.MockAuthRepositoryImpl
 import com.google.jetstream.data.repositories.MockGenreRepositoryImpl
 import com.google.jetstream.data.repositories.MockMovieRepositoryImpl
 import com.google.jetstream.data.repositories.MockSearchRepositoryImpl
@@ -33,7 +35,6 @@ import com.google.jetstream.data.repositories.StreamingProvidersRepositoryImpl
 import com.google.jetstream.data.repositories.TvShowsRepository
 import com.google.jetstream.data.repositories.TvShowsRepositoryImpl
 import com.google.jetstream.data.repositories.UserRepository
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -56,7 +57,7 @@ object MovieRepositoryModule {
         movieDataSource: MovieDataSource,
         movieCategoryDataSource: MovieCategoryDataSource,
         movieService: MovieService,
-        customerRepository: CustomerRepository,
+        authRepository: AuthRepository,
         userRepository: UserRepository,
         @Named("isMock") isMock: Boolean
     ): MovieRepository {
@@ -70,7 +71,7 @@ object MovieRepositoryModule {
                 movieDataSource,
                 movieCategoryDataSource,
                 movieService,
-                customerRepository,
+                authRepository,
                 userRepository
             )
         }
@@ -80,7 +81,7 @@ object MovieRepositoryModule {
     @Named("isMock")
     fun provideIsMock(): Boolean {
         // Enable mock mode for debug builds or offline scenarios
-        return BuildConfig.DEBUG // Or check network status
+        return BuildConfig.DEBUG == false // Or check network status
     }
 }
 
@@ -91,7 +92,7 @@ object TvShowsRepositoryModule {
     @Singleton
     fun provideMovieRepository(
         tvShowService: TvShowsService,
-        customerRepository: CustomerRepository,
+        authRepository: AuthRepository,
         userRepository: UserRepository,
         @Named("isMock") isMock: Boolean
     ): TvShowsRepository {
@@ -100,7 +101,7 @@ object TvShowsRepositoryModule {
         } else {
             TvShowsRepositoryImpl(
                 tvShowService,
-                customerRepository,
+                authRepository,
                 userRepository
             )
         }
@@ -114,13 +115,17 @@ object CustomerRepositoryModule {
     @Singleton
     fun provideMovieRepository(
         customerService: CustomerService,
+        userService: UserService,
+        tokenService: TokenService,
         @Named("isMock") isMock: Boolean
-    ): CustomerRepository {
+    ): AuthRepository {
         return if (isMock) {
-            MockCustomerRepositoryImpl()
+            MockAuthRepositoryImpl()
         } else {
-            CustomerRepositoryImpl(
-                customerService
+            AuthRepositoryImpl(
+                customerService,
+                userService,
+                tokenService
             )
         }
     }
@@ -133,7 +138,7 @@ object GenreRepositoryModule {
     @Singleton
     fun provideMovieRepository(
         genreService: GenreService,
-        customerRepository: CustomerRepository,
+        authRepository: AuthRepository,
         userRepository: UserRepository,
         @Named("isMock") isMock: Boolean
     ): GenreRepository {
@@ -142,7 +147,7 @@ object GenreRepositoryModule {
         } else {
             GenreRepositoryImpl(
                 genreService,
-                customerRepository,
+                authRepository,
                 userRepository
             )
         }
@@ -155,7 +160,7 @@ object StreamingProvidersRepositoryModule {
     @Provides
     @Singleton
     fun provideMovieRepository(
-        customerRepository: CustomerRepository,
+        authRepository: AuthRepository,
         userRepository: UserRepository,
         streamingProviderService: StreamingProviderService,
         @Named("isMock") isMock: Boolean
@@ -164,7 +169,7 @@ object StreamingProvidersRepositoryModule {
             MockStreamingProvidersRepositoryImpl()
         } else {
             StreamingProvidersRepositoryImpl(
-                customerRepository,
+                authRepository,
                 userRepository,
                 streamingProviderService
             )
@@ -180,7 +185,7 @@ object CatalogRepositoryModule {
     @Singleton
     fun provideMovieRepository(
         catalogService: CatalogService,
-        customerRepository: CustomerRepository,
+        authRepository: AuthRepository,
         userRepository: UserRepository,
         @Named("isMock") isMock: Boolean
     ): CatalogRepository {
@@ -189,7 +194,7 @@ object CatalogRepositoryModule {
         } else {
             CatalogRepositoryImpl(
                 catalogService,
-                customerRepository,
+                authRepository,
                 userRepository
             )
         }
@@ -202,7 +207,7 @@ object SearchRepositoryModule {
     @Provides
     @Singleton
     fun provideMovieRepository(
-        customerRepository: CustomerRepository,
+        authRepository: AuthRepository,
         userRepository: UserRepository,
         searchService: SearchService,
         @Named("isMock") isMock: Boolean
@@ -211,7 +216,7 @@ object SearchRepositoryModule {
             MockSearchRepositoryImpl()
         } else {
             SearchRepositoryImpl(
-                customerRepository,
+                authRepository,
                 userRepository,
                 searchService
             )
