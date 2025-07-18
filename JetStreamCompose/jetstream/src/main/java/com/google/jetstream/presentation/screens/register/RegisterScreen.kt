@@ -64,8 +64,8 @@ fun RegisterScreen(
     val confirmPasswordError = remember { mutableStateOf("") }
 
     // Initialize Access Code, Email, and Name
-    LaunchedEffect(userState.user?.accessCode) {
-        accessCode.value = userState.user?.accessCode ?: ""
+    LaunchedEffect(userState.user?.identifier) {
+        accessCode.value = userState.user?.identifier ?: ""
         email.value = userState.user?.email ?: ""
         name.value = userState.user?.name ?: ""
     }

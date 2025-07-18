@@ -2,7 +2,7 @@ package com.google.jetstream.presentation.screens.login
 
 import androidx.lifecycle.ViewModel
 import com.google.jetstream.data.network.CustomerDataResponse
-import com.google.jetstream.data.repositories.CustomerRepository
+import com.google.jetstream.data.repositories.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +25,7 @@ sealed class LoginScreenUiEvent {
 
 @HiltViewModel
 class LoginScreenViewModel @Inject constructor(
-    private val customerRepository: CustomerRepository,
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
 
     // Expose screen UI state
@@ -51,7 +51,7 @@ class LoginScreenViewModel @Inject constructor(
             )
         }
 
-        val response = customerRepository.login(
+        val response = authRepository.login(
             deviceMacAddress = deviceMacAddress,
             clientIp = clientIp,
             deviceName = deviceName,

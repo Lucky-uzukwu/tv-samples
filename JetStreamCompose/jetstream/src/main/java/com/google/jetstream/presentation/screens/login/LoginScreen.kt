@@ -71,8 +71,8 @@ fun LoginScreen(
 
     val accessCode = remember { mutableStateOf("") }
 
-    LaunchedEffect(userState.user?.accessCode) {
-        accessCode.value = userState.user?.accessCode ?: ""
+    LaunchedEffect(userState.user?.identifier) {
+        accessCode.value = userState.user?.identifier ?: ""
     }
 
     LaunchedEffect(uiEvent) {

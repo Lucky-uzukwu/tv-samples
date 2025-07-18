@@ -3,8 +3,7 @@ package com.google.jetstream.presentation.screens.register
 import androidx.lifecycle.ViewModel
 import co.touchlab.kermit.Logger
 import com.google.jetstream.data.network.CustomerDataResponse
-import com.google.jetstream.data.repositories.CustomerRepository
-import com.google.jetstream.presentation.screens.auth.AuthScreenUiEvent
+import com.google.jetstream.data.repositories.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,7 +27,7 @@ sealed class RegisterScreenUiEvent {
 
 @HiltViewModel
 class RegisterScreenViewModel @Inject constructor(
-    private val customerRepository: CustomerRepository,
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
 
     // Expose screen UI state
@@ -54,7 +53,7 @@ class RegisterScreenViewModel @Inject constructor(
             )
         }
 
-        val response = customerRepository.register(
+        val response = authRepository.register(
             password = password,
             password_confirmation = password_confirmation,
             email = email,
@@ -71,20 +70,20 @@ class RegisterScreenViewModel @Inject constructor(
             }
 
             200 -> {
-                _uiState.update {
-                    it.copy(
-                        customerData = CustomerDataResponse(
-                            id = response.body()?.name!!,
-                            identifier = response.body()?.identifier.toString(),
-                            name = response.body()?.name!!,
-                            email = response.body()?.email!!,
-                            profilePhotoUrl = if (response.body()?.profilePhotoUrl != null) response.body()?.profilePhotoUrl!! else "",
-                            profilePhotoPath =
-                                if (response.body()?.profilePhotoPath != null) response.body()?.profilePhotoPath!! else "",
-                        ),
-                        isLoading = false,
-                    )
-                }
+//                _uiState.update {
+//                    it.copy(
+//                        customerData = CustomerDataResponse(
+//                            id = response.body()?.name!!,
+//                            identifier = response.body()?.identifier.toString(),
+//                            name = response.body()?.name!!,
+//                            email = response.body()?.email!!,
+//                            profilePhotoUrl = if (response.body()?.profilePhotoUrl != null) response.body()?.profilePhotoUrl!! else "",
+//                            profilePhotoPath =
+//                                if (response.body()?.profilePhotoPath != null) response.body()?.profilePhotoPath!! else "",
+//                        ),
+//                        isLoading = false,
+//                    )
+//                }
                 _uiEvent.value = RegisterScreenUiEvent.NavigateToDashboard
             }
 
