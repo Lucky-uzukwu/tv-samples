@@ -12,7 +12,7 @@ import javax.inject.Singleton
 @Singleton
 class TvShowsRepositoryImpl @Inject constructor(
     private val tvShowService: TvShowsService,
-    private val customerRepository: CustomerRepository,
+    private val authRepository: AuthRepository,
     private val userRepository: UserRepository
 ) : TvShowsRepository {
     override fun getTvShowsToShowInHeroSection(
@@ -40,11 +40,11 @@ class TvShowsRepositoryImpl @Inject constructor(
                 response.errorBody()?.string() // Get error message from server if available
             Logger.e { "API Error for getTvShowsToShowInHeroSection : ${response.code()} - ${response.message()}. Error body: $errorBody" }
             val loginResponse = user.password?.let {
-                customerRepository.login(
+                authRepository.login(
                     deviceMacAddress = user.deviceMacAddress,
                     clientIp = user.clientIp,
                     deviceName = user.deviceName,
-                    identifier = user.accessCode,
+                    identifier = user.identifier,
                     password = it
                 )
             }
@@ -89,11 +89,11 @@ class TvShowsRepositoryImpl @Inject constructor(
                         response.errorBody()?.string() // Get error message from server if available
                     Logger.e { "API Error when getting tvshows in catalog section for $catalogId: ${response.code()} - ${response.message()}. Error body: $errorBody" }
                     val loginResponse = user.password?.let {
-                        customerRepository.login(
+                        authRepository.login(
                             deviceMacAddress = user.deviceMacAddress,
                             clientIp = user.clientIp,
                             deviceName = user.deviceName,
-                            identifier = user.accessCode,
+                            identifier = user.identifier,
                             password = it
                         )
                     }
@@ -140,11 +140,11 @@ class TvShowsRepositoryImpl @Inject constructor(
                         response.errorBody()?.string() // Get error message from server if available
                     Logger.e { "API Error for getTvShowsToShowInGenreSection: ${response.code()} - ${response.message()}. Error body: $errorBody" }
                     val loginResponse = user.password?.let {
-                        customerRepository.login(
+                        authRepository.login(
                             deviceMacAddress = user.deviceMacAddress,
                             clientIp = user.clientIp,
                             deviceName = user.deviceName,
-                            identifier = user.accessCode,
+                            identifier = user.identifier,
                             password = it
                         )
                     }
@@ -184,11 +184,11 @@ class TvShowsRepositoryImpl @Inject constructor(
                 response.errorBody()?.string() // Get error message from server if available
             Logger.e { "API Error for getTvShowsDetails: ${response.code()} - ${response.message()}. Error body: $errorBody" }
             val loginResponse = user.password?.let {
-                customerRepository.login(
+                authRepository.login(
                     deviceMacAddress = user.deviceMacAddress,
                     clientIp = user.clientIp,
                     deviceName = user.deviceName,
-                    identifier = user.accessCode,
+                    identifier = user.identifier,
                     password = it
                 )
             }

@@ -50,12 +50,13 @@ data class TokenForCustomerResponse(
 )
 
 data class CustomerDataResponse(
-    val id: String,
     val identifier: String,
     val name: String,
+    val username: String,
     val email: String,
-    val profilePhotoPath: String?,
-    val profilePhotoUrl: String?,
+    val devicesAllowed: Int,
+    val registrationRequired: Boolean,
+    val registrationRequiredMessage: String?,
 )
 
 data class LoginRequest(

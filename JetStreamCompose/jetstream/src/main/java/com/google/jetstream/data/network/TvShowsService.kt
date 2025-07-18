@@ -10,7 +10,7 @@ import retrofit2.http.Query
 
 interface TvShowsService {
 
-    @GET("api/tv_shows")
+    @GET("/tv_shows")
     suspend fun getTvShows(
         @Header("Authorization") authToken: String,
         @Header("Accept") accept: String = "application/ld+json",
@@ -30,7 +30,7 @@ interface TvShowsService {
 //        @QueryMap sort: Map<String, String>? = emptyMap()
     ): Response<TvShowsResponse>
 
-    @GET("api/tv_shows/{id}")
+    @GET("/tv_shows/{id}")
     suspend fun getTvShowById(
         @Header("Authorization") authToken: String,
         @Path("id") tvShowId: String

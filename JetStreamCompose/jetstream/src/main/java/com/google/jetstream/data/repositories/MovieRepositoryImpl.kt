@@ -18,18 +18,9 @@ package com.google.jetstream.data.repositories
 
 import co.touchlab.kermit.Logger
 import com.google.jetstream.data.entities.MovieCategoryDetails
-import com.google.jetstream.data.entities.MovieDetails
-import com.google.jetstream.data.entities.MovieList
-import com.google.jetstream.data.entities.MovieReviewsAndRatings
-import com.google.jetstream.data.entities.ThumbnailType
 import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.network.MovieResponse
 import com.google.jetstream.data.network.MovieService
-import com.google.jetstream.data.util.StringConstants
-import com.google.jetstream.data.util.StringConstants.Movie.Reviewer.DefaultCount
-import com.google.jetstream.data.util.StringConstants.Movie.Reviewer.DefaultRating
-import com.google.jetstream.data.util.StringConstants.Movie.Reviewer.FreshTomatoes
-import com.google.jetstream.data.util.StringConstants.Movie.Reviewer.ReviewerName
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
@@ -40,7 +31,7 @@ class MovieRepositoryImpl @Inject constructor(
     private val movieDataSource: MovieDataSource,
     private val movieCategoryDataSource: MovieCategoryDataSource,
     private val movieService: MovieService,
-    private val customerRepository: CustomerRepository,
+    private val authRepository: AuthRepository,
     private val userRepository: UserRepository
 ) : MovieRepository {
 
@@ -89,11 +80,11 @@ class MovieRepositoryImpl @Inject constructor(
                 response.errorBody()?.string() // Get error message from server if available
             Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
             val loginResponse = user.password?.let {
-                customerRepository.login(
+                authRepository.login(
                     deviceMacAddress = user.deviceMacAddress,
                     clientIp = user.clientIp,
                     deviceName = user.deviceName,
-                    identifier = user.accessCode,
+                    identifier = user.identifier,
                     password = it
                 )
             }
@@ -136,11 +127,11 @@ class MovieRepositoryImpl @Inject constructor(
                     response.errorBody()?.string() // Get error message from server if available
                 Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
                 val loginResponse = user.password?.let {
-                    customerRepository.login(
+                    authRepository.login(
                         deviceMacAddress = user.deviceMacAddress,
                         clientIp = user.clientIp,
                         deviceName = user.deviceName,
-                        identifier = user.accessCode,
+                        identifier = user.identifier,
                         password = it
                     )
                 }
@@ -181,11 +172,11 @@ class MovieRepositoryImpl @Inject constructor(
                 response.errorBody()?.string() // Get error message from server if available
             Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
             val loginResponse = user.password?.let {
-                customerRepository.login(
+                authRepository.login(
                     deviceMacAddress = user.deviceMacAddress,
                     clientIp = user.clientIp,
                     deviceName = user.deviceName,
-                    identifier = user.accessCode,
+                    identifier = user.identifier,
                     password = it
                 )
             }
@@ -229,11 +220,11 @@ class MovieRepositoryImpl @Inject constructor(
                 response.errorBody()?.string() // Get error message from server if available
             Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
             val loginResponse = user.password?.let {
-                customerRepository.login(
+                authRepository.login(
                     deviceMacAddress = user.deviceMacAddress,
                     clientIp = user.clientIp,
                     deviceName = user.deviceName,
-                    identifier = user.accessCode,
+                    identifier = user.identifier,
                     password = it
                 )
             }

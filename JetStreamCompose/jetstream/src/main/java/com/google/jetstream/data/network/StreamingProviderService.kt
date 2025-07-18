@@ -9,7 +9,7 @@ import retrofit2.http.Query
 
 interface StreamingProviderService {
 
-    @GET("api/streaming_providers")
+    @GET("/streaming_providers")
     suspend fun getStreamingProviders(
         @Header("Authorization") authToken: String,
         @Header("Accept") accept: String = "application/ld+json",

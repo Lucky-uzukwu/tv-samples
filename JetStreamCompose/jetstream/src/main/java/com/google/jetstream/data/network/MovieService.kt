@@ -10,7 +10,7 @@ import retrofit2.http.Query
 
 interface MovieService {
 
-    @GET("api/movies")
+    @GET("/movies")
     suspend fun getMovies(
         @Header("Authorization") authToken: String,
         @Header("Accept") accept: String = "application/ld+json",
@@ -30,7 +30,7 @@ interface MovieService {
 //        @QueryMap sort: Map<String, String>? = emptyMap()
     ): Response<MovieResponse>
 
-    @GET("api/movies/{id}")
+    @GET("/movies/{id}")
     suspend fun getMovieById(
         @Header("Authorization") authToken: String,
         @Path("id") movieId: String
