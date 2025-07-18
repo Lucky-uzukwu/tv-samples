@@ -11,7 +11,7 @@ import javax.inject.Singleton
 @Singleton
 class CatalogRepositoryImpl @Inject constructor(
     private val catalogService: CatalogService,
-    private val customerRepository: CustomerRepository,
+    private val authRepository: AuthRepository,
     private val userRepository: UserRepository
 ) : CatalogRepository {
     override fun getMovieCatalog(): Flow<List<Catalog>> = flow {
@@ -34,11 +34,11 @@ class CatalogRepositoryImpl @Inject constructor(
                 response.errorBody()?.string() // Get error message from server if available
             Logger.e { "API Error for getMovieCatalog:  ${response.code()} - ${response.message()}. Error body: $errorBody" }
             val loginResponse = user.password?.let {
-                customerRepository.login(
+                authRepository.login(
                     deviceMacAddress = user.deviceMacAddress,
                     clientIp = user.clientIp,
                     deviceName = user.deviceName,
-                    identifier = user.accessCode,
+                    identifier = user.identifier,
                     password = it
                 )
             }
@@ -78,11 +78,11 @@ class CatalogRepositoryImpl @Inject constructor(
                 response.errorBody()?.string() // Get error message from server if available
             Logger.e { "API Error for tv shows: ${response.code()} - ${response.message()}. Error body: $errorBody" }
             val loginResponse = user.password?.let {
-                customerRepository.login(
+                authRepository.login(
                     deviceMacAddress = user.deviceMacAddress,
                     clientIp = user.clientIp,
                     deviceName = user.deviceName,
-                    identifier = user.accessCode,
+                    identifier = user.identifier,
                     password = it
                 )
             }

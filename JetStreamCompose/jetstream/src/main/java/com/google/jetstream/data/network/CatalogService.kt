@@ -3,12 +3,11 @@ package com.google.jetstream.data.network
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Header
-import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface CatalogService {
 
-    @GET("api/catalogs")
+    @GET("/catalogs")
     suspend fun getCatalogs(
         @Header("Authorization") authToken: String,
         @Header("Accept") accept: String = "application/ld+json",
