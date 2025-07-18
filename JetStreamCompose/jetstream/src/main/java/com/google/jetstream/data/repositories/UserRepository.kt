@@ -18,8 +18,7 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "us
 
 
 val defaultUser = User(
-    id = "id",
-    accessCode = "accessCode",
+    identifier = "accessCode",
     name = "name",
     email = "email",
     password = "password",
@@ -50,34 +49,64 @@ class UserRepository @Inject constructor(
     }
 
     // Reading methods
+//    val userToken: Flow<String?> =
+//        context.dataStore.data.map { it[KEY_USER_TOKEN] ?: defaultUser.token }
+//    val userId: Flow<String?> = context.dataStore.data.map { it[KEY_USER_ID] ?: defaultUser.id }
+//    val userEmail: Flow<String?> =
+//        context.dataStore.data.map { it[KEY_USER_EMAIL] ?: defaultUser.email }
+//    val userAccessCode: Flow<String?> =
+//        context.dataStore.data.map { it[KEY_USER_ACCESS_CODE] ?: defaultUser.accessCode }
+//    val userName: Flow<String?> =
+//        context.dataStore.data.map { it[KEY_USER_NAME] ?: defaultUser.name }
+//    val userPassword: Flow<String?> =
+//        context.dataStore.data.map { it[KEY_USER_PASSWORD] ?: defaultUser.password }
+//    val userClientIp: Flow<String?> =
+//        context.dataStore.data.map { it[KEY_USER_CLIENT_IP] ?: defaultUser.clientIp }
+//    val userDeviceName: Flow<String?> =
+//        context.dataStore.data.map {
+//            it[KEY_USER_DEVICE_NAME] ?: defaultUser.deviceName
+//        }
+//    val userDeviceMacAddress: Flow<String?> =
+//        context.dataStore.data.map {
+//            it[KEY_USER_DEVICE_MAC_ADDRESS] ?: defaultUser.deviceMacAddress
+//        }
+//    val userProfilePhotoPath: Flow<String?> =
+//        context.dataStore.data.map {
+//            it[KEY_USER_PROFILE_PHOTO_PATH] ?: defaultUser.profilePhotoPath
+//        }
+//    val userProfilePhotoUrl: Flow<String?> =
+//        context.dataStore.data.map {
+//            it[KEY_USER_PROFILE_PHOTO_URL] ?: defaultUser.profilePhotoUrl
+//        }
+
     val userToken: Flow<String?> =
-        context.dataStore.data.map { it[KEY_USER_TOKEN] ?: defaultUser.token }
-    val userId: Flow<String?> = context.dataStore.data.map { it[KEY_USER_ID] ?: defaultUser.id }
+        context.dataStore.data.map { it[KEY_USER_TOKEN] }
+    val userId: Flow<String?> = context.dataStore.data.map { it[KEY_USER_ID] }
     val userEmail: Flow<String?> =
-        context.dataStore.data.map { it[KEY_USER_EMAIL] ?: defaultUser.email }
+        context.dataStore.data.map { it[KEY_USER_EMAIL] }
     val userAccessCode: Flow<String?> =
-        context.dataStore.data.map { it[KEY_USER_ACCESS_CODE] ?: defaultUser.accessCode }
+        context.dataStore.data.map { it[KEY_USER_ACCESS_CODE] }
     val userName: Flow<String?> =
-        context.dataStore.data.map { it[KEY_USER_NAME] ?: defaultUser.name }
+        context.dataStore.data.map { it[KEY_USER_NAME] }
     val userPassword: Flow<String?> =
-        context.dataStore.data.map { it[KEY_USER_PASSWORD] ?: defaultUser.password }
+        context.dataStore.data.map { it[KEY_USER_PASSWORD] }
     val userClientIp: Flow<String?> =
-        context.dataStore.data.map { it[KEY_USER_CLIENT_IP] ?: defaultUser.clientIp }
+        context.dataStore.data.map { it[KEY_USER_CLIENT_IP] }
     val userDeviceName: Flow<String?> =
         context.dataStore.data.map {
-            it[KEY_USER_DEVICE_NAME] ?: defaultUser.deviceName
+            it[KEY_USER_DEVICE_NAME]
         }
     val userDeviceMacAddress: Flow<String?> =
         context.dataStore.data.map {
-            it[KEY_USER_DEVICE_MAC_ADDRESS] ?: defaultUser.deviceMacAddress
+            it[KEY_USER_DEVICE_MAC_ADDRESS]
         }
     val userProfilePhotoPath: Flow<String?> =
         context.dataStore.data.map {
-            it[KEY_USER_PROFILE_PHOTO_PATH] ?: defaultUser.profilePhotoPath
+            it[KEY_USER_PROFILE_PHOTO_PATH]
         }
     val userProfilePhotoUrl: Flow<String?> =
         context.dataStore.data.map {
-            it[KEY_USER_PROFILE_PHOTO_URL] ?: defaultUser.profilePhotoUrl
+            it[KEY_USER_PROFILE_PHOTO_URL]
         }
 
     // Writing methods
@@ -127,9 +156,8 @@ class UserRepository @Inject constructor(
 
     suspend fun getUser(): User? {
         return User(
-            id = userId.first() ?: "",
             email = userEmail.first() ?: "",
-            accessCode = userAccessCode.first() ?: "",
+            identifier = userAccessCode.first() ?: "",
             name = userName.first() ?: "",
             password = userPassword.first() ?: "",
             clientIp = userClientIp.first() ?: "",

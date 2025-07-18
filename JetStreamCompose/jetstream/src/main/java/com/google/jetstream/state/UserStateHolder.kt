@@ -2,7 +2,6 @@ package com.google.jetstream.state
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import co.touchlab.kermit.Logger
 import com.google.jetstream.data.entities.User
 import com.google.jetstream.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,7 +24,6 @@ class UserStateHolder @Inject constructor(
     init {
         viewModelScope.launch {
             combine(
-                userRepository.userId,
                 userRepository.userAccessCode,
                 userRepository.userName,
                 userRepository.userEmail,
@@ -39,17 +37,16 @@ class UserStateHolder @Inject constructor(
             ) { user ->
                 UserState(
                     user = User(
-                        id = user[0] ?: "",
-                        accessCode = user[1] ?: "",
-                        name = user[2] ?: "",
-                        email = user[3] ?: "",
-                        profilePhotoPath = user[4],
-                        profilePhotoUrl = user[5],
-                        token = user[6],
-                        password = user[7] ?: "",
-                        clientIp = user[8] ?: "",
-                        deviceName = user[9] ?: "",
-                        deviceMacAddress = user[10] ?: ""
+                        identifier = user[0] ?: "",
+                        name = user[1] ?: "",
+                        email = user[2] ?: "",
+                        profilePhotoPath = user[3],
+                        profilePhotoUrl = user[4],
+                        token = user[5],
+                        password = user[6] ?: "",
+                        clientIp = user[7] ?: "",
+                        deviceName = user[8] ?: "",
+                        deviceMacAddress = user[9] ?: ""
                     )
                 )
             }.collect { newState ->
@@ -63,7 +60,6 @@ class UserStateHolder @Inject constructor(
         _userState.update { current ->
             current.copy(user = user)
         }
-        userRepository.saveUserId(user.id)
         user.token?.let { userRepository.saveUserToken(it) }
         userRepository.saveUserName(user.name)
         userRepository.saveUserEmail(user.email)
@@ -71,9 +67,13 @@ class UserStateHolder @Inject constructor(
         userRepository.saveUserClientIp(user.clientIp)
         userRepository.saveUserDeviceName(user.deviceName)
         userRepository.saveUserDeviceMacAddress(user.deviceMacAddress)
-        userRepository.saveUserAccessCode(user.accessCode)
+        userRepository.saveUserAccessCode(user.identifier)
         user.profilePhotoPath?.let { userRepository.saveUserProfilePhotoPath(it) }
         user.profilePhotoUrl?.let { userRepository.saveUserProfilePhotoUrl(it) }
+    }
+
+    suspend fun updateToken(token: String) {
+        userRepository.saveUserToken(token)
     }
 
     fun clearUser() {

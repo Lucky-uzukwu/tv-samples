@@ -1,8 +1,7 @@
 package com.google.jetstream.data.entities
 
 data class User(
-    val id: String,
-    val accessCode: String,
+    val identifier: String,
     val name: String,
     val email: String,
     val password: String? = null,
