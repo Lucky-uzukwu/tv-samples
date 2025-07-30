@@ -17,11 +17,11 @@ https://www.apache.org/licenses/LICENSE-2.0
 
 <resources>
 
-    <style name="Theme.JetStream" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.WilTv" parent="android:Theme.Material.Light.NoActionBar" />
 
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/jetstream_background</item>
+        <item name="windowSplashScreenBackground">@color/wiltv_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_play_circle</item>
-        <item name="postSplashScreenTheme">@style/Theme.JetStream</item>
+        <item name="postSplashScreenTheme">@style/Theme.WilTv</item>
     </style>
 </resources>

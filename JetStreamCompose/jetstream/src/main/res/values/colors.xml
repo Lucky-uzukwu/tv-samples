@@ -16,7 +16,7 @@ https://www.apache.org/licenses/LICENSE-2.0
 -->
 
 <resources>
-    <color name="jetstream_background">#1A1C1E</color>
+    <color name="wiltv_background">#1A1C1E</color>
     <color name="primary">#A8C8FF</color>
     <color name="onPrimary">#003062</color>
     <color name="primaryContainer">#00468A</color>

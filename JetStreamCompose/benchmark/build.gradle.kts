@@ -29,7 +29,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.google.jetstream.benchmark"
+    namespace = "com.google.wiltv.benchmark"
     compileSdk = 35
 
     defaultConfig {

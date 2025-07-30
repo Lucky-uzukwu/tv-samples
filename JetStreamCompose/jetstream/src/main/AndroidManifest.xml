@@ -31,7 +31,7 @@ https://www.apache.org/licenses/LICENSE-2.0
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
-        android:name=".JetStreamApplication"
+        android:name=".WilTvApplication"
         android:allowBackup="true"
         android:banner="@mipmap/app_banner"
         android:dataExtractionRules="@xml/data_extraction_rules"

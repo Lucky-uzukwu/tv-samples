@@ -28,12 +28,12 @@ kotlin {
 }
 
 android {
-    namespace = "com.google.jetstream"
+    namespace = "com.google.wiltv"
     // Needed for latest androidx snapshot build
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.google.jetstream"
+        applicationId = "com.google.wiltv"
         minSdk = 28
         targetSdk = 35
         versionCode = 1
@@ -53,7 +53,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "SERVER_URL", "https://api.nortv.xyz")
+            buildConfigField("String", "SERVER_URL", "\"https://api.nortv.xyz\"")
         }
     }
     buildFeatures {
