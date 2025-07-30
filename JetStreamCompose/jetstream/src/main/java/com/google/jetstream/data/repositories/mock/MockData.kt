@@ -96,10 +96,13 @@ object MockData {
             StreamingProvider(
                 id = 1,
                 name = "Apple TV Plus",
-                logoPath = "images/streaming/provider/1bd81243-5ed6-4ea4-b7bf-ad40ee281517.jpg"
+                logoPath = "images/streaming/provider/1bd81243-5ed6-4ea4-b7bf-ad40ee281517.jpg",
+                logoUrl = "TODO()"
             )
         ),
-        catalogs = listOf()
+        catalogs = listOf(),
+        backdropImageUrl = "TODO()",
+        posterImageUrl = "TODO()"
     )
 
     fun getTvShow() = TvShow(
@@ -172,7 +175,9 @@ object MockData {
         countries = listOf(),
         languages = listOf(),
         streamingProviders = listOf(),
-        catalogs = listOf()
+        catalogs = listOf(),
+        backdropImageUrl = "TODO()",
+        posterImageUrl = "TODO()"
     )
 
 

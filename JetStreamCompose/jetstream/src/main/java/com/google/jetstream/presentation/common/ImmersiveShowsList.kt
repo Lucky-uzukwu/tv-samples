@@ -131,7 +131,7 @@ private fun Background(
     visible: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val imageUrl = "https://api.nortv.xyz/" + "storage/" + movie.backdropImagePath
+    val imageUrl = movie.backdropImageUrl
     AnimatedVisibility(
         visible = visible,
         enter = fadeIn() + expandVertically(),
@@ -144,11 +144,13 @@ private fun Background(
 
             ) {
             it.title?.let { movieTitle ->
-                PosterImage(
-                    title = movieTitle,
-                    posterUrl = imageUrl,
-                    modifier = Modifier.fillMaxSize()
-                )
+                imageUrl?.let { posterUrl ->
+                    PosterImage(
+                        title = movieTitle,
+                        posterUrl = posterUrl,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
         }
     }
@@ -322,7 +324,7 @@ private fun ShowsRowItem(
     onTvShowFocused: (TvShow) -> Unit = {},
 ) {
     var isFocused by remember { mutableStateOf(false) }
-    val imageUrl = "https://api.nortv.xyz/" + "storage/" + tvShow.posterImagePath
+    val imageUrl = tvShow.posterImageUrl
 
     MovieCard(
         onClick = { onTvShowSelected(tvShow) },

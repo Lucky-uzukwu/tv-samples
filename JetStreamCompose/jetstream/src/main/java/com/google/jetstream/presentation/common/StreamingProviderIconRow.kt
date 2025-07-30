@@ -56,20 +56,22 @@ fun StreamingProvidersRow(
 
                 val streamingProvider = streamingProviders[index]
                 if (streamingProvider.logoPath != null) {
-                    val imageUrl = "https://api.nortv.xyz/storage/${streamingProvider.logoPath}"
-                    CustomCard(
-                        onClick = { onClick(streamingProvider, index) },
-                        modifier = Modifier
-                            .focusProperties {
-                                up = aboveFocusRequester
-                            }
-                            .then(
-                                if (index == 0) Modifier.focusRequester(
-                                    focusRequester
-                                ) else Modifier
-                            ),
-                        imageUrl = imageUrl,
-                    )
+                    val imageUrl = streamingProvider.logoUrl
+                    imageUrl?.let {
+                        CustomCard(
+                            onClick = { onClick(streamingProvider, index) },
+                            modifier = Modifier
+                                .focusProperties {
+                                    up = aboveFocusRequester
+                                }
+                                .then(
+                                    if (index == 0) Modifier.focusRequester(
+                                        focusRequester
+                                    ) else Modifier
+                                ),
+                            imageUrl = it,
+                        )
+                    }
                 }
 
             }

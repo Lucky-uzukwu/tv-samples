@@ -217,10 +217,11 @@ private fun Catalog(
                 goToVideoPlayer = goToVideoPlayer,
                 goToMoreInfo = onMovieClick,
                 setSelectedMovie = { movie ->
-                    val imageUrl = "https://api.nortv.xyz/" + "storage/" + movie.backdropImagePath
-                    backgroundState.load(
-                        url = imageUrl
-                    )
+                    movie.backdropImageUrl?.let {
+                        backgroundState.load(
+                            url = it
+                        )
+                    }
                     setSelectedMovie(movie)
                 },
                 carouselState = carouselState,
@@ -235,67 +236,68 @@ private fun Catalog(
         }
 
 
-//        item(
-//            contentType = "StreamingProvidersRow",
-//            key = "homeScreenStreamingProvidersRow"
-//        ) {
-//            val rowId = "row_streaming_providers"
-//            val rowState = rowStates.getOrPut(rowId) { rememberTvLazyListState() }
-//
-//            StreamingProvidersRow(
-//                streamingProviders = streamingProviders.take(5),
-//                onClick = { streamingProvider, itemIndex ->
-//                    // Save parent LazyColumn scroll state
-//                    Logger.i { "Setting saved state handle column_scroll_index to : ${tvLazyColumnState.firstVisibleItemIndex}" }
-//                    savedStateHandle?.set(
-//                        "column_scroll_index",
-//                        tvLazyColumnState.firstVisibleItemIndex
-//                    )
-//                    Logger.i { "Setting saved state handle column_scroll_index to : ${tvLazyColumnState.firstVisibleItemScrollOffset}" }
-//                    savedStateHandle?.set(
-//                        "column_scroll_offset",
-//                        tvLazyColumnState.firstVisibleItemScrollOffset
-//                    )
-//                    // Save the exact item index (not just firstVisibleItemIndex)
-//                    savedStateHandle?.set("${rowId}_target_item", itemIndex)
-//                    savedStateHandle?.set("${rowId}_scroll_offset", rowState.firstVisibleItemIndex)
-//                    // Save target row ID
-//                    savedStateHandle?.set("target_row_id", rowId)
-//                    onStreamingProviderClick(streamingProvider)
-//                },
-//                modifier = Modifier,
-//                firstItemFocusRequester = firstLazyRowItemUnderCarouselRequester,
-//                aboveFocusRequester = carouselFocusRequester,
-//                lazyRowState = rowState
-//            )
-//        }
+        item(
+            contentType = "StreamingProvidersRow",
+            key = "homeScreenStreamingProvidersRow"
+        ) {
+            val rowId = "row_streaming_providers"
+            val rowState = rowStates.getOrPut(rowId) { rememberTvLazyListState() }
+
+            StreamingProvidersRow(
+                streamingProviders = streamingProviders.take(5),
+                onClick = { streamingProvider, itemIndex ->
+                    // Save parent LazyColumn scroll state
+                    Logger.i { "Setting saved state handle column_scroll_index to : ${tvLazyColumnState.firstVisibleItemIndex}" }
+                    savedStateHandle?.set(
+                        "column_scroll_index",
+                        tvLazyColumnState.firstVisibleItemIndex
+                    )
+                    Logger.i { "Setting saved state handle column_scroll_index to : ${tvLazyColumnState.firstVisibleItemScrollOffset}" }
+                    savedStateHandle?.set(
+                        "column_scroll_offset",
+                        tvLazyColumnState.firstVisibleItemScrollOffset
+                    )
+                    // Save the exact item index (not just firstVisibleItemIndex)
+                    savedStateHandle?.set("${rowId}_target_item", itemIndex)
+                    savedStateHandle?.set("${rowId}_scroll_offset", rowState.firstVisibleItemIndex)
+                    // Save target row ID
+                    savedStateHandle?.set("target_row_id", rowId)
+                    onStreamingProviderClick(streamingProvider)
+                },
+                modifier = Modifier,
+                firstItemFocusRequester = firstLazyRowItemUnderCarouselRequester,
+                aboveFocusRequester = carouselFocusRequester,
+                lazyRowState = rowState
+            )
+        }
 
 
-//        items(
-//            count = catalogToLazyPagingItems.size,
-//            key = { catalog -> catalog.hashCode() }, // Use catalog ID as unique key
-//            contentType = { "MoviesRow" }
-//        ) { catalog ->
-//            val catalogKey = catalogToLazyPagingItems.keys.elementAt(catalog)
-//            val movies = catalogToLazyPagingItems[catalogKey]
-//
-//            if (movies != null && movies.itemCount > 0) {
-//                ImmersiveListMoviesRow(
-//                    movies = movies,
-//                    sectionTitle = catalogKey.name,
-//                    onMovieClick = onMovieClick,
-//                    setSelectedMovie = { movie ->
-//                        carouselScrollEnabled = false
-//                        val imageUrl =
-//                            "https://api.nortv.xyz/" + "storage/" + movie.backdropImagePath
-//                        setSelectedMovie(movie)
-//                        backgroundState.load(
-//                            url = imageUrl
-//                        )
-//                    },
-//                )
-//            }
-//        }
+        items(
+            count = catalogToLazyPagingItems.size,
+            key = { catalog -> catalog.hashCode() }, // Use catalog ID as unique key
+            contentType = { "MoviesRow" }
+        ) { catalog ->
+            val catalogKey = catalogToLazyPagingItems.keys.elementAt(catalog)
+            val movies = catalogToLazyPagingItems[catalogKey]
+
+            if (movies != null && movies.itemCount > 0) {
+                ImmersiveListMoviesRow(
+                    movies = movies,
+                    sectionTitle = catalogKey.name,
+                    onMovieClick = onMovieClick,
+                    setSelectedMovie = { movie ->
+                        carouselScrollEnabled = false
+                        val imageUrl = movie.backdropImageUrl
+                        setSelectedMovie(movie)
+                        imageUrl?.let {
+                            backgroundState.load(
+                                url = it
+                            )
+                        }
+                    },
+                )
+            }
+        }
     }
 }
 

@@ -49,7 +49,7 @@ fun App(
             composable(route = Screens.AuthScreen()) {
                 AuthScreen(
                     onNavigateToLogin = {
-                        navController.navigate(Screens.Login())
+                        navController.navigate(Screens.Dashboard())
                     },
                     onNavigateToRegister = {
                         navController.navigate(Screens.Register())

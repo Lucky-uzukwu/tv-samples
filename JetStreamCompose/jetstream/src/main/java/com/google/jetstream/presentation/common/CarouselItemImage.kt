@@ -25,7 +25,7 @@ fun CarouselItemImage(
     movie: MovieNew,
     modifier: Modifier = Modifier
 ) {
-    val imageUrl = "https://api.nortv.xyz/" + "storage/" + movie.backdropImagePath
+    val imageUrl = movie.backdropImageUrl
     var sizeCard by remember { mutableStateOf(Size.Zero) }
     AsyncImage(
         model = imageUrl,
@@ -61,7 +61,7 @@ fun CarouselItemImage(
     tvShow: TvShow,
     modifier: Modifier = Modifier
 ) {
-    val imageUrl = "https://api.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
+    val imageUrl = tvShow.backdropImageUrl
     var sizeCard by remember { mutableStateOf(Size.Zero) }
     AsyncImage(
         model = imageUrl,

@@ -160,10 +160,12 @@ private fun Catalog(
                 goToVideoPlayer = goToVideoPlayer,
                 goToMoreInfo = onMovieClick,
                 setSelectedMovie = { movie ->
-                    val imageUrl = "https://api.nortv.xyz/" + "storage/" + movie.backdropImagePath
-                    backgroundState.load(
-                        url = imageUrl
-                    )
+                    val imageUrl = movie.backdropImageUrl
+                    imageUrl?.let {
+                        backgroundState.load(
+                            url = it
+                        )
+                    }
                     setSelectedMovie(movie)
                 },
                 carouselState = carouselState,
@@ -207,11 +209,13 @@ private fun Catalog(
                     setSelectedMovie = { movie ->
                         carouselScrollEnabled = false
                         val imageUrl =
-                            "https://api.nortv.xyz/" + "storage/" + movie.backdropImagePath
+                            movie.backdropImageUrl
                         setSelectedMovie(movie)
-                        backgroundState.load(
-                            url = imageUrl
-                        )
+                        imageUrl?.let {
+                            backgroundState.load(
+                                url = it
+                            )
+                        }
                     },
                 )
             }
@@ -233,11 +237,13 @@ private fun Catalog(
                     setSelectedMovie = { movie ->
                         carouselScrollEnabled = false
                         val imageUrl =
-                            "https://api.nortv.xyz/" + "storage/" + movie.backdropImagePath
+                            movie.backdropImageUrl
                         setSelectedMovie(movie)
-                        backgroundState.load(
-                            url = imageUrl
-                        )
+                        imageUrl?.let {
+                            backgroundState.load(
+                                url = it
+                            )
+                        }
                     },
                 )
             }

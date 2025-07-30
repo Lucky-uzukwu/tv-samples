@@ -97,8 +97,9 @@ fun MovieEntity.toMovieNew(): MovieNew = MovieNew(
     countries = countries,
     languages = languages,
     streamingProviders = streamingProviders,
-    catalogs = catalogs
-
+    catalogs = catalogs,
+    backdropImageUrl = "TODO()",
+    posterImageUrl = "TODO()"
 )
 
 

@@ -105,7 +105,7 @@ private fun Background(
     visible: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val imageUrl = "https://api.nortv.xyz/" + "storage/" + movie.backdropImagePath
+    val imageUrl = movie.backdropImageUrl
     AnimatedVisibility(
         visible = visible,
         enter = fadeIn() + expandVertically(),
@@ -117,11 +117,13 @@ private fun Background(
             label = "posterUriCrossfade",
 
             ) {
-            PosterImage(
-                title = it.title,
-                posterUrl = imageUrl,
-                modifier = Modifier.fillMaxSize()
-            )
+            imageUrl?.let { posterUrl ->
+                PosterImage(
+                    title = it.title,
+                    posterUrl = posterUrl,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         }
     }
 }

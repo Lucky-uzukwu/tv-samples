@@ -163,11 +163,12 @@ private fun Catalog(
                 tvShows = heroSectionTvShows,
                 goToMoreInfo = onTVShowClick,
                 setSelectedTvShow = { tvShow ->
-                    val imageUrl =
-                        "https://api.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
-                    backgroundState.load(
-                        url = imageUrl
-                    )
+                    val imageUrl = tvShow.backdropImageUrl
+                    imageUrl?.let {
+                        backgroundState.load(
+                            url = it
+                        )
+                    }
                     setSelectedTvShow(tvShow)
                 },
                 modifier = Modifier
@@ -210,12 +211,13 @@ private fun Catalog(
                     onTvShowClick = onTVShowClick,
                     setSelectedTvShow = { tvShow ->
                         carouselScrollEnabled = false
-                        val imageUrl =
-                            "https://api.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
+                        val imageUrl = tvShow.backdropImageUrl
                         setSelectedTvShow(tvShow)
-                        backgroundState.load(
-                            url = imageUrl
-                        )
+                        imageUrl?.let {
+                            backgroundState.load(
+                                url = it
+                            )
+                        }
                     },
                 )
             }
@@ -236,12 +238,13 @@ private fun Catalog(
                     onTvShowClick = onTVShowClick,
                     setSelectedTvShow = { tvShow ->
                         carouselScrollEnabled = false
-                        val imageUrl =
-                            "https://api.nortv.xyz/" + "storage/" + tvShow.backdropImagePath
+                        val imageUrl = tvShow.backdropImageUrl
                         setSelectedTvShow(tvShow)
-                        backgroundState.load(
-                            url = imageUrl
-                        )
+                        imageUrl?.let {
+                            backgroundState.load(
+                                url = it
+                            )
+                        }
                     },
                 )
             }

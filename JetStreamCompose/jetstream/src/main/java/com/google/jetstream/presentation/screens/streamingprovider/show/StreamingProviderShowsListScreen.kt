@@ -131,14 +131,15 @@ private fun ShowsGrid(
                                     else Modifier
                                 ),
                         ) {
-                            val imageUrl =
-                                "https://api.nortv.xyz/" + "storage/" + item.posterImagePath
+                            val imageUrl = item.posterImageUrl
                             item.title?.let {
-                                PosterImage(
-                                    title = it,
-                                    posterUrl = imageUrl,
-                                    modifier = Modifier.fillMaxSize()
-                                )
+                                imageUrl?.let { posterUrl ->
+                                    PosterImage(
+                                        title = it,
+                                        posterUrl = posterUrl,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
                             }
                         }
                     }

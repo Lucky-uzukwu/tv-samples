@@ -130,13 +130,14 @@ private fun MoviesGrid(
                                     else Modifier
                                 ),
                         ) {
-                            val imageUrl =
-                                "https://api.nortv.xyz/" + "storage/" + movie.posterImagePath
-                            PosterImage(
-                                title = movie.title,
-                                posterUrl = imageUrl,
-                                modifier = Modifier.fillMaxSize()
-                            )
+                            val imageUrl = movie.posterImageUrl
+                            imageUrl?.let {
+                                PosterImage(
+                                    title = movie.title,
+                                    posterUrl = it,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
                         }
                     }
                 }

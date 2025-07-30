@@ -209,7 +209,7 @@ private fun MovieImageWithGradients(
     movie: MovieNew,
     modifier: Modifier = Modifier,
 ) {
-    val imageUrl = "https://api.nortv.xyz/" + "storage/" + movie.backdropImagePath
+    val imageUrl = movie.backdropImageUrl
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current).data(imageUrl)
             .crossfade(true).build(),
