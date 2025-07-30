@@ -14,9 +14,7 @@ data class MovieNew(
     val imdbRating: String?,
     val imdbVotes: Int?,
     val backdropImagePath: String?,
-    val backdropImageUrl: String?,
     val posterImagePath: String?,
-    val posterImageUrl: String?,
     val youtubeTrailerUrl: String?,
     val contentRating: String?,
     val isAdultContent: Boolean,
@@ -24,16 +22,20 @@ data class MovieNew(
     val views: Int?,
     val active: Boolean,
     val showInHeroSection: Boolean,
-    val tvShowSeasonId: Int?,
     val tvShowSeasonPriority: Int?,
     val moviePeopleCount: Int?,
-    val video: Video?,
-    val moviePeople: List<MoviePerson>,
+    val people: List<MoviePerson>, // TODO this is the wrong object, should be PersonNew
+    val theMovieDbId: String?,
+    val backdropImageUrl: String?,
+    val posterImageUrl: String?,
     val genres: List<Genre>,
     val countries: List<Country>,
     val languages: List<Language>,
-    val streamingProviders: List<StreamingProvider>,
     val catalogs: List<Any>,
+    val video: Video?,
+    val tvShowSeasonId: Int?,
+    val peopleCount: Int?,
+    val streamingProviders: List<StreamingProvider>,
 )
 
 fun MovieNew.toMovieEntity(): MovieEntity = MovieEntity(
@@ -58,12 +60,35 @@ fun MovieNew.toMovieEntity(): MovieEntity = MovieEntity(
     tvShowSeasonPriority = tvShowSeasonPriority,
     moviePeopleCount = moviePeopleCount,
     video = video?.toVideoEntity(),
-    moviePeople = moviePeople,
+//    moviePeople = people.map {
+//        MoviePerson(
+//            id = it.id,
+//            character = it.character,
+//            personType = PersonType(
+//                id = it.id,
+//                name = it.name
+//            ),
+//            person = Person(
+//                id = it.id,
+//                name = it.name,
+//                profilePath = it.profilePath,
+//                birthday = it.birthday,
+//                deathday = it.deathday,
+//                imdbId = it.imdbId,
+//                knownForDepartment = it.knownForDepartment,
+//                placeOfBirth = "",
+//                biography = it.biography,
+//                popularity = it.popularity,
+//                isAdult = it.isAdult
+//            )
+//        )
+//    },
     genres = genres,
     countries = countries,
     languages = languages,
     streamingProviders = streamingProviders,
-    catalogs = catalogs
+    catalogs = catalogs,
+    moviePeople = people,
 )
 
 
@@ -77,9 +102,7 @@ data class TvShow(
     val imdbRating: String?,
     val imdbVotes: Int?,
     val backdropImagePath: String?,
-    val backdropImageUrl: String?,
     val posterImagePath: String?,
-    val posterImageUrl: String?,
     val youtubeTrailerUrl: String?,
     val contentRating: String?,
     val isAdultContent: Boolean,
@@ -88,15 +111,18 @@ data class TvShow(
     val priority: Any?,
     val active: Boolean,
     val showInHeroSection: Boolean,
-    val tvShowPeopleCount: Int?,
-    val seasonsCount: Int?,
-    val tvShowPeople: List<TvShowPerson>?,
+    val theMovieDbId: String?,
+    val backdropImageUrl: String?,
+    val posterImageUrl: String?,
     val seasons: List<Season>?,
     val genres: List<Genre>?,
     val countries: List<Country>?,
     val languages: List<Language>?,
+    val people: List<PersonNew>?,
+    val catalogs: List<Any>?,
+    val peopleCount: Int?,
+    val seasonsCount: Int?,
     val streamingProviders: List<StreamingProvider>?,
-    val catalogs: List<Any>?
 )
 
 data class Season(
@@ -147,6 +173,21 @@ data class MoviePerson(
     val character: String?,
     val personType: PersonType,
     val person: Person
+)
+
+data class PersonNew(
+    val id: Int,
+    val name: String,
+    val profilePath: String?,
+    val birthday: String?,
+    val deathday: String?,
+    val imdbId: String?,
+    val biography: String?,
+    val popularity: String?,
+    val isAdult: Boolean,
+    val profileUrl: String?,
+    val character: String?,
+    val knownForDepartment: String?,
 )
 
 data class PersonType(
@@ -206,8 +247,7 @@ data class StreamingProvider(
     val name: String,
     val logoPath: String?,
     val logoUrl: String?,
-
-    )
+)
 
 data class Video(
     val id: Int,

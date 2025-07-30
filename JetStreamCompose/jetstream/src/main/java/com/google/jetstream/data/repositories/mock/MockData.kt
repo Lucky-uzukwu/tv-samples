@@ -43,29 +43,7 @@ object MockData {
             hlsPlaylistUrl = "https://stage-stream.nortv.xyz/hls/2fe0482.json/master.m3u8",
             subtitles = listOf()
         ),
-        moviePeople = listOf(
-            MoviePerson(
-                id = 11,
-                character = "Levi",
-                personType = PersonType(
-                    id = 1,
-                    name = "Acting"
-                ),
-                person = Person(
-                    id = 11,
-                    name = "Miles Teller",
-                    profilePath = "images/people/5b37aef6-7aaa-4654-bd79-55c9520e4882.jpg",
-                    birthday = null,
-                    deathday = null,
-                    imdbId = "996701",
-                    knownForDepartment = "Acting",
-                    placeOfBirth = null,
-                    biography = null,
-                    popularity = "77.211",
-                    isAdult = false
-                )
-            )
-        ),
+        people = listOf(),
         genres = listOf(
             Genre(
                 id = 1,
@@ -102,7 +80,9 @@ object MockData {
         ),
         catalogs = listOf(),
         backdropImageUrl = "TODO()",
-        posterImageUrl = "TODO()"
+        theMovieDbId = "TODO()",
+        posterImageUrl = "TODO()",
+        peopleCount = 0
     )
 
     fun getTvShow() = TvShow(
@@ -124,9 +104,9 @@ object MockData {
         priority = null,
         active = true,
         showInHeroSection = false,
-        tvShowPeopleCount = 0,
+        peopleCount = 0,
         seasonsCount = 1,
-        tvShowPeople = listOf(),
+        people = listOf(),
         seasons = listOf(
             Season(
                 id = 52,
@@ -177,7 +157,8 @@ object MockData {
         streamingProviders = listOf(),
         catalogs = listOf(),
         backdropImageUrl = "TODO()",
-        posterImageUrl = "TODO()"
+        posterImageUrl = "TODO()",
+        theMovieDbId = "TODO()",
     )
 
 

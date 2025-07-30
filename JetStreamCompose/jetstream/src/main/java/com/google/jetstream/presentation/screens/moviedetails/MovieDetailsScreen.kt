@@ -145,16 +145,17 @@ private fun Details(
             )
         }
 
-        item {
-            CastAndCrewList(
-                castAndCrew = selectedMovie.moviePeople.map {
-                    PersonToCharacter(
-                        person = it.person,
-                        character = it.character
-                    )
-                }
-            )
-        }
+//        item {
+//            CastAndCrewList(
+//                castAndCrew = selectedMovie.people.map {
+//                    PersonToCharacter(
+//                        person = it.person,
+//                        character = it.character
+//                    )
+//                }
+//            )
+//        }
+
         item {
             MoviesRow(
                 title = StringConstants

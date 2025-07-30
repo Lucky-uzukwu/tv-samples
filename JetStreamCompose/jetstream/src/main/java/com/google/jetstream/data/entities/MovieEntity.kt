@@ -7,12 +7,10 @@ import androidx.room.PrimaryKey
 import com.google.jetstream.data.models.Country
 import com.google.jetstream.data.models.Genre
 import com.google.jetstream.data.models.Language
-import com.google.jetstream.data.models.MovieNew
 import com.google.jetstream.data.models.MoviePerson
 import com.google.jetstream.data.models.StreamingProvider
 import com.google.jetstream.data.models.Subtitle
 import com.google.jetstream.data.models.Video
-import com.google.jetstream.data.models.toVideo
 
 
 @Entity(tableName = "movie")
@@ -70,37 +68,39 @@ data class MovieEntity(
 )
 
 
-fun MovieEntity.toMovieNew(): MovieNew = MovieNew(
-    id = id,
-    title = title,
-    tagLine = tagLine,
-    plot = plot,
-    releaseDate = releaseDate,
-    duration = duration,
-    imdbRating = imdbRating,
-    imdbVotes = imdbVotes,
-    backdropImagePath = backdropImagePath,
-    posterImagePath = posterImagePath,
-    youtubeTrailerUrl = youtubeTrailerUrl,
-    contentRating = contentRating,
-    isAdultContent = isAdultContent,
-    isKidsContent = isKidsContent,
-    views = views,
-    active = active,
-    showInHeroSection = showInHeroSection,
-    tvShowSeasonId = tvShowSeasonId,
-    tvShowSeasonPriority = tvShowSeasonPriority,
-    moviePeopleCount = moviePeopleCount,
-    video = video?.toVideo(),
-    moviePeople = moviePeople,
-    genres = genres,
-    countries = countries,
-    languages = languages,
-    streamingProviders = streamingProviders,
-    catalogs = catalogs,
-    backdropImageUrl = "TODO()",
-    posterImageUrl = "TODO()"
-)
+//fun MovieEntity.toMovieNew(): MovieNew = MovieNew(
+//    id = id,
+//    title = title,
+//    tagLine = tagLine,
+//    plot = plot,
+//    releaseDate = releaseDate,
+//    duration = duration,
+//    imdbRating = imdbRating,
+//    imdbVotes = imdbVotes,
+//    backdropImagePath = backdropImagePath,
+//    posterImagePath = posterImagePath,
+//    youtubeTrailerUrl = youtubeTrailerUrl,
+//    contentRating = contentRating,
+//    isAdultContent = isAdultContent,
+//    isKidsContent = isKidsContent,
+//    views = views,
+//    active = active,
+//    showInHeroSection = showInHeroSection,
+//    tvShowSeasonId = tvShowSeasonId,
+//    tvShowSeasonPriority = tvShowSeasonPriority,
+//    moviePeopleCount = moviePeopleCount,
+//    video = video?.toVideo(),
+//    people = moviePeople,
+//    genres = genres,
+//    countries = countries,
+//    languages = languages,
+//    streamingProviders = streamingProviders,
+//    catalogs = catalogs,
+//    backdropImageUrl = "TODO()",
+//    posterImageUrl = "TODO()",
+//    theMovieDbId = "TODO()",
+//    peopleCount = 0
+//)
 
 
 fun Video.toVideoEntity(): VideoEntity = VideoEntity(

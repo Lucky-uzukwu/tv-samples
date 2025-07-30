@@ -148,18 +148,18 @@ private fun Details(
             )
         }
 
-        if (tvShow.tvShowPeople?.isNotEmpty() == true) {
-            item {
-                CastAndCrewList(
-                    castAndCrew = tvShow.tvShowPeople.map {
-                        PersonToCharacter(
-                            person = it.person,
-                            character = it.character
-                        )
-                    }
-                )
-            }
-        }
+//        if (tvShow.people?.isNotEmpty() == true) {
+//            item {
+//                CastAndCrewList(
+//                    castAndCrew = tvShow.people.map {
+//                        PersonToCharacter(
+//                            person = it.person,
+//                            character = it.character
+//                        )
+//                    }
+//                )
+//            }
+//        }
 
 
 
