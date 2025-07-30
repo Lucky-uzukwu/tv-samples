@@ -14,7 +14,9 @@ data class MovieNew(
     val imdbRating: String?,
     val imdbVotes: Int?,
     val backdropImagePath: String?,
+    val backdropImageUrl: String?,
     val posterImagePath: String?,
+    val posterImageUrl: String?,
     val youtubeTrailerUrl: String?,
     val contentRating: String?,
     val isAdultContent: Boolean,
@@ -75,7 +77,9 @@ data class TvShow(
     val imdbRating: String?,
     val imdbVotes: Int?,
     val backdropImagePath: String?,
+    val backdropImageUrl: String?,
     val posterImagePath: String?,
+    val posterImageUrl: String?,
     val youtubeTrailerUrl: String?,
     val contentRating: String?,
     val isAdultContent: Boolean,
@@ -200,8 +204,10 @@ data class Pivot(
 data class StreamingProvider(
     val id: Int,
     val name: String,
-    val logoPath: String?
-)
+    val logoPath: String?,
+    val logoUrl: String?,
+
+    )
 
 data class Video(
     val id: Int,
