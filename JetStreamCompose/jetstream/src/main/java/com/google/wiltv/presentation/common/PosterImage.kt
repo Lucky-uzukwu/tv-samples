@@ -19,9 +19,6 @@ package com.google.wiltv.presentation.common
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.google.wiltv.data.util.StringConstants
 
 @Composable
@@ -30,12 +27,9 @@ fun PosterImage(
     posterUrl: String,
     modifier: Modifier = Modifier,
 ) {
-    AsyncImage(
+    AuthenticatedAsyncImage(
         modifier = modifier,
-        model = ImageRequest.Builder(LocalContext.current)
-            .crossfade(true)
-            .data(posterUrl)
-            .build(),
+        model = posterUrl,
         contentDescription = StringConstants.Composable.ContentDescription.moviePoster(title),
         contentScale = ContentScale.Crop
     )

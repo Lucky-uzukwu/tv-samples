@@ -1,5 +1,6 @@
 package com.google.wiltv.presentation.common
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -55,25 +56,28 @@ fun StreamingProvidersRow(
                 val focusRequester = if (index == 0) firstItemFocusRequester else FocusRequester()
 
                 val streamingProvider = streamingProviders[index]
-                if (streamingProvider.logoPath != null) {
-                    val imageUrl = streamingProvider.logoUrl
-                    imageUrl?.let {
-                        CustomCard(
-                            onClick = { onClick(streamingProvider, index) },
-                            modifier = Modifier
-                                .focusProperties {
-                                    up = aboveFocusRequester
-                                }
-                                .then(
-                                    if (index == 0) Modifier.focusRequester(
-                                        focusRequester
-                                    ) else Modifier
-                                ),
-                            imageUrl = it,
-                        )
-                    }
-                }
-
+                
+                // Log streaming provider data for debugging
+                Log.d("StreamingProvidersRow", "Provider ${streamingProvider.name}: logoPath=${streamingProvider.logoPath}, logoUrl=${streamingProvider.logoUrl}")
+                
+                // Use logoUrl first, fall back to logoPath, then show placeholder
+                val imageUrl = streamingProvider.logoUrl 
+                    ?: streamingProvider.logoPath
+                    ?: "https://via.placeholder.com/100x100.png?text=${streamingProvider.name}"
+                
+                CustomCard(
+                    onClick = { onClick(streamingProvider, index) },
+                    modifier = Modifier
+                        .focusProperties {
+                            up = aboveFocusRequester
+                        }
+                        .then(
+                            if (index == 0) Modifier.focusRequester(
+                                focusRequester
+                            ) else Modifier
+                        ),
+                    imageUrl = imageUrl,
+                )
             }
         }
 

@@ -49,9 +49,9 @@ import androidx.tv.material3.CardDefaults
 import androidx.tv.material3.CompactCard
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import coil.compose.AsyncImage
 import com.google.wiltv.data.entities.Movie
 import com.google.wiltv.data.util.StringConstants
+import com.google.wiltv.presentation.common.AuthenticatedAsyncImage
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
 import com.google.wiltv.presentation.theme.WilTvBorderWidth
 
@@ -119,7 +119,7 @@ private fun MovieListItem(
                     targetValue = if (isFocused) 1f else 0.5f,
                     label = "",
                 )
-                AsyncImage(
+                AuthenticatedAsyncImage(
                     model = movie.posterUri,
                     contentDescription = StringConstants
                         .Composable

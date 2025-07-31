@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.toSize
-import coil.compose.AsyncImage
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.util.StringConstants
@@ -27,7 +26,7 @@ fun CarouselItemImage(
 ) {
     val imageUrl = movie.backdropImageUrl
     var sizeCard by remember { mutableStateOf(Size.Zero) }
-    AsyncImage(
+    AuthenticatedAsyncImage(
         model = imageUrl,
         contentDescription = StringConstants
             .Composable
@@ -63,7 +62,7 @@ fun CarouselItemImage(
 ) {
     val imageUrl = tvShow.backdropImageUrl
     var sizeCard by remember { mutableStateOf(Size.Zero) }
-    AsyncImage(
+    AuthenticatedAsyncImage(
         model = imageUrl,
         contentDescription = tvShow.title?.let {
             StringConstants

@@ -29,9 +29,9 @@ import androidx.tv.material3.CardDefaults
 import androidx.tv.material3.ClassicCard
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import coil.compose.AsyncImage
 import com.google.wiltv.R
 import com.google.wiltv.data.util.StringConstants
+import com.google.wiltv.presentation.common.AuthenticatedAsyncImage
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
 import com.google.wiltv.presentation.screens.moviedetails.PersonToCharacter
 import com.google.wiltv.presentation.theme.WilTvBorderWidth
@@ -122,7 +122,7 @@ private fun CastAndCrewItem(
                     .fillMaxHeight(0.725f)
                     .background(ourColors.random())
             )
-            AsyncImage(
+            AuthenticatedAsyncImage(
                 model = castImageUrl,
                 contentDescription = StringConstants
                     .Composable

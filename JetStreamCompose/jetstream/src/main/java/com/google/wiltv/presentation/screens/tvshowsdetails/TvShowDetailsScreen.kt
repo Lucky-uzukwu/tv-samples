@@ -46,9 +46,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.wiltv.R
+import com.google.wiltv.presentation.common.AuthenticatedAsyncImage
 import com.google.wiltv.data.models.Season
 import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.util.StringConstants
@@ -221,13 +221,13 @@ private fun MovieImageWithGradients(
     modifier: Modifier = Modifier,
 ) {
     val imageUrl = "https://api.nortv.xyz/storage/$backdropImagePath"
-    AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current).data(imageUrl)
-            .crossfade(true).build(),
+    AuthenticatedAsyncImage(
+        model = imageUrl,
         contentDescription = StringConstants
             .Composable
             .ContentDescription
-            .moviePoster(title), modifier = modifier
+            .moviePoster(title), 
+        modifier = modifier
     )
 }
 

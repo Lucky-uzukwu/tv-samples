@@ -41,9 +41,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.tv.material3.MaterialTheme
-import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.wiltv.R
+import com.google.wiltv.presentation.common.AuthenticatedAsyncImage
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.Person
 import com.google.wiltv.data.util.StringConstants
@@ -211,13 +211,13 @@ private fun MovieImageWithGradients(
     modifier: Modifier = Modifier,
 ) {
     val imageUrl = movie.backdropImageUrl
-    AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current).data(imageUrl)
-            .crossfade(true).build(),
+    AuthenticatedAsyncImage(
+        model = imageUrl,
         contentDescription = StringConstants
             .Composable
             .ContentDescription
-            .moviePoster(movie.title), modifier = modifier
+            .moviePoster(movie.title), 
+        modifier = modifier
     )
 }
 

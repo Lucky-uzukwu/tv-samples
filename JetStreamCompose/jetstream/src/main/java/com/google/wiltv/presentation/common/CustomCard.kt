@@ -18,7 +18,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Card
 import androidx.tv.material3.ExperimentalTvMaterial3Api
-import coil.compose.AsyncImage
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -42,8 +41,9 @@ fun CustomCard(
 //                .aspectRatio(cardAspectRatio)
                 .background(Color.Transparent, RoundedCornerShape(16.dp)),
         ) {
-            AsyncImage(
-                model = imageUrl, contentDescription = "Image",
+            AuthenticatedAsyncImage(
+                model = imageUrl, 
+                contentDescription = "Image",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.FillBounds,
                 alignment = Alignment.Center,

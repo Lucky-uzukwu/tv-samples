@@ -2,6 +2,7 @@ package com.google.wiltv.data.network
 
 import android.content.Context
 import androidx.room.Room
+import coil.ImageLoader
 import com.google.wiltv.AppDatabase
 import com.google.wiltv.data.dao.MovieRemoteKeyDao
 import com.google.wiltv.data.dao.MoviesDao
@@ -10,10 +11,15 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Qualifier
 import javax.inject.Singleton
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class AuthenticatedImageLoader
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -108,5 +114,27 @@ class NetworkModule {
     @Singleton
     fun SearchService(retrofit: Retrofit): SearchService {
         return retrofit.create(SearchService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAuthInterceptor(userTokenProvider: UserTokenProvider): AuthInterceptor {
+        return AuthInterceptor(userTokenProvider)
+    }
+
+    @Provides
+    @Singleton
+    @AuthenticatedImageLoader
+    fun provideAuthenticatedImageLoader(
+        @ApplicationContext context: Context,
+        authInterceptor: AuthInterceptor
+    ): ImageLoader {
+        return ImageLoader.Builder(context)
+            .okHttpClient {
+                OkHttpClient.Builder()
+                    .addInterceptor(authInterceptor)
+                    .build()
+            }
+            .build()
     }
 }
