@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -61,7 +62,7 @@ fun HomeDrawer(
     ModalNavigationDrawer(
         scrimBrush = Brush.horizontalGradient(
             listOf(
-                MaterialTheme.colorScheme.background,
+                MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
                 Color.Transparent
             )
         ),
@@ -70,7 +71,8 @@ fun HomeDrawer(
             Column(
                 Modifier
                     .fillMaxHeight()
-                    .selectableGroup(),
+                    .selectableGroup()
+                    .offset(x = 5.dp),
                 verticalArrangement = Arrangement.Center
             ) {
                 TopBarTabs.forEachIndexed { index, item ->
