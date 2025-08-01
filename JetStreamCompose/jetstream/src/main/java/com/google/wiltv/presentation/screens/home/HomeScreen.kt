@@ -164,6 +164,42 @@ private fun Catalog(
                 } else {
                     Logger.w { "StreamingRowState not found for focus restoration" }
                 }
+            } else if (lastFocusedItem.first >= 2) {
+                // Handle catalog movie rows (row indices 2+)
+                Logger.i { "Attempting catalog row focus restoration: row=${lastFocusedItem.first}, item=${lastFocusedItem.second}" }
+                
+                // Calculate catalog row ID based on row index
+                val catalogRowIndex = lastFocusedItem.first - 2 // Convert to 0-based catalog index
+                val catalogKeys = catalogToLazyPagingItems.keys.toList()
+                
+                if (catalogRowIndex < catalogKeys.size) {
+                    val catalogKey = catalogKeys[catalogRowIndex]
+                    val catalogRowId = "catalog_${catalogKey.name}"
+                    val catalogRowState = rowStates[catalogRowId]
+                    val catalogMovies = catalogToLazyPagingItems[catalogKey]
+                    
+                    if (catalogRowState != null && catalogMovies != null && lastFocusedItem.second < catalogMovies.itemCount) {
+                        // First scroll to the target item to ensure it's composed
+                        catalogRowState.scrollToItem(lastFocusedItem.second)
+                        Logger.i { "Scrolled to catalog row $catalogRowId item: ${lastFocusedItem.second}" }
+                        
+                        // Wait for scroll and composition to complete
+                        kotlinx.coroutines.delay(200)
+                        
+                        // Then request focus
+                        val focusRequester = focusRequesters[lastFocusedItem]
+                        if (focusRequester != null) {
+                            focusRequester.requestFocus()
+                            Logger.i { "Catalog row focus restoration successful" }
+                        } else {
+                            Logger.w { "FocusRequester not found for catalog $lastFocusedItem after scroll" }
+                        }
+                    } else {
+                        Logger.w { "Catalog row state or movies not found for focus restoration: rowState=${catalogRowState != null}, movies=${catalogMovies != null}" }
+                    }
+                } else {
+                    Logger.w { "Catalog row index out of bounds: $catalogRowIndex >= ${catalogKeys.size}" }
+                }
             } else {
                 Logger.w { "Focus restoration skipped - invalid bounds: row=${lastFocusedItem.first}, item=${lastFocusedItem.second}, providers=${streamingProviders.size}" }
             }
@@ -293,10 +329,23 @@ private fun Catalog(
             val movies = catalogToLazyPagingItems[catalogKey]
 
             if (movies != null && movies.itemCount > 0) {
+                val catalogRowIndex = 2 + catalog // Catalog rows start from index 2 (after carousel=0, streaming=1)
+                val catalogRowId = "catalog_${catalogKey.name}"
+                val catalogRowState = rowStates.getOrPut(catalogRowId) { rememberTvLazyListState() }
+                
+                // Create focus requesters for catalog movie items (limit to first 10 to avoid memory issues)
+                val maxFocusRequesters = minOf(10, movies.itemCount)
+                val catalogFocusRequesters = (0 until maxFocusRequesters).map { index ->
+                    index to (focusRequesters.getOrPut(Pair(catalogRowIndex, index)) { FocusRequester() })
+                }.toMap()
+                
                 ImmersiveListMoviesRow(
                     movies = movies,
                     sectionTitle = catalogKey.name,
-                    onMovieClick = onMovieClick,
+                    onMovieClick = { movie ->
+                        // Focus state is automatically saved via lastFocusedItem from onItemFocused callback
+                        onMovieClick(movie)
+                    },
                     setSelectedMovie = { movie ->
                         carouselScrollEnabled = false
                         val imageUrl = movie.backdropImageUrl
@@ -307,6 +356,12 @@ private fun Catalog(
                             )
                         }
                     },
+                    lazyRowState = catalogRowState,
+                    focusRequesters = catalogFocusRequesters,
+                    onItemFocused = { movie, index ->
+                        lastFocusedItem = Pair(catalogRowIndex, index)
+                        Logger.d { "Catalog row focus tracked: row=$catalogRowIndex, item=$index, movie=${movie.title}" }
+                    }
                 )
             }
         }

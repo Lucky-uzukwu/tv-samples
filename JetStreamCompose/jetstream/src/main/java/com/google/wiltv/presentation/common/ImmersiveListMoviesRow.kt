@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -56,7 +57,10 @@ fun ImmersiveListMoviesRow(
     modifier: Modifier = Modifier,
     setSelectedMovie: (MovieNew) -> Unit,
     gradientColor: Color = Color.Black.copy(alpha = 0.7f),
-    onMovieClick: (movie: MovieNew) -> Unit
+    onMovieClick: (movie: MovieNew) -> Unit,
+    lazyRowState: androidx.tv.foundation.lazy.list.TvLazyListState? = null,
+    focusRequesters: Map<Int, androidx.compose.ui.focus.FocusRequester> = emptyMap(),
+    onItemFocused: (MovieNew, Int) -> Unit = { _, _ -> }
 ) {
     var isListFocused by remember { mutableStateOf(false) }
 
@@ -71,10 +75,13 @@ fun ImmersiveListMoviesRow(
         movies = movies,
         sectionTitle = sectionTitle,
         onMovieClick = onMovieClick,
-        onMovieFocused = {
-            selectedMovie = it
-            setSelectedMovie(it)
+        onMovieFocused = { movie, index ->
+            selectedMovie = movie
+            setSelectedMovie(movie)
+            onItemFocused(movie, index)
         },
+        lazyRowState = lazyRowState,
+        focusRequesters = focusRequesters,
         onFocusChanged = {
             isListFocused = it.hasFocus
         },
@@ -93,9 +100,11 @@ private fun ImmersiveList(
     movies: LazyPagingItems<MovieNew>,
     sectionTitle: String?,
     onFocusChanged: (FocusState) -> Unit,
-    onMovieFocused: (MovieNew) -> Unit,
+    onMovieFocused: (MovieNew, Int) -> Unit,
     onMovieClick: (MovieNew) -> Unit,
     modifier: Modifier = Modifier,
+    lazyRowState: androidx.tv.foundation.lazy.list.TvLazyListState? = null,
+    focusRequesters: Map<Int, androidx.compose.ui.focus.FocusRequester> = emptyMap(),
 ) {
 
     Box(
@@ -117,6 +126,8 @@ private fun ImmersiveList(
                 showIndexOverImage = false,
                 onMovieSelected = onMovieClick,
                 onMovieFocused = onMovieFocused,
+                lazyRowState = lazyRowState,
+                focusRequesters = focusRequesters,
                 modifier = modifier.onFocusChanged(onFocusChanged)
             )
         }
@@ -271,7 +282,9 @@ fun ImmersiveListMoviesRow(
     ),
     showIndexOverImage: Boolean = false,
     onMovieSelected: (MovieNew) -> Unit = {},
-    onMovieFocused: (MovieNew) -> Unit = {}
+    onMovieFocused: (MovieNew, Int) -> Unit = { _, _ -> },
+    lazyRowState: androidx.tv.foundation.lazy.list.TvLazyListState? = null,
+    focusRequesters: Map<Int, androidx.compose.ui.focus.FocusRequester> = emptyMap()
 ) {
     // Create infinite list by repeating the movies
     val infiniteMovieCount = if (movies.itemCount > 0) Int.MAX_VALUE else 0
@@ -292,6 +305,7 @@ fun ImmersiveListMoviesRow(
 
         TvLazyRow(
             modifier = modifier.fillMaxWidth(),
+            state = lazyRowState ?: androidx.tv.foundation.lazy.list.rememberTvLazyListState(),
             pivotOffsets = PivotOffsets(0.1f, 0f),
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -299,14 +313,21 @@ fun ImmersiveListMoviesRow(
         ) {
             items(movies.itemSnapshotList.items.size) { index ->
                 val movie = movies.itemSnapshotList.items[index]
+                val focusRequester = focusRequesters[index]
+                
                 MoviesRowItem(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .then(
+                            if (focusRequester != null) Modifier.focusRequester(focusRequester)
+                            else Modifier
+                        ),
                     index = index,
                     itemDirection = itemDirection,
                     onMovieSelected = {
                         onMovieSelected(it)
                     },
-                    onMovieFocused = onMovieFocused,
+                    onMovieFocused = { movie -> onMovieFocused(movie, index) },
                     movie = movie,
                     showIndexOverImage = showIndexOverImage
                 )
