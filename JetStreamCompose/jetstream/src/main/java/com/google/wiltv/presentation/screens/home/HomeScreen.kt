@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -119,7 +120,10 @@ private fun Catalog(
 
     val tvLazyColumnState = rememberTvLazyListState()
     val rowStates = remember { mutableStateMapOf<String, TvLazyListState>() }
-    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+
+    // Global focus restoration state  
+    val focusRequesters = remember { mutableMapOf<Pair<Int, Int>, FocusRequester>() }
+    var lastFocusedItem by rememberSaveable { mutableStateOf(Pair(0, 0)) }
 
     val backgroundState = backgroundImageState()
     val catalogToLazyPagingItems = catalogToMovies.mapValues { (_, flow) ->
@@ -131,36 +135,37 @@ private fun Catalog(
 
     var carouselScrollEnabled by remember { mutableStateOf(true) }
 
-    // Restore scroll positions when navigating back
-    savedStateHandle?.get<String>("target_row_id")?.let { targetRowId ->
-        savedStateHandle.get<Int>("column_scroll_index")?.let { columnIndex ->
-            savedStateHandle.get<Int>("column_scroll_offset")?.let { columnOffset ->
-                savedStateHandle.get<Int>("${targetRowId}_scroll_offset")?.let { rowScrollOffset ->
-                    savedStateHandle.get<Int>("${targetRowId}_target_item")
-                        ?.let { targetItemIndex ->
-                            LaunchedEffect(Unit) {
-                                Logger.i {
-                                    "RowsScreen"
-                                    "Restoring: Column(index=$columnIndex, offset=$columnOffset), " +
-                                            "Row($targetRowId, targetItem=$targetItemIndex)"
-                                }
-                                // Scroll LazyColumn to the correct row
-                                tvLazyColumnState.scrollToItem(columnIndex, columnOffset)
-                                // Scroll the target LazyRow to the correct item
-                                val scrollOffset =
-                                    if (targetItemIndex < 7) 100 else (targetItemIndex - 6) * 100
-                                rowStates[targetRowId]?.scrollToItem(
-                                    index = targetItemIndex,
-                                    scrollOffset = scrollOffset
-                                )
+    // Focus restoration
+    LaunchedEffect(Unit) {
+        if (lastFocusedItem.first >= 0 && lastFocusedItem.second >= 0) {
+            // Add bounds checking for streaming providers
+            if (lastFocusedItem.first == 1 && lastFocusedItem.second < streamingProviders.size) {
+                Logger.i { "Attempting focus restoration: row=${lastFocusedItem.first}, item=${lastFocusedItem.second}, total providers=${streamingProviders.size}" }
 
-                                savedStateHandle.remove<String>("target_row_id")
-                                savedStateHandle.remove<Int>("column_scroll_index")
-                                savedStateHandle.remove<Int>("column_scroll_offset")
-                                savedStateHandle.remove<Int>("${targetRowId}_target_item")
-                            }
-                        }
+                // Get the streaming row state to scroll first
+                val streamingRowState = rowStates["row_streaming_providers"]
+
+                if (streamingRowState != null) {
+                    // First scroll to the target item to ensure it's composed
+                    streamingRowState.scrollToItem(lastFocusedItem.second)
+                    Logger.i { "Scrolled to streaming provider item: ${lastFocusedItem.second}" }
+
+                    // Wait for scroll and composition to complete
+                    kotlinx.coroutines.delay(200)
+
+                    // Then request focus
+                    val focusRequester = focusRequesters[lastFocusedItem]
+                    if (focusRequester != null) {
+                        focusRequester.requestFocus()
+                        Logger.i { "Focus restoration successful" }
+                    } else {
+                        Logger.w { "FocusRequester not found for $lastFocusedItem after scroll" }
+                    }
+                } else {
+                    Logger.w { "StreamingRowState not found for focus restoration" }
                 }
+            } else {
+                Logger.w { "Focus restoration skipped - invalid bounds: row=${lastFocusedItem.first}, item=${lastFocusedItem.second}, providers=${streamingProviders.size}" }
             }
         }
     }
@@ -212,6 +217,9 @@ private fun Catalog(
     ) {
 
         item(contentType = "HeroSectionCarousel") {
+            // Get the first streaming provider's FocusRequester for carousel navigation
+            val firstStreamingProviderFocusRequester = focusRequesters[Pair(1, 0)] ?: firstLazyRowItemUnderCarouselRequester
+
             MovieHeroSectionCarousel(
                 movies = featuredMovies,
                 goToVideoPlayer = goToVideoPlayer,
@@ -229,7 +237,7 @@ private fun Catalog(
                 modifier = Modifier
                     .height(340.dp)
                     .fillMaxWidth(),
-                firstLazyRowItemUnderCarouselRequester = firstLazyRowItemUnderCarouselRequester,
+                firstLazyRowItemUnderCarouselRequester = firstStreamingProviderFocusRequester,
                 carouselFocusRequester = carouselFocusRequester,
                 lazyRowState = lazyRowState
             )
@@ -242,32 +250,36 @@ private fun Catalog(
         ) {
             val rowId = "row_streaming_providers"
             val rowState = rowStates.getOrPut(rowId) { rememberTvLazyListState() }
+            val streamingRowIndex = 1 // StreamingProviders is row 1 (after carousel row 0)
+
+            // Create focus requesters for streaming providers
+            val streamingFocusRequesters = streamingProviders.mapIndexed { index, _ ->
+                index to (focusRequesters.getOrPut(
+                    Pair(
+                        streamingRowIndex,
+                        index
+                    )
+                ) { FocusRequester() })
+            }.toMap()
 
             StreamingProvidersRow(
                 streamingProviders = streamingProviders,
                 onClick = { streamingProvider, itemIndex ->
-                    // Save parent LazyColumn scroll state
-                    Logger.i { "Setting saved state handle column_scroll_index to : ${tvLazyColumnState.firstVisibleItemIndex}" }
-                    savedStateHandle?.set(
-                        "column_scroll_index",
-                        tvLazyColumnState.firstVisibleItemIndex
-                    )
-                    Logger.i { "Setting saved state handle column_scroll_index to : ${tvLazyColumnState.firstVisibleItemScrollOffset}" }
-                    savedStateHandle?.set(
-                        "column_scroll_offset",
-                        tvLazyColumnState.firstVisibleItemScrollOffset
-                    )
-                    // Save the exact item index (not just firstVisibleItemIndex)
-                    savedStateHandle?.set("${rowId}_target_item", itemIndex)
-                    savedStateHandle?.set("${rowId}_scroll_offset", rowState.firstVisibleItemIndex)
-                    // Save target row ID
-                    savedStateHandle?.set("target_row_id", rowId)
                     onStreamingProviderClick(streamingProvider)
                 },
                 modifier = Modifier,
-                firstItemFocusRequester = firstLazyRowItemUnderCarouselRequester,
                 aboveFocusRequester = carouselFocusRequester,
-                lazyRowState = rowState
+                lazyRowState = rowState,
+                focusRequesters = streamingFocusRequesters,
+                onItemFocused = { itemIndex ->
+                    // Log the focused item
+                    Logger.i {
+                        "StreamingProvidersRow"
+                        "Focusing: Column(index=$streamingRowIndex), " +
+                                "Row(targetItem=$itemIndex)"
+                    }
+                    lastFocusedItem = Pair(streamingRowIndex, itemIndex)
+                }
             )
         }
 
@@ -302,7 +314,7 @@ private fun Catalog(
 }
 
 @Composable
-fun rememberCurrentOffset(state: TvLazyListState): androidx.compose.runtime.State<Int> {
+fun rememberCurrentOffset(state: TvLazyListState): State<Int> {
     val position = remember { derivedStateOf { state.firstVisibleItemIndex } }
     val itemOffset = remember { derivedStateOf { state.firstVisibleItemScrollOffset } }
     val lastPosition = rememberPrevious(position.value)

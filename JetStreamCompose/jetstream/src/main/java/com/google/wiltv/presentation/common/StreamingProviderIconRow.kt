@@ -31,9 +31,10 @@ fun StreamingProvidersRow(
     modifier: Modifier = Modifier,
     onClick: (streamingProvider: StreamingProvider, index: Int) -> Unit,
     streamingProviders: List<StreamingProvider>,
-    firstItemFocusRequester: FocusRequester,
     aboveFocusRequester: FocusRequester,
-    lazyRowState: TvLazyListState
+    lazyRowState: TvLazyListState,
+    focusRequesters: Map<Int, FocusRequester> = emptyMap(),
+    onItemFocused: (Int) -> Unit = {}
 ) {
     var hasFocus by remember { mutableStateOf(false) }
 
@@ -55,31 +56,29 @@ fun StreamingProvidersRow(
                 count = streamingProviders.size,
                 key = { index -> streamingProviders[index].id }
             ) { index ->
-                val focusRequester = if (index == 0) firstItemFocusRequester else FocusRequester()
-
+                val focusRequester = focusRequesters[index]
                 val streamingProvider = streamingProviders[index]
-                
-                // Log streaming provider data for debugging
-                Log.d("StreamingProvidersRow", "Provider ${streamingProvider.name}: logoPath=${streamingProvider.logoPath}, logoUrl=${streamingProvider.logoUrl}")
-                
-                // Use logoUrl first, fall back to logoPath, then show placeholder
-                val imageUrl = streamingProvider.logoUrl 
-                    ?: streamingProvider.logoPath
-                    ?: "https://via.placeholder.com/100x100.png?text=${streamingProvider.name}"
-                
-                CustomCard(
-                    onClick = { onClick(streamingProvider, index) },
-                    modifier = Modifier
-                        .focusProperties {
-                            up = aboveFocusRequester
-                        }
-                        .then(
-                            if (index == 0) Modifier.focusRequester(
-                                focusRequester
-                            ) else Modifier
-                        ),
-                    imageUrl = imageUrl,
-                )
+                val imageUrl = streamingProvider.logoUrl
+
+                imageUrl?.let {
+                    CustomCard(
+                        onClick = { onClick(streamingProvider, index) },
+                        modifier = Modifier
+                            .then(
+                                if (focusRequester != null) Modifier.focusRequester(focusRequester)
+                                else Modifier
+                            )
+                            .onFocusChanged { focusState ->
+                                if (focusState.hasFocus) {
+                                    onItemFocused(index)
+                                }
+                            }
+                            .focusProperties {
+                                up = aboveFocusRequester
+                            },
+                        imageUrl = it,
+                    )
+                }
             }
         }
 
