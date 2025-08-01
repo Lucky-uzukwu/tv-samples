@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.paging.compose.LazyPagingItems
+import androidx.tv.foundation.PivotOffsets
 import androidx.tv.foundation.lazy.list.TvLazyRow
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
@@ -101,14 +102,6 @@ private fun ImmersiveList(
         contentAlignment = Alignment.BottomStart,
         modifier = modifier
     ) {
-//        Background(
-//            movie = selectedMovie,
-//            visible = isListFocused,
-//            modifier = modifier
-//                .height(500.dp)
-//                .fillMaxWidth()
-//                .gradientOverlay(gradientColor)
-//        )
         Column {
             // TODO HERE you can add more details for each row
             if (isListFocused) {
@@ -299,6 +292,7 @@ fun ImmersiveListMoviesRow(
 
         TvLazyRow(
             modifier = modifier.fillMaxWidth(),
+            pivotOffsets = PivotOffsets(0.1f, 0f),
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically,
             contentPadding = PaddingValues(horizontal = 32.dp)

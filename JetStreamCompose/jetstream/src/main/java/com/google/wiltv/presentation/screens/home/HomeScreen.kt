@@ -244,7 +244,7 @@ private fun Catalog(
             val rowState = rowStates.getOrPut(rowId) { rememberTvLazyListState() }
 
             StreamingProvidersRow(
-                streamingProviders = streamingProviders.take(5),
+                streamingProviders = streamingProviders,
                 onClick = { streamingProvider, itemIndex ->
                     // Save parent LazyColumn scroll state
                     Logger.i { "Setting saved state handle column_scroll_index to : ${tvLazyColumnState.firstVisibleItemIndex}" }

@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.paging.compose.LazyPagingItems
+import androidx.tv.foundation.PivotOffsets
 import androidx.tv.foundation.lazy.list.TvLazyRow
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
@@ -290,6 +291,7 @@ fun ImmersiveListShowsRow(
 
         TvLazyRow(
             modifier = modifier.fillMaxWidth(),
+            pivotOffsets = PivotOffsets(0.1f, 0f),
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically,
             contentPadding = PaddingValues(horizontal = 32.dp)

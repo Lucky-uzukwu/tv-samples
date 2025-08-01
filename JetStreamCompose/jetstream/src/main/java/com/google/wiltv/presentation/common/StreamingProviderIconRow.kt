@@ -18,6 +18,7 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
+import androidx.tv.foundation.PivotOffsets
 import androidx.tv.foundation.lazy.list.TvLazyListState
 import androidx.tv.foundation.lazy.list.TvLazyRow
 import androidx.tv.material3.ExperimentalTvMaterial3Api
@@ -39,6 +40,7 @@ fun StreamingProvidersRow(
     Column {
         TvLazyRow(
             state = lazyRowState,
+            pivotOffsets = PivotOffsets(0.1f, 0f),
             modifier = modifier
                 .fillMaxWidth()
                 .onFocusChanged { focusState ->
