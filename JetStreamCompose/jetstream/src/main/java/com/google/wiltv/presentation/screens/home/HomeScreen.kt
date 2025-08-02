@@ -123,7 +123,11 @@ private fun Catalog(
 
     // Global focus restoration state  
     val focusRequesters = remember { mutableMapOf<Pair<Int, Int>, FocusRequester>() }
+    // x,y , Column , ROw
     var lastFocusedItem by rememberSaveable { mutableStateOf(Pair(0, 0)) }
+    
+    // Down navigation: Map row index to first item FocusRequester for "go to first item of next row" behavior
+    val downFocusRequesters = remember { mutableMapOf<Int, FocusRequester>() }
 
     val backgroundState = backgroundImageState()
     val catalogToLazyPagingItems = catalogToMovies.mapValues { (_, flow) ->
@@ -134,6 +138,18 @@ private fun Catalog(
 
 
     var carouselScrollEnabled by remember { mutableStateOf(true) }
+    
+    // Track the target streaming provider for carousel down navigation
+    var carouselTargetStreamingProvider by remember { mutableStateOf(0) }
+
+    // Initialize carousel target from focus restoration state
+    LaunchedEffect(lastFocusedItem, streamingProviders.size) {
+        if (lastFocusedItem.first == 1 && 
+            lastFocusedItem.second >= 0 && 
+            lastFocusedItem.second < streamingProviders.size) {
+            carouselTargetStreamingProvider = lastFocusedItem.second
+        }
+    }
 
     // Focus restoration
     LaunchedEffect(Unit) {
@@ -253,8 +269,19 @@ private fun Catalog(
     ) {
 
         item(contentType = "HeroSectionCarousel") {
-            // Get the first streaming provider's FocusRequester for carousel navigation
-            val firstStreamingProviderFocusRequester = focusRequesters[Pair(1, 0)] ?: firstLazyRowItemUnderCarouselRequester
+            // Get the appropriate streaming provider's FocusRequester for carousel navigation
+            // Use the reactive carousel target, with bounds checking
+            val targetStreamingProviderIndex = if (carouselTargetStreamingProvider >= 0 && 
+                carouselTargetStreamingProvider < streamingProviders.size) {
+                carouselTargetStreamingProvider
+            } else {
+                Logger.w { "Invalid carousel target ($carouselTargetStreamingProvider), falling back to first provider. Total providers: ${streamingProviders.size}" }
+                0 // Default to first provider if target is invalid
+            }
+            val targetStreamingProviderFocusRequester = focusRequesters[Pair(1, targetStreamingProviderIndex)] ?: run {
+                Logger.w { "FocusRequester not found for streaming provider $targetStreamingProviderIndex, using fallback" }
+                firstLazyRowItemUnderCarouselRequester
+            }
 
             MovieHeroSectionCarousel(
                 movies = featuredMovies,
@@ -273,7 +300,7 @@ private fun Catalog(
                 modifier = Modifier
                     .height(340.dp)
                     .fillMaxWidth(),
-                firstLazyRowItemUnderCarouselRequester = firstStreamingProviderFocusRequester,
+                firstLazyRowItemUnderCarouselRequester = targetStreamingProviderFocusRequester,
                 carouselFocusRequester = carouselFocusRequester,
                 lazyRowState = lazyRowState
             )
@@ -297,6 +324,11 @@ private fun Catalog(
                     )
                 ) { FocusRequester() })
             }.toMap()
+            
+            // Store first streaming provider's FocusRequester for down navigation from carousel
+            streamingFocusRequesters[0]?.let { firstStreamingFocusRequester ->
+                downFocusRequesters[streamingRowIndex] = firstStreamingFocusRequester
+            }
 
             StreamingProvidersRow(
                 streamingProviders = streamingProviders,
@@ -307,6 +339,7 @@ private fun Catalog(
                 aboveFocusRequester = carouselFocusRequester,
                 lazyRowState = rowState,
                 focusRequesters = streamingFocusRequesters,
+                downFocusRequester = downFocusRequesters[2], // Go to first item of first catalog row (index 2)
                 onItemFocused = { itemIndex ->
                     // Log the focused item
                     Logger.i {
@@ -315,6 +348,12 @@ private fun Catalog(
                                 "Row(targetItem=$itemIndex)"
                     }
                     lastFocusedItem = Pair(streamingRowIndex, itemIndex)
+                    // Update carousel target to ensure down navigation from carousel goes to the correct provider
+                    // Add bounds checking to prevent crashes
+                    if (itemIndex >= 0 && itemIndex < streamingProviders.size) {
+                        carouselTargetStreamingProvider = itemIndex
+                        Logger.d { "Updated carousel target to streaming provider: $itemIndex" }
+                    }
                 }
             )
         }
@@ -333,11 +372,19 @@ private fun Catalog(
                 val catalogRowId = "catalog_${catalogKey.name}"
                 val catalogRowState = rowStates.getOrPut(catalogRowId) { rememberTvLazyListState() }
                 
-                // Create focus requesters for catalog movie items (limit to first 10 to avoid memory issues)
-                val maxFocusRequesters = minOf(10, movies.itemCount)
-                val catalogFocusRequesters = (0 until maxFocusRequesters).map { index ->
+                // Create focus requesters for ALL catalog movie items to ensure consistent focus restoration
+                if (movies.itemCount > 50) {
+                    Logger.w { "Large catalog row detected: ${catalogKey.name} has ${movies.itemCount} items. Consider pagination for optimal performance." }
+                }
+                val catalogFocusRequesters = (0 until movies.itemCount).map { index ->
                     index to (focusRequesters.getOrPut(Pair(catalogRowIndex, index)) { FocusRequester() })
                 }.toMap()
+                Logger.d { "Created ${catalogFocusRequesters.size} FocusRequesters for catalog row: ${catalogKey.name}" }
+                
+                // Store first catalog item's FocusRequester for down navigation from previous row
+                catalogFocusRequesters[0]?.let { firstCatalogFocusRequester ->
+                    downFocusRequesters[catalogRowIndex] = firstCatalogFocusRequester
+                }
                 
                 ImmersiveListMoviesRow(
                     movies = movies,
@@ -358,6 +405,7 @@ private fun Catalog(
                     },
                     lazyRowState = catalogRowState,
                     focusRequesters = catalogFocusRequesters,
+                    downFocusRequester = downFocusRequesters[catalogRowIndex + 1], // Go to first item of next catalog row
                     onItemFocused = { movie, index ->
                         lastFocusedItem = Pair(catalogRowIndex, index)
                         Logger.d { "Catalog row focus tracked: row=$catalogRowIndex, item=$index, movie=${movie.title}" }

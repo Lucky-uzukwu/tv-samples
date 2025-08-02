@@ -60,6 +60,7 @@ fun ImmersiveListMoviesRow(
     onMovieClick: (movie: MovieNew) -> Unit,
     lazyRowState: androidx.tv.foundation.lazy.list.TvLazyListState? = null,
     focusRequesters: Map<Int, androidx.compose.ui.focus.FocusRequester> = emptyMap(),
+    downFocusRequester: androidx.compose.ui.focus.FocusRequester? = null,
     onItemFocused: (MovieNew, Int) -> Unit = { _, _ -> }
 ) {
     var isListFocused by remember { mutableStateOf(false) }
@@ -82,6 +83,7 @@ fun ImmersiveListMoviesRow(
         },
         lazyRowState = lazyRowState,
         focusRequesters = focusRequesters,
+        downFocusRequester = downFocusRequester,
         onFocusChanged = {
             isListFocused = it.hasFocus
         },
@@ -105,6 +107,7 @@ private fun ImmersiveList(
     modifier: Modifier = Modifier,
     lazyRowState: androidx.tv.foundation.lazy.list.TvLazyListState? = null,
     focusRequesters: Map<Int, androidx.compose.ui.focus.FocusRequester> = emptyMap(),
+    downFocusRequester: androidx.compose.ui.focus.FocusRequester? = null,
 ) {
 
     Box(
@@ -128,6 +131,7 @@ private fun ImmersiveList(
                 onMovieFocused = onMovieFocused,
                 lazyRowState = lazyRowState,
                 focusRequesters = focusRequesters,
+                downFocusRequester = downFocusRequester,
                 modifier = modifier.onFocusChanged(onFocusChanged)
             )
         }
@@ -284,7 +288,8 @@ fun ImmersiveListMoviesRow(
     onMovieSelected: (MovieNew) -> Unit = {},
     onMovieFocused: (MovieNew, Int) -> Unit = { _, _ -> },
     lazyRowState: androidx.tv.foundation.lazy.list.TvLazyListState? = null,
-    focusRequesters: Map<Int, androidx.compose.ui.focus.FocusRequester> = emptyMap()
+    focusRequesters: Map<Int, androidx.compose.ui.focus.FocusRequester> = emptyMap(),
+    downFocusRequester: androidx.compose.ui.focus.FocusRequester? = null
 ) {
     // Create infinite list by repeating the movies
     val infiniteMovieCount = if (movies.itemCount > 0) Int.MAX_VALUE else 0
@@ -329,7 +334,8 @@ fun ImmersiveListMoviesRow(
                     },
                     onMovieFocused = { movie -> onMovieFocused(movie, index) },
                     movie = movie,
-                    showIndexOverImage = showIndexOverImage
+                    showIndexOverImage = showIndexOverImage,
+                    downFocusRequester = downFocusRequester
                 )
             }
 //            items(

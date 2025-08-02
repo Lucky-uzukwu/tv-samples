@@ -141,6 +141,7 @@ fun MoviesRowItem(
     modifier: Modifier = Modifier,
     itemDirection: ItemDirection = ItemDirection.Vertical,
     onMovieFocused: (MovieNew) -> Unit = {},
+    downFocusRequester: FocusRequester? = null,
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val imageUrl = movie.posterImageUrl
@@ -165,6 +166,7 @@ fun MoviesRowItem(
                 } else {
                     FocusRequester.Default
                 }
+                downFocusRequester?.let { down = it }
             }
             .then(modifier)
     ) {
@@ -188,6 +190,7 @@ fun TvShowRowItem(
     modifier: Modifier = Modifier,
     itemDirection: ItemDirection = ItemDirection.Vertical,
     onTvShowFocused: (TvShow) -> Unit = {},
+    downFocusRequester: FocusRequester? = null,
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val imageUrl = tvShow.posterImageUrl
@@ -212,6 +215,7 @@ fun TvShowRowItem(
                 } else {
                     FocusRequester.Default
                 }
+                downFocusRequester?.let { down = it }
             }
             .then(modifier)
     ) {

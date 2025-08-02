@@ -34,6 +34,7 @@ fun StreamingProvidersRow(
     aboveFocusRequester: FocusRequester,
     lazyRowState: TvLazyListState,
     focusRequesters: Map<Int, FocusRequester> = emptyMap(),
+    downFocusRequester: FocusRequester? = null,
     onItemFocused: (Int) -> Unit = {}
 ) {
     var hasFocus by remember { mutableStateOf(false) }
@@ -75,6 +76,7 @@ fun StreamingProvidersRow(
                             }
                             .focusProperties {
                                 up = aboveFocusRequester
+                                downFocusRequester?.let { down = it }
                             },
                         imageUrl = it,
                     )
