@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -41,6 +42,7 @@ fun CarouselItemForeground(
     movie: MovieNew,
     modifier: Modifier = Modifier,
     onWatchNowClick: () -> Unit,
+    goToMoreInfo: () -> Unit,
     isCarouselFocused: Boolean = false
 ) {
     val combinedGenre = movie.genres.take(2).joinToString(" · ") { genre -> genre.name }
@@ -109,17 +111,23 @@ fun CarouselItemForeground(
                     ),
                 )
             } else {
-                CustomFillButton(
-                    onClick = { },
-                    text = stringResource(R.string.coming_soon),
-                    icon = R.drawable.ic_info,
-                    iconTint = MaterialTheme.colorScheme.inverseOnSurface,
-                    buttonColor = ButtonDefaults.colors(
-                        containerColor = MaterialTheme.colorScheme.inverseSurface,
-                        contentColor = MaterialTheme.colorScheme.inverseOnSurface,
-                        focusedContentColor = MaterialTheme.colorScheme.inverseOnSurface,
-                    ),
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CustomFillButton(
+                        onClick = goToMoreInfo,
+                        text = stringResource(R.string.coming_soon),
+                        icon = R.drawable.ic_info,
+                        iconTint = MaterialTheme.colorScheme.inverseOnSurface,
+                        buttonColor = ButtonDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.inverseSurface,
+                            contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                            focusedContentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                        ),
+                    )
+                    Text("Click for more info")
+                }
             }
         }
     }

@@ -88,22 +88,6 @@ fun MovieHeroSectionCarousel(
                     setSelectedMovie(movie)
                 }
             }
-            // Gradient overlay
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .background(
-//                        brush = Brush.horizontalGradient(
-//                            colors = listOf(
-//                                Color.Black.copy(alpha = 0.1f), // Adjust alpha for desired opacity
-//                                Color.Transparent
-//                            ),
-//                            startX = 0f,
-//                            endX = Float.POSITIVE_INFINITY // Or a specific width if needed
-//                        )
-//                    )
-//            )
-
             CarouselItemForeground(
                 movie = movie,
                 onWatchNowClick = {
@@ -112,6 +96,9 @@ fun MovieHeroSectionCarousel(
                 isCarouselFocused = isCarouselFocused,
                 modifier = Modifier
                     .align(Alignment.BottomStart),
+                goToMoreInfo = {
+                    goToMoreInfo(movies.itemSnapshotList.items[idx])
+                }
             )
         }
     }
