@@ -1,5 +1,6 @@
 package com.google.wiltv.presentation.screens.dashboard.navigation.drawer
 
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,12 +11,15 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -50,6 +54,17 @@ fun HomeDrawer(
     val coroutineScope = rememberCoroutineScope()
     val focusRequesters = remember {
         List(TopBarTabs.size) { FocusRequester() }
+    }
+    val contentFocusRequester = remember { FocusRequester() }
+    var isInitialFocusSet by remember { mutableStateOf(false) }
+
+    // Request focus on content when first displayed to prevent drawer from opening
+    LaunchedEffect(Unit) {
+        drawerState.setValue(DrawerValue.Closed)
+        // Add delay to ensure all components are properly composed
+        kotlinx.coroutines.delay(100)
+        contentFocusRequester.requestFocus()
+        isInitialFocusSet = true
     }
 
 //    LaunchedEffect(key1 = Unit) {
@@ -98,6 +113,12 @@ fun HomeDrawer(
     ) {
         Box(
             modifier = Modifier
+                .focusRequester(contentFocusRequester)
+//                .focusable()
+                .focusProperties {
+                    // Allow this Box to receive initial focus, then pass it to children
+                    canFocus = !isInitialFocusSet
+                }
         ) {
             content()
         }
@@ -132,6 +153,10 @@ fun NavigationDrawerScope.NavigationRow(
         NavigationDrawerItem(
             selected = isSelected,
             enabled = enabled,
+            modifier = Modifier.focusProperties {
+                // Only allow focus when drawer is open
+                canFocus = drawerState.currentValue == DrawerValue.Open
+            },
             colors = NavigationDrawerItemDefaults.colors(
                 selectedContainerColor = Color.Transparent, // No background for selected item
                 focusedContainerColor = focusedContainerColor,
