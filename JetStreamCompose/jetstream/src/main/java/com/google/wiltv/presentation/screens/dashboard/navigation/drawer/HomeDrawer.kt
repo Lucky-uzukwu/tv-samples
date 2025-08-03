@@ -55,17 +55,17 @@ fun HomeDrawer(
     val focusRequesters = remember {
         List(TopBarTabs.size) { FocusRequester() }
     }
-    val contentFocusRequester = remember { FocusRequester() }
-    var isInitialFocusSet by remember { mutableStateOf(false) }
-
-    // Request focus on content when first displayed to prevent drawer from opening
-    LaunchedEffect(Unit) {
-        drawerState.setValue(DrawerValue.Closed)
-        // Add delay to ensure all components are properly composed
-        kotlinx.coroutines.delay(100)
-        contentFocusRequester.requestFocus()
-        isInitialFocusSet = true
-    }
+//    val contentFocusRequester = remember { FocusRequester() }
+//    var isInitialFocusSet by remember { mutableStateOf(false) }
+//
+//    // Request focus on content when first displayed to prevent drawer from opening
+//    LaunchedEffect(Unit) {
+//        drawerState.setValue(DrawerValue.Closed)
+//        // Add delay to ensure all components are properly composed
+//        kotlinx.coroutines.delay(100)
+//        contentFocusRequester.requestFocus()
+//        isInitialFocusSet = true
+//    }
 
 //    LaunchedEffect(key1 = Unit) {
 //        navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -113,12 +113,12 @@ fun HomeDrawer(
     ) {
         Box(
             modifier = Modifier
-                .focusRequester(contentFocusRequester)
-//                .focusable()
-                .focusProperties {
-                    // Allow this Box to receive initial focus, then pass it to children
-                    canFocus = !isInitialFocusSet
-                }
+//                .focusRequester(contentFocusRequester)
+////                .focusable()
+//                .focusProperties {
+//                    // Allow this Box to receive initial focus, then pass it to children
+//                    canFocus = !isInitialFocusSet
+//                }
         ) {
             content()
         }
@@ -153,10 +153,10 @@ fun NavigationDrawerScope.NavigationRow(
         NavigationDrawerItem(
             selected = isSelected,
             enabled = enabled,
-            modifier = Modifier.focusProperties {
-                // Only allow focus when drawer is open
-                canFocus = drawerState.currentValue == DrawerValue.Open
-            },
+//            modifier = Modifier.focusProperties {
+//                // Only allow focus when drawer is open
+//                canFocus = drawerState.currentValue == DrawerValue.Open
+//            },
             colors = NavigationDrawerItemDefaults.colors(
                 selectedContainerColor = Color.Transparent, // No background for selected item
                 focusedContainerColor = focusedContainerColor,
