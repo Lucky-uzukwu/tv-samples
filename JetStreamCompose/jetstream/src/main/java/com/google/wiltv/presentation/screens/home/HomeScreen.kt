@@ -131,6 +131,9 @@ private fun Catalog(
     
     // Track if we should perform focus restoration (prevent conflicts with user navigation)
     var shouldRestoreFocus by remember { mutableStateOf(true) }
+    
+    // Track when to clear immersive list details
+    var clearCatalogDetails by remember { mutableStateOf(false) }
 
     val backgroundState = backgroundImageState()
     val catalogToLazyPagingItems = catalogToMovies.mapValues { (_, flow) ->
@@ -482,8 +485,12 @@ private fun Catalog(
                         // Disable automatic focus restoration since user is now navigating manually
                         shouldRestoreFocus = false
                         
+                        // Reset clear signal since user is now focusing on catalog items
+                        clearCatalogDetails = false
+                        
                         Logger.d { "Catalog row focus tracked: row=$catalogRowIndex, item=$index, movie=${movie.title}" }
-                    }
+                    },
+                    clearDetailsSignal = clearCatalogDetails
                 )
             }
         }
@@ -497,6 +504,7 @@ private fun Catalog(
                 onFocused = {
                     // Clear any movie details when focusing the invisible row
                     lastFocusedItem = Pair(-1, -1)
+                    clearCatalogDetails = true
                 }
             )
         }

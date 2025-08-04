@@ -52,17 +52,26 @@ fun ImmersiveListMoviesRow(
     lazyRowState: androidx.tv.foundation.lazy.list.TvLazyListState? = null,
     focusRequesters: Map<Int, androidx.compose.ui.focus.FocusRequester> = emptyMap(),
     downFocusRequester: androidx.compose.ui.focus.FocusRequester? = null,
-    onItemFocused: (MovieNew, Int) -> Unit = { _, _ -> }
+    onItemFocused: (MovieNew, Int) -> Unit = { _, _ -> },
+    clearDetailsSignal: Boolean = false
 ) {
-    var isListFocused by remember { mutableStateOf(false) }
+    var isListFocused by remember { mutableStateOf(false) }  
+    var shouldShowDetails by remember { mutableStateOf(false) }
 
     var selectedMovie by remember(movies) {
         mutableStateOf(movies.itemSnapshotList.firstOrNull())
     }
+    
+    // Clear details when clearDetailsSignal is triggered
+    androidx.compose.runtime.LaunchedEffect(clearDetailsSignal) {
+        if (clearDetailsSignal) {
+            shouldShowDetails = false
+        }
+    }
 
     ImmersiveList(
         selectedMovie = selectedMovie ?: return,
-        isListFocused = isListFocused,
+        shouldShowDetails = shouldShowDetails,
         gradientColor = gradientColor,
         movies = movies,
         sectionTitle = sectionTitle,
@@ -77,6 +86,12 @@ fun ImmersiveListMoviesRow(
         downFocusRequester = downFocusRequester,
         onFocusChanged = { focusState ->
             isListFocused = focusState.hasFocus
+            // Show details when list is focused, and keep them visible even when focus moves elsewhere
+            // (like to the sidebar), unless the user navigates to a completely different context
+            if (focusState.hasFocus) {
+                shouldShowDetails = true
+            }
+            // Don't immediately hide details when focus leaves - let them persist for sidebar navigation
         },
         modifier = modifier.bringIntoViewIfChildrenAreFocused(
             PaddingValues(bottom = 120.dp)
@@ -88,7 +103,7 @@ fun ImmersiveListMoviesRow(
 @Composable
 private fun ImmersiveList(
     selectedMovie: MovieNew,
-    isListFocused: Boolean,
+    shouldShowDetails: Boolean,
     gradientColor: Color,
     movies: LazyPagingItems<MovieNew>,
     sectionTitle: String?,
@@ -107,7 +122,7 @@ private fun ImmersiveList(
     ) {
         Column {
             // TODO HERE you can add more details for each row
-            if (isListFocused) {
+            if (shouldShowDetails) {
                 DisplayMovieDetails(
                     movie = selectedMovie
                 )
