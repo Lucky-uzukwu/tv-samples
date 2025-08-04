@@ -31,7 +31,7 @@ fun CustomFillButton(
     iconTint: Color = Color.White
 ) {
     Button(
-        onClick = { onClick() },
+        onClick = onClick,
         modifier = modifier,
         colors = buttonColor,
     ) {
