@@ -84,11 +84,11 @@ fun ImmersiveListMoviesRow(
         lazyRowState = lazyRowState,
         focusRequesters = focusRequesters,
         downFocusRequester = downFocusRequester,
-        onFocusChanged = {
-            isListFocused = it.hasFocus
+        onFocusChanged = { focusState ->
+            isListFocused = focusState.hasFocus
         },
         modifier = modifier.bringIntoViewIfChildrenAreFocused(
-            PaddingValues(bottom = 110.dp)
+            PaddingValues(bottom = 120.dp)
         )
     )
 
@@ -134,44 +134,6 @@ private fun ImmersiveList(
                 downFocusRequester = downFocusRequester,
                 modifier = modifier.onFocusChanged(onFocusChanged)
             )
-        }
-    }
-
-
-}
-
-@Composable
-private fun Background(
-    movie: MovieNew,
-    visible: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    val imageUrl = movie.backdropImageUrl
-    AnimatedVisibility(
-        visible = visible,
-        enter = slideInVertically(
-            animationSpec = tween(durationMillis = 200),
-            initialOffsetY = { -it }
-        ) + fadeIn(animationSpec = tween(durationMillis = 200)) + expandVertically(
-            animationSpec = tween(durationMillis = 200)
-        ),
-        exit = fadeOut(animationSpec = tween(durationMillis = 10)) + shrinkVertically(
-            animationSpec = tween(durationMillis = 10)
-        ),
-        modifier = modifier
-    ) {
-        Crossfade(
-            targetState = movie,
-            label = "posterUriCrossfade",
-
-            ) {
-            imageUrl?.let { posterUrl ->
-                PosterImage(
-                    title = it.title,
-                    posterUrl = posterUrl,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
         }
     }
 }
@@ -319,7 +281,7 @@ fun ImmersiveListMoviesRow(
             items(movies.itemSnapshotList.items.size) { index ->
                 val movie = movies.itemSnapshotList.items[index]
                 val focusRequester = focusRequesters[index]
-                
+
                 MoviesRowItem(
                     modifier = Modifier
                         .weight(1f)

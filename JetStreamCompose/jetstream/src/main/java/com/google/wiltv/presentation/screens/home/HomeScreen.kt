@@ -28,6 +28,9 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
+import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -413,6 +416,19 @@ private fun Catalog(
                 )
             }
         }
+
+        // Invisible bottom row to prevent reaching the true last catalog row
+        item(
+            contentType = "InvisibleBottomRow",
+            key = "invisible_bottom_row"
+        ) {
+            InvisibleBottomRow(
+                onFocused = {
+                    // Clear any movie details when focusing the invisible row
+                    lastFocusedItem = Pair(-1, -1)
+                }
+            )
+        }
     }
 }
 
@@ -472,4 +488,27 @@ fun <T> rememberPrevious(
     }
 
     return ref.value
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+private fun InvisibleBottomRow(
+    onFocused: () -> Unit = {}
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(400.dp) // Minimal height - essentially invisible
+            .focusProperties {
+                // Allow focus to reach this invisible row but don't navigate further down
+                down = FocusRequester.Default
+            }
+            .onFocusChanged { focusState: FocusState ->
+                if (focusState.hasFocus) {
+                    onFocused()
+                }
+            }
+    ) {
+        // Empty content - this row is invisible to the user
+    }
 }
