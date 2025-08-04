@@ -88,12 +88,15 @@ fun MovieHeroSectionCarousel(
                     setSelectedMovie(movie)
                 }
             }
+            
+            val isActiveItem = idx == activeItemIndex
+            
             CarouselItemForeground(
                 movie = movie,
                 onWatchNowClick = {
                     goToVideoPlayer(movie)
                 },
-                isCarouselFocused = isCarouselFocused,
+                isCarouselFocused = isCarouselFocused && isActiveItem,
                 modifier = Modifier
                     .align(Alignment.BottomStart),
                 goToMoreInfo = {
