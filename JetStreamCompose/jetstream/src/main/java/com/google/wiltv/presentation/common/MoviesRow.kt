@@ -166,7 +166,7 @@ fun MoviesRowItem(
                 } else {
                     FocusRequester.Default
                 }
-                downFocusRequester?.let { down = it }
+                down = FocusRequester.Default
             }
             .then(modifier)
     ) {
@@ -215,7 +215,7 @@ fun TvShowRowItem(
                 } else {
                     FocusRequester.Default
                 }
-                downFocusRequester?.let { down = it }
+                down = FocusRequester.Default
             }
             .then(modifier)
     ) {

@@ -129,8 +129,8 @@ private fun Catalog(
     // x,y , Column , ROw
     var lastFocusedItem by rememberSaveable { mutableStateOf(Pair(0, 0)) }
     
-    // Down navigation: Map row index to first item FocusRequester for "go to first item of next row" behavior
-    val downFocusRequesters = remember { mutableMapOf<Int, FocusRequester>() }
+    // Track if we should perform focus restoration (prevent conflicts with user navigation)
+    var shouldRestoreFocus by remember { mutableStateOf(true) }
 
     val backgroundState = backgroundImageState()
     val catalogToLazyPagingItems = catalogToMovies.mapValues { (_, flow) ->
@@ -154,9 +154,12 @@ private fun Catalog(
         }
     }
 
-    // Focus restoration
+    // Focus restoration with viewport safety
     LaunchedEffect(Unit) {
-        if (lastFocusedItem.first >= 0 && lastFocusedItem.second >= 0) {
+        // Only restore focus if enabled and the saved position is valid
+        if (shouldRestoreFocus && 
+            lastFocusedItem.first >= 0 && lastFocusedItem.second >= 0 && 
+            lastFocusedItem != Pair(-1, -1)) { // Don't restore if cleared by invisible row
             // Add bounds checking for streaming providers
             if (lastFocusedItem.first == 1 && lastFocusedItem.second < streamingProviders.size) {
                 Logger.i { "Attempting focus restoration: row=${lastFocusedItem.first}, item=${lastFocusedItem.second}, total providers=${streamingProviders.size}" }
@@ -165,20 +168,31 @@ private fun Catalog(
                 val streamingRowState = rowStates["row_streaming_providers"]
 
                 if (streamingRowState != null) {
-                    // First scroll to the target item to ensure it's composed
-                    streamingRowState.scrollToItem(lastFocusedItem.second)
-                    Logger.i { "Scrolled to streaming provider item: ${lastFocusedItem.second}" }
+                    try {
+                        // First scroll to the target item to ensure it's composed
+                        streamingRowState.scrollToItem(lastFocusedItem.second)
+                        Logger.i { "Scrolled to streaming provider item: ${lastFocusedItem.second}" }
 
-                    // Wait for scroll and composition to complete
-                    kotlinx.coroutines.delay(200)
+                        // Wait for scroll and composition to complete
+                        kotlinx.coroutines.delay(200)
 
-                    // Then request focus
-                    val focusRequester = focusRequesters[lastFocusedItem]
-                    if (focusRequester != null) {
-                        focusRequester.requestFocus()
-                        Logger.i { "Focus restoration successful" }
-                    } else {
-                        Logger.w { "FocusRequester not found for $lastFocusedItem after scroll" }
+                        // Then request focus
+                        val focusRequester = focusRequesters[lastFocusedItem]
+                        if (focusRequester != null) {
+                            try {
+                                focusRequester.requestFocus()
+                                Logger.i { "Focus restoration successful" }
+                                
+                                // Disable future automatic focus restoration since we've now restored once
+                                shouldRestoreFocus = false
+                            } catch (e: Exception) {
+                                Logger.w(e) { "Failed to request focus for streaming provider $lastFocusedItem" }
+                            }
+                        } else {
+                            Logger.w { "FocusRequester not found for $lastFocusedItem after scroll" }
+                        }
+                    } catch (e: Exception) {
+                        Logger.w(e) { "Failed to scroll to streaming provider item: ${lastFocusedItem.second}" }
                     }
                 } else {
                     Logger.w { "StreamingRowState not found for focus restoration" }
@@ -197,21 +211,68 @@ private fun Catalog(
                     val catalogRowState = rowStates[catalogRowId]
                     val catalogMovies = catalogToLazyPagingItems[catalogKey]
                     
-                    if (catalogRowState != null && catalogMovies != null && lastFocusedItem.second < catalogMovies.itemCount) {
+                    // Add more robust bounds checking for focus restoration
+                    val safeItemIndex = lastFocusedItem.second
+                    val actualItemCount = catalogMovies?.itemCount ?: 0
+                    val actualSnapshotSize = catalogMovies?.itemSnapshotList?.items?.size ?: 0
+                    val maxSafeIndex = minOf(actualItemCount, actualSnapshotSize) - 1
+                    
+                    if (catalogRowState != null && catalogMovies != null && 
+                        safeItemIndex >= 0 && safeItemIndex <= maxSafeIndex &&
+                        catalogMovies.itemSnapshotList.items.getOrNull(safeItemIndex) != null) {
                         // First scroll to the target item to ensure it's composed
-                        catalogRowState.scrollToItem(lastFocusedItem.second)
-                        Logger.i { "Scrolled to catalog row $catalogRowId item: ${lastFocusedItem.second}" }
-                        
-                        // Wait for scroll and composition to complete
-                        kotlinx.coroutines.delay(200)
-                        
-                        // Then request focus
-                        val focusRequester = focusRequesters[lastFocusedItem]
-                        if (focusRequester != null) {
-                            focusRequester.requestFocus()
-                            Logger.i { "Catalog row focus restoration successful" }
-                        } else {
-                            Logger.w { "FocusRequester not found for catalog $lastFocusedItem after scroll" }
+                        try {
+                            // First scroll to the target item to ensure it's in viewport
+                            catalogRowState.scrollToItem(safeItemIndex)
+                            Logger.i { "Scrolled to catalog row $catalogRowId item: $safeItemIndex" }
+                            
+                            // Wait for scroll and composition to complete
+                            kotlinx.coroutines.delay(300) // Increased delay for better composition
+                            
+                            // Verify the item is now in the visible range before focusing
+                            val visibleItems = catalogRowState.layoutInfo.visibleItemsInfo
+                            val isItemVisible = visibleItems.any { it.index == safeItemIndex }
+                            
+                            if (isItemVisible) {
+                                // Item is visible, safe to request focus
+                                val focusRequester = focusRequesters[lastFocusedItem]
+                                if (focusRequester != null) {
+                                    try {
+                                        focusRequester.requestFocus()
+                                        Logger.i { "Catalog row focus restoration successful for visible item $safeItemIndex" }
+                                        
+                                        // Disable future automatic focus restoration since we've now restored once
+                                        shouldRestoreFocus = false
+                                    } catch (e: Exception) {
+                                        Logger.w(e) { "Failed to request focus for visible catalog item $lastFocusedItem" }
+                                    }
+                                } else {
+                                    Logger.w { "FocusRequester not found for catalog $lastFocusedItem after scroll" }
+                                }
+                            } else {
+                                // Item not visible, fallback to first visible item
+                                val firstVisibleIndex = visibleItems.firstOrNull()?.index
+                                if (firstVisibleIndex != null) {
+                                    val fallbackFocusRequester = focusRequesters[Pair(catalogRowIndex, firstVisibleIndex)]
+                                    if (fallbackFocusRequester != null) {
+                                        try {
+                                            fallbackFocusRequester.requestFocus()
+                                            Logger.i { "Focus restored to first visible item $firstVisibleIndex instead of target $safeItemIndex" }
+                                            // Update the saved focus position to the fallback
+                                            lastFocusedItem = Pair(catalogRowIndex, firstVisibleIndex)
+                                            
+                                            // Disable future automatic focus restoration since we've now manually navigated
+                                            shouldRestoreFocus = false
+                                        } catch (e: Exception) {
+                                            Logger.w(e) { "Failed to request focus for fallback item $firstVisibleIndex" }
+                                        }
+                                    } else {
+                                        Logger.w { "No fallback FocusRequester found for first visible item $firstVisibleIndex" }
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Logger.w(e) { "Failed to scroll to catalog row $catalogRowId item: $safeItemIndex" }
                         }
                     } else {
                         Logger.w { "Catalog row state or movies not found for focus restoration: rowState=${catalogRowState != null}, movies=${catalogMovies != null}" }
@@ -328,10 +389,7 @@ private fun Catalog(
                 ) { FocusRequester() })
             }.toMap()
             
-            // Store first streaming provider's FocusRequester for down navigation from carousel
-            streamingFocusRequesters[0]?.let { firstStreamingFocusRequester ->
-                downFocusRequesters[streamingRowIndex] = firstStreamingFocusRequester
-            }
+            // Streaming providers ready for focus navigation
 
             StreamingProvidersRow(
                 streamingProviders = streamingProviders,
@@ -342,7 +400,7 @@ private fun Catalog(
                 aboveFocusRequester = carouselFocusRequester,
                 lazyRowState = rowState,
                 focusRequesters = streamingFocusRequesters,
-                downFocusRequester = downFocusRequesters[2], // Go to first item of first catalog row (index 2)
+                downFocusRequester = null, // Let system handle cross-row navigation naturally
                 onItemFocused = { itemIndex ->
                     // Log the focused item
                     Logger.i {
@@ -351,6 +409,10 @@ private fun Catalog(
                                 "Row(targetItem=$itemIndex)"
                     }
                     lastFocusedItem = Pair(streamingRowIndex, itemIndex)
+                    
+                    // Disable automatic focus restoration since user is now navigating manually
+                    shouldRestoreFocus = false
+                    
                     // Update carousel target to ensure down navigation from carousel goes to the correct provider
                     // Add bounds checking to prevent crashes
                     if (itemIndex >= 0 && itemIndex < streamingProviders.size) {
@@ -375,19 +437,24 @@ private fun Catalog(
                 val catalogRowId = "catalog_${catalogKey.name}"
                 val catalogRowState = rowStates.getOrPut(catalogRowId) { rememberTvLazyListState() }
                 
-                // Create focus requesters for ALL catalog movie items to ensure consistent focus restoration
-                if (movies.itemCount > 50) {
-                    Logger.w { "Large catalog row detected: ${catalogKey.name} has ${movies.itemCount} items. Consider pagination for optimal performance." }
+                // Create focus requesters safely with bounds checking
+                val actualItemCount = minOf(movies.itemCount, movies.itemSnapshotList.items.size)
+                if (actualItemCount > 50) {
+                    Logger.w { "Large catalog row detected: ${catalogKey.name} has $actualItemCount items. Consider pagination for optimal performance." }
                 }
-                val catalogFocusRequesters = (0 until movies.itemCount).map { index ->
-                    index to (focusRequesters.getOrPut(Pair(catalogRowIndex, index)) { FocusRequester() })
+                
+                // Only create focus requesters for items that actually exist
+                val catalogFocusRequesters = (0 until actualItemCount).mapNotNull { index ->
+                    // Verify the item exists before creating focus requester
+                    if (movies.itemSnapshotList.items.getOrNull(index) != null) {
+                        index to (focusRequesters.getOrPut(Pair(catalogRowIndex, index)) { FocusRequester() })
+                    } else {
+                        null
+                    }
                 }.toMap()
                 Logger.d { "Created ${catalogFocusRequesters.size} FocusRequesters for catalog row: ${catalogKey.name}" }
                 
-                // Store first catalog item's FocusRequester for down navigation from previous row
-                catalogFocusRequesters[0]?.let { firstCatalogFocusRequester ->
-                    downFocusRequesters[catalogRowIndex] = firstCatalogFocusRequester
-                }
+                // Catalog row ready for focus navigation
                 
                 ImmersiveListMoviesRow(
                     movies = movies,
@@ -408,9 +475,13 @@ private fun Catalog(
                     },
                     lazyRowState = catalogRowState,
                     focusRequesters = catalogFocusRequesters,
-                    downFocusRequester = downFocusRequesters[catalogRowIndex + 1], // Go to first item of next catalog row
+                    downFocusRequester = null, // Let system handle cross-row navigation naturally
                     onItemFocused = { movie, index ->
                         lastFocusedItem = Pair(catalogRowIndex, index)
+                        
+                        // Disable automatic focus restoration since user is now navigating manually
+                        shouldRestoreFocus = false
+                        
                         Logger.d { "Catalog row focus tracked: row=$catalogRowIndex, item=$index, movie=${movie.title}" }
                     }
                 )

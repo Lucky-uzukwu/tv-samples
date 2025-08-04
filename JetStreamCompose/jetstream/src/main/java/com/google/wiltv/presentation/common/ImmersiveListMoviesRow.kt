@@ -1,20 +1,11 @@
 package com.google.wiltv.presentation.common
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -278,8 +269,18 @@ fun ImmersiveListMoviesRow(
             verticalAlignment = Alignment.CenterVertically,
             contentPadding = PaddingValues(horizontal = 32.dp)
         ) {
-            items(movies.itemSnapshotList.items.size) { index ->
-                val movie = movies.itemSnapshotList.items[index]
+            // Use safe item count to prevent index out of bounds
+            val safeItemCount = minOf(
+                movies.itemSnapshotList.items.size,
+                movies.itemCount.coerceAtLeast(0)
+            )
+            
+            items(safeItemCount) { index ->
+                val movie = movies.itemSnapshotList.items.getOrNull(index)
+                
+                // Skip if movie is null (can happen during paging updates)
+                if (movie == null) return@items
+                
                 val focusRequester = focusRequesters[index]
 
                 MoviesRowItem(
@@ -291,10 +292,8 @@ fun ImmersiveListMoviesRow(
                         ),
                     index = index,
                     itemDirection = itemDirection,
-                    onMovieSelected = {
-                        onMovieSelected(it)
-                    },
-                    onMovieFocused = { movie -> onMovieFocused(movie, index) },
+                    onMovieSelected = onMovieSelected,
+                    onMovieFocused = { movie: MovieNew -> onMovieFocused(movie, index) },
                     movie = movie,
                     showIndexOverImage = showIndexOverImage,
                     downFocusRequester = downFocusRequester
@@ -329,4 +328,5 @@ fun ImmersiveListMoviesRow(
 
     }
 }
+
 
