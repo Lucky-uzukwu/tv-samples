@@ -1,6 +1,7 @@
 package com.google.wiltv.presentation.common
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,10 +10,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -28,15 +33,15 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.wiltv.R
 import com.google.wiltv.data.models.MovieNew
-import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.presentation.theme.WilTvButtonShape
 import com.google.wiltv.presentation.utils.formatVotes
 import com.google.wiltv.presentation.utils.getImdbRating
+import kotlinx.coroutines.launch
 import md_theme_light_onTertiary
 import md_theme_light_outline
 import md_theme_light_shadow
 
-@OptIn(ExperimentalTvMaterial3Api::class)
+@OptIn(ExperimentalTvMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CarouselItemForeground(
     movie: MovieNew,
@@ -47,10 +52,14 @@ fun CarouselItemForeground(
 ) {
     val combinedGenre = movie.genres.take(2).joinToString(" · ") { genre -> genre.name }
     val getYear = movie.releaseDate?.substring(0, 4)
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
+    
     Column(
         modifier = modifier
             .padding(start = 34.dp, bottom = 32.dp)
-            .width(360.dp),
+            .width(360.dp)
+            .bringIntoViewRequester(bringIntoViewRequester),
         verticalArrangement = Arrangement.Bottom
     ) {
         Row(
@@ -100,7 +109,12 @@ fun CarouselItemForeground(
         AnimatedVisibility(visible = isCarouselFocused) {
             if (movie.video != null) {
                 CustomFillButton(
-                    onClick = onWatchNowClick,
+                    onClick = {
+                        coroutineScope.launch {
+                            bringIntoViewRequester.bringIntoView()
+                        }
+                        onWatchNowClick()
+                    },
                     text = stringResource(R.string.play),
                     icon = R.drawable.play_icon,
                     iconTint = MaterialTheme.colorScheme.inverseOnSurface,
@@ -116,7 +130,12 @@ fun CarouselItemForeground(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     CustomFillButton(
-                        onClick = goToMoreInfo,
+                        onClick = {
+                            coroutineScope.launch {
+                                bringIntoViewRequester.bringIntoView()
+                            }
+                            goToMoreInfo()
+                        },
                         text = stringResource(R.string.coming_soon),
                         icon = R.drawable.ic_info,
                         iconTint = MaterialTheme.colorScheme.inverseOnSurface,
