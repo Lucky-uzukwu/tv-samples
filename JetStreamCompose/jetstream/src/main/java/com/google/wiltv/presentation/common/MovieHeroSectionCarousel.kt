@@ -91,13 +91,13 @@ fun MovieHeroSectionCarousel(
             CarouselItemForeground(
                 movie = movie,
                 onWatchNowClick = {
-                    goToVideoPlayer(movies.itemSnapshotList.items[idx])
+                    goToVideoPlayer(movie)
                 },
                 isCarouselFocused = isCarouselFocused,
                 modifier = Modifier
                     .align(Alignment.BottomStart),
                 goToMoreInfo = {
-                    goToMoreInfo(movies.itemSnapshotList.items[idx])
+                    goToMoreInfo(movie)
                 }
             )
         }
