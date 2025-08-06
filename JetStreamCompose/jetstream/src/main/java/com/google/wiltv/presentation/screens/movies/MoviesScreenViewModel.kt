@@ -24,14 +24,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.runBlocking
 
 @HiltViewModel
 class MoviesScreenViewModel @Inject constructor(
     private val movieRepository: MovieRepository,
-    userRepository: UserRepository,
-    catalogRepository: CatalogRepository,
-    genreRepository: GenreRepository,
-    streamingProvidersRepository: StreamingProvidersRepository
+    private val userRepository: UserRepository,
+    private val catalogRepository: CatalogRepository,
+    private val genreRepository: GenreRepository,
+    private val streamingProvidersRepository: StreamingProvidersRepository
 ) : ViewModel() {
 
     // Paginated flows for movie lists
@@ -44,8 +45,29 @@ class MoviesScreenViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(5_000),
         PagingData.empty()
     )
+    
+    // Cache catalog and genre movies to prevent refetching on navigation
+    private val cachedCatalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>> by lazy {
+        kotlinx.coroutines.runBlocking {
+            fetchCatalogsAndMovies(catalogRepository, userRepository)
+        }
+    }
+    
+    private val cachedGenreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>> by lazy {
+        kotlinx.coroutines.runBlocking {
+            fetchGenresAndMovies(genreRepository, userRepository)
+        }
+    }
+    
+    private val cachedStreamingProviders: List<StreamingProvider> by lazy {
+        kotlinx.coroutines.runBlocking {
+            streamingProvidersRepository.getStreamingProviders(
+                type = "App\\Models\\Movie"
+            ).firstOrNull() ?: emptyList()
+        }
+    }
 
-    // UI State combining all data
+    // UI State - only check token validity, use cached data
     val uiState: StateFlow<MoviesScreenUiState> = combine(
         userRepository.userToken,
     ) { token ->
@@ -53,25 +75,11 @@ class MoviesScreenViewModel @Inject constructor(
         when {
             token.isEmpty() -> MoviesScreenUiState.Error
             else -> {
-                // Create paginated flows for each catalog
-                val catalogToMovies = fetchCatalogsAndMovies(
-                    catalogRepository,
-                    userRepository
-                )
-                val genreToMovies = fetchGenresAndMovies(
-                    genreRepository = genreRepository,
-                    userRepository
-                )
-
-                val streamingProviders =
-                    streamingProvidersRepository.getStreamingProviders(
-                        type = "App\\Models\\Movie"
-                    ).firstOrNull()
-
+                // Use cached paging sources - no refetch on recomposition
                 MoviesScreenUiState.Ready(
-                    catalogToMovies = catalogToMovies,
-                    genreToMovies = genreToMovies,
-                    streamingProviders = streamingProviders ?: emptyList()
+                    catalogToMovies = cachedCatalogToMovies,
+                    genreToMovies = cachedGenreToMovies,
+                    streamingProviders = cachedStreamingProviders
                 )
             }
         }

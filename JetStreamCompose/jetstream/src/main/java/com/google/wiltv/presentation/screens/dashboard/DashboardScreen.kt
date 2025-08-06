@@ -124,7 +124,8 @@ private fun Body(
                         openVideoPlayer(selectedMovie.id.toString())
                     },
                     setSelectedMovie = setSelectedMovie,
-                    onStreamingProviderClick = openStreamingProviderMovieList
+                    onStreamingProviderClick = openStreamingProviderMovieList,
+                    navController = navController
                 )
             }
 

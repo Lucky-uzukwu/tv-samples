@@ -2,18 +2,15 @@ package com.google.wiltv.presentation.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.google.wiltv.AppDatabase
-import com.google.wiltv.data.entities.MovieEntity
 import com.google.wiltv.data.models.Genre
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.StreamingProvider
 import com.google.wiltv.data.network.Catalog
-import com.google.wiltv.data.network.remote_mediator.MoviesRemoteMediator
 import com.google.wiltv.data.paging.pagingsources.movie.MoviesHeroSectionPagingSource
 import com.google.wiltv.data.paging.pagingsources.movie.MoviesPagingSources
 import com.google.wiltv.data.repositories.CatalogRepository
@@ -22,7 +19,6 @@ import com.google.wiltv.data.repositories.MovieRepository
 import com.google.wiltv.data.repositories.StreamingProvidersRepository
 import com.google.wiltv.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -70,9 +66,29 @@ class HomeScreeViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(5_000),
         PagingData.empty()
     )
+    
+    // Cache catalog and genre movies to prevent refetching on navigation
+    private val cachedCatalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>> by lazy {
+        kotlinx.coroutines.runBlocking {
+            fetchCatalogsAndMovies(catalogRepository, userRepository)
+        }
+    }
+    
+    private val cachedGenreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>> by lazy {
+        kotlinx.coroutines.runBlocking {
+            fetchGenresAndMovies(genreRepository, userRepository)
+        }
+    }
+    
+    private val cachedStreamingProviders: List<StreamingProvider> by lazy {
+        kotlinx.coroutines.runBlocking {
+            streamingProvidersRepository.getStreamingProviders(
+                type = "App\\Models\\Movie"
+            ).firstOrNull() ?: emptyList()
+        }
+    }
 
-
-    // UI State combining all data
+    // UI State - only check token validity, use cached data
     val uiState: StateFlow<HomeScreenUiState> = combine(
         userRepository.userToken,
     ) { token ->
@@ -80,25 +96,11 @@ class HomeScreeViewModel @Inject constructor(
         when {
             token.isEmpty() -> HomeScreenUiState.Error
             else -> {
-                // Create paginated flows for each catalog
-                val catalogToMovies = fetchCatalogsAndMovies(
-                    catalogRepository,
-                    userRepository
-                )
-                val genreToMovies = fetchGenresAndMovies(
-                    genreRepository = genreRepository,
-                    userRepository
-                )
-
-                val streamingProviders =
-                    streamingProvidersRepository.getStreamingProviders(
-                        type = "App\\Models\\Movie"
-                    ).firstOrNull()
-
+                // Use cached paging sources - no refetch on recomposition
                 HomeScreenUiState.Ready(
-                    catalogToMovies = catalogToMovies,
-                    genreToMovies = genreToMovies,
-                    streamingProviders = streamingProviders ?: emptyList()
+                    catalogToMovies = cachedCatalogToMovies,
+                    genreToMovies = cachedGenreToMovies,
+                    streamingProviders = cachedStreamingProviders
                 )
             }
         }

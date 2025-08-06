@@ -20,7 +20,6 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.paging.compose.LazyPagingItems
-import androidx.tv.foundation.lazy.list.TvLazyListState
 import androidx.tv.material3.Carousel
 import androidx.tv.material3.CarouselState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
@@ -38,8 +37,7 @@ fun MovieHeroSectionCarousel(
     carouselState: CarouselState,
     carouselScrollEnabled: Boolean,
     carouselFocusRequester: FocusRequester,
-    firstLazyRowItemUnderCarouselRequester: FocusRequester,
-    lazyRowState: TvLazyListState
+    firstLazyRowItemUnderCarouselRequester: FocusRequester
 ) {
     var isCarouselFocused by remember { mutableStateOf(false) }
     val itemsPerPage = 5
@@ -52,17 +50,10 @@ fun MovieHeroSectionCarousel(
 
     Carousel(
         itemCount = movies.itemCount,
-        modifier = Modifier
-            .then(
-                if (lazyRowState.firstVisibleItemIndex == 0) {
-                    modifier
-                        .focusProperties {
-                            down = firstLazyRowItemUnderCarouselRequester
-                        }
-                } else {
-                    modifier
-                }
-            )
+        modifier = modifier
+            .focusProperties {
+                down = firstLazyRowItemUnderCarouselRequester
+            }
             .onFocusChanged {
                 isCarouselFocused = it.hasFocus
             }
