@@ -20,6 +20,7 @@ import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
+import androidx.paging.compose.LazyPagingItems
 import androidx.tv.foundation.lazy.list.TvLazyListState
 import androidx.tv.foundation.lazy.list.rememberTvLazyListState
 import co.touchlab.kermit.Logger
@@ -184,7 +185,7 @@ private suspend fun restoreStreamingProviderFocus(focusManager: FocusManager, st
 
 private suspend fun restoreCatalogFocus(
     focusManager: FocusManager,
-    catalogToLazyPagingItems: Map<Catalog, androidx.paging.compose.LazyPagingItems<MovieNew>>
+    catalogToLazyPagingItems: Map<Catalog, LazyPagingItems<MovieNew>>
 ) {
     Logger.i { "Attempting catalog row focus restoration: row=${focusManager.lastFocusedItem.first}, item=${focusManager.lastFocusedItem.second}" }
     
@@ -267,7 +268,7 @@ private suspend fun handleFallbackFocus(
 
 @Composable
 fun rememberRowFocusRequesters(
-    movies: androidx.paging.compose.LazyPagingItems<com.google.wiltv.data.models.MovieNew>?,
+    movies: LazyPagingItems<MovieNew>?,
     rowIndex: Int,
     focusRequesters: MutableMap<Pair<Int, Int>, FocusRequester>,
     focusManagementConfig: FocusManagementConfig?

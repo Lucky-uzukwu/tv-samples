@@ -1,10 +1,8 @@
-// ABOUTME: Generic catalog layout composable for TV streaming screens
-// ABOUTME: Handles hero carousel, content rows, and optional streaming providers with focus management
+// ABOUTME: TV show-specific catalog layout composable for TV streaming screens
+// ABOUTME: Handles hero carousel, content rows, and optional streaming providers with focus management for TV shows
 
 package com.google.wiltv.presentation.common
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,13 +20,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -40,11 +34,10 @@ import androidx.tv.foundation.lazy.list.TvLazyListState
 import androidx.tv.foundation.lazy.list.rememberTvLazyListState
 import androidx.tv.material3.CarouselState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
-import androidx.tv.material3.MaterialTheme
 import co.touchlab.kermit.Logger
 import com.google.wiltv.data.models.Genre
-import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.StreamingProvider
+import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.network.Catalog
 import com.google.wiltv.presentation.screens.BackgroundState
 import kotlinx.coroutines.delay
@@ -52,17 +45,17 @@ import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-fun CatalogLayout(
+fun TvCatalogLayout(
     modifier: Modifier = Modifier,
-    featuredMovies: LazyPagingItems<MovieNew>,
-    catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
-    genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>? = null,
-    onMovieClick: (movie: MovieNew) -> Unit,
-    goToVideoPlayer: (movie: MovieNew) -> Unit,
-    setSelectedMovie: (movie: MovieNew) -> Unit,
+    featuredTvShows: LazyPagingItems<TvShow>,
+    catalogToTvShows: Map<Catalog, StateFlow<PagingData<TvShow>>>,
+    genreToTvShows: Map<Genre, StateFlow<PagingData<TvShow>>>? = null,
+    onTvShowClick: (tvShow: TvShow) -> Unit,
+    goToVideoPlayer: (tvShow: TvShow) -> Unit,
+    setSelectedTvShow: (tvShow: TvShow) -> Unit,
     carouselState: CarouselState,
     backgroundState: BackgroundState,
-    contentDescription: String = "Catalog Screen",
+    contentDescription: String = "TV Shows Catalog Screen",
     streamingProviders: List<StreamingProvider>,
     onStreamingProviderClick: ((streamingProvider: StreamingProvider) -> Unit),
     focusManagementConfig: FocusManagementConfig? = null
@@ -70,12 +63,12 @@ fun CatalogLayout(
     val tvLazyColumnState = rememberTvLazyListState()
     val rowStates = remember { mutableStateMapOf<String, TvLazyListState>() }
 
-    val catalogToLazyPagingItems = catalogToMovies.mapValues { (catalog, flow) ->
+    val catalogToLazyPagingItems = catalogToTvShows.mapValues { (catalog, flow) ->
         Logger.d { "Collecting paging items for catalog: ${catalog.name}" }
         flow.collectAsLazyPagingItems()
     }
 
-    val genreToLazyPagingItems = genreToMovies?.mapValues { (genre, flow) ->
+    val genreToLazyPagingItems = genreToTvShows?.mapValues { (genre, flow) ->
         Logger.d { "Collecting paging items for genre: ${genre.name}" }
         flow.collectAsLazyPagingItems()
     }
@@ -86,7 +79,7 @@ fun CatalogLayout(
 
     // Focus management state - memoized for performance
     val focusRequesters =
-        remember(streamingProviders.size, catalogToMovies.size, genreToMovies?.size ?: 0) {
+        remember(streamingProviders.size, catalogToTvShows.size, genreToTvShows?.size ?: 0) {
             mutableMapOf<Pair<Int, Int>, FocusRequester>().apply {
                 // Pre-create focus requesters for streaming providers
                 for (i in 0 until streamingProviders.size) {
@@ -99,20 +92,6 @@ fun CatalogLayout(
     var shouldRestoreFocus by remember { mutableStateOf(true) }  // Must reset to true when composable re-enters
     var clearCatalogDetails by remember { mutableStateOf(false) }  // OK to reset on config change
     var carouselTargetStreamingProvider by rememberSaveable { mutableIntStateOf(0) }  // Persist across config changes
-
-    // Clean up focus requesters when component unmounts or data changes significantly
-//    if (enableFocusManagement && focusManagementConfig?.enableMemoryOptimization == true) {
-//        DisposableEffect(catalogToLazyPagingItems.size, genreToLazyPagingItems?.size) {
-//            onDispose {
-//                // Clear unused focus requesters to prevent memory leaks
-//                val maxRows =
-//                    2 + catalogToLazyPagingItems.size + (genreToLazyPagingItems?.size ?: 0)
-//                val keysToRemove = focusRequesters.keys.filter { (row, _) -> row > maxRows }
-//                keysToRemove.forEach { focusRequesters.remove(it) }
-//                Logger.d { "Cleaned up ${keysToRemove.size} unused focus requesters" }
-//            }
-//        }
-//    }
 
     // Combined focus restoration and carousel sync (if focus management enabled)
     LaunchedEffect(
@@ -194,18 +173,18 @@ fun CatalogLayout(
                     val catalogKey = catalogKeys[adjustedRowIndex]
                     val catalogRowId = "catalog_${catalogKey.name}"
                     val catalogRowState = rowStates[catalogRowId]
-                    val catalogMovies = catalogToLazyPagingItems[catalogKey]
+                    val catalogTvShows = catalogToLazyPagingItems[catalogKey]
 
-                    if (catalogRowState != null && catalogMovies != null) {
+                    if (catalogRowState != null && catalogTvShows != null) {
                         try {
                             // Check bounds before scrolling - with configurable performance limit
                             val maxFocusItems =
                                 focusManagementConfig?.maxFocusRequestersPerRow ?: 50
                             val maxScrollIndex =
-                                minOf(catalogMovies.itemCount - 1, maxFocusItems - 1)
+                                minOf(catalogTvShows.itemCount - 1, maxFocusItems - 1)
                             val safeScrollIndex = minOf(lastFocusedItem.second, maxScrollIndex)
 
-                            if (safeScrollIndex >= 0 && safeScrollIndex < catalogMovies.itemCount) {
+                            if (safeScrollIndex >= 0 && safeScrollIndex < catalogTvShows.itemCount) {
                                 catalogRowState.scrollToItem(safeScrollIndex)
                                 delay(100) // Quick delay for scroll
 
@@ -254,17 +233,17 @@ fun CatalogLayout(
                     val genreKey = genreKeys[genreIndex]
                     val genreRowId = "genre_${genreKey.name}"  // Fixed: use 'genre_' prefix
                     val genreRowState = rowStates[genreRowId]
-                    val genreMovies = genreToLazyPagingItems?.get(genreKey)
+                    val genreTvShows = genreToLazyPagingItems?.get(genreKey)
 
-                    if (genreRowState != null && genreMovies != null) {
+                    if (genreRowState != null && genreTvShows != null) {
                         try {
                             val maxFocusItems =
                                 focusManagementConfig?.maxFocusRequestersPerRow ?: 50
                             val maxScrollIndex =
-                                minOf(genreMovies.itemCount - 1, maxFocusItems - 1)
+                                minOf(genreTvShows.itemCount - 1, maxFocusItems - 1)
                             val safeScrollIndex = minOf(lastFocusedItem.second, maxScrollIndex)
 
-                            if (safeScrollIndex >= 0 && safeScrollIndex < genreMovies.itemCount) {
+                            if (safeScrollIndex >= 0 && safeScrollIndex < genreTvShows.itemCount) {
                                 genreRowState.scrollToItem(safeScrollIndex)
                                 delay(100) // Quick delay for scroll
 
@@ -328,7 +307,7 @@ fun CatalogLayout(
         contentPadding = PaddingValues(vertical = 40.dp)
     ) {
 
-        item(contentType = "HeroSectionCarousel") {
+        item(contentType = "TvShowHeroSectionCarousel") {
             val targetStreamingProviderFocusRequester =
                 if (streamingProviders.isNotEmpty()) {
                     val targetIndex = if (carouselTargetStreamingProvider >= 0 &&
@@ -343,13 +322,14 @@ fun CatalogLayout(
                     firstLazyRowItemUnderCarouselRequester
                 }
 
-            MovieHeroSectionCarousel(
-                movies = featuredMovies,
-                goToVideoPlayer = goToVideoPlayer,
-                goToMoreInfo = onMovieClick,
-                setSelectedMovie = { movie ->
-                    movie.backdropImageUrl?.let { backgroundState.load(it) }
-                    setSelectedMovie(movie)
+            TvShowHeroSectionCarousel(
+                tvShows = featuredTvShows,
+                goToMoreInfo = onTvShowClick,
+                setSelectedTvShow = { tvShow ->
+                    tvShow.backdropImageUrl?.let {
+                        backgroundState.load(url = it)
+                    }
+                    setSelectedTvShow(tvShow)
                 },
                 carouselState = carouselState,
                 carouselScrollEnabled = carouselScrollEnabled,
@@ -357,7 +337,7 @@ fun CatalogLayout(
                     .height(340.dp)
                     .fillMaxWidth(),
                 firstLazyRowItemUnderCarouselRequester = targetStreamingProviderFocusRequester,
-                carouselFocusRequester = carouselFocusRequester
+                carouselFocusRequester = carouselFocusRequester,
             )
         }
 
@@ -411,40 +391,41 @@ fun CatalogLayout(
                 key = { genre ->
                     genreToLazyPagingItems.keys.elementAtOrNull(genre)?.hashCode() ?: genre
                 },
-                contentType = { "MoviesRow" }
+                contentType = { "TvShowsRow" }
             ) { genreIndex ->
                 val genreKey =
                     genreToLazyPagingItems.keys.elementAtOrNull(genreIndex) ?: return@items
-                val movies = genreToLazyPagingItems[genreKey]
+                val tvShows = genreToLazyPagingItems[genreKey]
 
-                if (movies != null && movies.itemCount > 0) {
+                if (tvShows != null && tvShows.itemCount > 0) {
                     val adjustedIndex = catalogToLazyPagingItems.size + genreIndex
                     val genreRowIndex = 2 + adjustedIndex
                     val genreRowId = "genre_${genreKey.name}"
                     val genreRowState = rowStates.getOrPut(genreRowId) { TvLazyListState() }
 
-                    val genreFocusRequesters = rememberRowFocusRequesters(
-                        movies = movies,
+
+                    val genreFocusRequesters = rememberTvShowRowFocusRequesters(
+                        tvShows = tvShows,
                         rowIndex = genreRowIndex,
                         focusRequesters = focusRequesters,
                         focusManagementConfig = focusManagementConfig
                     )
 
-                    ImmersiveListMoviesRow(
-                        movies = movies,
+                    ImmersiveShowsList(
+                        tvShows = tvShows,
                         sectionTitle = genreKey.name,
-                        onMovieClick = onMovieClick,
-                        setSelectedMovie = { movie ->
+                        onTvShowClick = onTvShowClick,
+                        setSelectedTvShow = { tvShow ->
                             carouselScrollEnabled = false
-                            val imageUrl = movie.backdropImageUrl
-                            setSelectedMovie(movie)
+                            val imageUrl = tvShow.backdropImageUrl
+                            setSelectedTvShow(tvShow)
                             imageUrl?.let {
                                 backgroundState.load(url = it)
                             }
                         },
                         lazyRowState = genreRowState,
                         focusRequesters = genreFocusRequesters,
-                        onItemFocused = { movie, index ->
+                        onItemFocused = { tvShow, index ->
                             lastFocusedItem = Pair(genreRowIndex, index)
                             shouldRestoreFocus = false
                             clearCatalogDetails = false
@@ -461,45 +442,47 @@ fun CatalogLayout(
             key = { catalog ->
                 catalogToLazyPagingItems.keys.elementAtOrNull(catalog)?.hashCode() ?: catalog
             },
-            contentType = { "MoviesRow" }
+            contentType = { "TvShowsRow" }
         ) { catalogIndex ->
             val catalogKey =
                 catalogToLazyPagingItems.keys.elementAtOrNull(catalogIndex) ?: return@items
-            val movies = catalogToLazyPagingItems[catalogKey]
+            val tvShows = catalogToLazyPagingItems[catalogKey]
 
-            if (movies != null && movies.itemCount > 0) {
+            if (tvShows != null && tvShows.itemCount > 0) {
                 val catalogRowIndex = 2 + catalogIndex
                 val catalogRowId = "catalog_${catalogKey.name}"
                 val catalogRowState = rowStates.getOrPut(catalogRowId) { TvLazyListState() }
 
-                val catalogFocusRequesters = rememberRowFocusRequesters(
-                    movies = movies,
+
+                val catalogFocusRequesters = rememberTvShowRowFocusRequesters(
+                    tvShows = tvShows,
                     rowIndex = catalogRowIndex,
                     focusRequesters = focusRequesters,
                     focusManagementConfig = focusManagementConfig
                 )
 
-                ImmersiveListMoviesRow(
-                    movies = movies,
+                ImmersiveShowsList(
+                    tvShows = tvShows,
                     sectionTitle = catalogKey.name,
-                    onMovieClick = onMovieClick,
-                    setSelectedMovie = { movie ->
+                    onTvShowClick = onTvShowClick,
+                    setSelectedTvShow = { tvShow ->
                         carouselScrollEnabled = false
-                        val imageUrl = movie.backdropImageUrl
-                        setSelectedMovie(movie)
+                        val imageUrl = tvShow.backdropImageUrl
+                        setSelectedTvShow(tvShow)
                         imageUrl?.let {
                             backgroundState.load(url = it)
                         }
                     },
                     lazyRowState = catalogRowState,
                     focusRequesters = catalogFocusRequesters,
-                    onItemFocused = { movie, index ->
+                    onItemFocused = { tvShow, index ->
                         lastFocusedItem = Pair(catalogRowIndex, index)
                         shouldRestoreFocus = false
                         clearCatalogDetails = false
                     },
                     clearDetailsSignal = clearCatalogDetails
                 )
+
             }
         }
 
@@ -514,46 +497,6 @@ fun CatalogLayout(
                     lastFocusedItem = Pair(-1, -1)
                     clearCatalogDetails = true
                 }
-            )
-        }
-    }
-}
-
-
-@Composable
-fun CatalogBackground(
-    backgroundState: BackgroundState,
-    modifier: Modifier = Modifier
-) {
-    val targetBitmap by remember(backgroundState) { backgroundState.drawable }
-    val overlayColor = MaterialTheme.colorScheme.background.copy(alpha = 0.9f)
-
-    Crossfade(targetState = targetBitmap) {
-        it?.let {
-            Image(
-                modifier = modifier
-                    .drawWithContent {
-                        drawContent()
-                        drawRect(
-                            Brush.horizontalGradient(
-                                listOf(
-                                    overlayColor,
-                                    overlayColor.copy(alpha = 0.8f),
-                                    Color.Transparent
-                                )
-                            )
-                        )
-                        drawRect(
-                            Brush.verticalGradient(
-                                listOf(
-                                    Color.Transparent, overlayColor.copy(alpha = 0.5f)
-                                )
-                            )
-                        )
-                    },
-                bitmap = it,
-                contentDescription = "Hero item background",
-                contentScale = ContentScale.Crop,
             )
         }
     }

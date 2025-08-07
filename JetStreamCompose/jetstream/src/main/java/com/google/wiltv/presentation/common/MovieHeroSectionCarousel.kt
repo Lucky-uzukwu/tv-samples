@@ -45,8 +45,6 @@ fun MovieHeroSectionCarousel(
     val totalItems = movies.itemCount
     val currentPage = activeItemIndex / itemsPerPage
     val startIndex = currentPage * itemsPerPage
-    val endIndex = minOf(startIndex + itemsPerPage, totalItems)
-    val coroutineScope = rememberCoroutineScope()
 
     Carousel(
         itemCount = movies.itemCount,
@@ -79,9 +77,9 @@ fun MovieHeroSectionCarousel(
                     setSelectedMovie(movie)
                 }
             }
-            
+
             val isActiveItem = idx == activeItemIndex
-            
+
             CarouselItemForeground(
                 movie = movie,
                 onWatchNowClick = {

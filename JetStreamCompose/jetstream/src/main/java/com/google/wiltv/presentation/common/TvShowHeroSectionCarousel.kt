@@ -38,7 +38,6 @@ fun TvShowHeroSectionCarousel(
     carouselScrollEnabled: Boolean,
     carouselFocusRequester: FocusRequester,
     firstLazyRowItemUnderCarouselRequester: FocusRequester,
-    lazyRowState: TvLazyListState
 ) {
 
     var isCarouselFocused by remember { mutableStateOf(false) }
@@ -47,22 +46,13 @@ fun TvShowHeroSectionCarousel(
     val totalItems = tvShows.itemCount
     val currentPage = activeItemIndex / itemsPerPage
     val startIndex = currentPage * itemsPerPage
-    val endIndex = minOf(startIndex + itemsPerPage, totalItems)
-    val coroutineScope = rememberCoroutineScope()
 
     Carousel(
         itemCount = tvShows.itemCount,
-        modifier = Modifier
-            .then(
-                if (lazyRowState.firstVisibleItemIndex == 0) {
-                    modifier
-                        .focusProperties {
-                            down = firstLazyRowItemUnderCarouselRequester
-                        }
-                } else {
-                    modifier
-                }
-            )
+        modifier = modifier
+            .focusProperties {
+                down = firstLazyRowItemUnderCarouselRequester
+            }
             .onFocusChanged {
                 isCarouselFocused = it.hasFocus
             }
@@ -86,12 +76,15 @@ fun TvShowHeroSectionCarousel(
                     setSelectedTvShow(tvShow)
                 }
             }
+
+            val isActiveItem = idx == activeItemIndex
+
             TvShowCarouselItemForeground(
                 tvShow = tvShow,
                 onMoreInfoClick = {
-                    goToMoreInfo(tvShows.itemSnapshotList.items[idx])
+                    goToMoreInfo(tvShow)
                 },
-                isCarouselFocused = isCarouselFocused,
+                isCarouselFocused = isCarouselFocused && isActiveItem,
                 modifier = Modifier
                     .align(Alignment.BottomStart),
             )

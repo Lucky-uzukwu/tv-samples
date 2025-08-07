@@ -141,7 +141,6 @@ fun MoviesRowItem(
     modifier: Modifier = Modifier,
     itemDirection: ItemDirection = ItemDirection.Vertical,
     onMovieFocused: (MovieNew) -> Unit = {},
-    downFocusRequester: FocusRequester? = null,
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val imageUrl = movie.posterImageUrl

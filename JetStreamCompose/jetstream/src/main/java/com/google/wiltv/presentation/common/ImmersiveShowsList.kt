@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +32,7 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -42,9 +44,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.paging.compose.LazyPagingItems
 import androidx.tv.foundation.PivotOffsets
+import androidx.tv.foundation.lazy.list.TvLazyListState
 import androidx.tv.foundation.lazy.list.TvLazyRow
+import androidx.tv.foundation.lazy.list.rememberTvLazyListState
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
+import co.touchlab.kermit.Logger
 import com.google.wiltv.R
 import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.presentation.theme.WilTvBorderWidth
@@ -59,31 +64,50 @@ fun ImmersiveShowsList(
     sectionTitle: String? = stringResource(R.string.top_10_movies_title),
     modifier: Modifier = Modifier,
     setSelectedTvShow: (TvShow) -> Unit,
-    gradientColor: Color = Color.Black.copy(alpha = 0.7f),
-    onTvShowClick: (tvShow: TvShow) -> Unit
+    onTvShowClick: (tvShow: TvShow) -> Unit,
+    lazyRowState: TvLazyListState? = null,
+    focusRequesters: Map<Int, FocusRequester> = emptyMap(),
+    onItemFocused: (TvShow, Int) -> Unit = { _, _ -> },
+    clearDetailsSignal: Boolean = false
 ) {
     var isListFocused by remember { mutableStateOf(false) }
+    var shouldShowDetails by remember { mutableStateOf(false) }
 
     var selectedTvShow by remember(tvShows) {
         mutableStateOf(tvShows.itemSnapshotList.firstOrNull())
     }
 
+    // Clear details when clearDetailsSignal is triggered
+    LaunchedEffect(clearDetailsSignal) {
+        if (clearDetailsSignal) {
+            shouldShowDetails = false
+        }
+    }
+
     ImmersiveList(
         selectedTvShow = selectedTvShow ?: return,
-        isListFocused = isListFocused,
-        gradientColor = gradientColor,
+        shouldShowDetails = shouldShowDetails,
         tvShows = tvShows,
         sectionTitle = sectionTitle,
-        onMovieClick = onTvShowClick,
-        onMovieFocused = {
-            selectedTvShow = it
-            setSelectedTvShow(it)
+        onTvShowClick = onTvShowClick,
+        onTvShowFocused = { tvShow, index ->
+            selectedTvShow = tvShow
+            setSelectedTvShow(tvShow)
+            onItemFocused(tvShow, index)
         },
-        onFocusChanged = {
-            isListFocused = it.hasFocus
+        onFocusChanged = { focusState ->
+            isListFocused = focusState.hasFocus
+            // Show details when list is focused, and keep them visible even when focus moves elsewhere
+            // (like to the sidebar), unless the user navigates to a completely different context
+            if (focusState.hasFocus) {
+                shouldShowDetails = true
+            }
+            // Don't immediately hide details when focus leaves - let them persist for sidebar navigation
         },
+        lazyRowState = lazyRowState,
+        focusRequesters = focusRequesters,
         modifier = modifier.bringIntoViewIfChildrenAreFocused(
-            PaddingValues(bottom = 110.dp)
+            PaddingValues(bottom = 120.dp)
         )
     )
 
@@ -92,14 +116,15 @@ fun ImmersiveShowsList(
 @Composable
 private fun ImmersiveList(
     selectedTvShow: TvShow,
-    isListFocused: Boolean,
-    gradientColor: Color,
+    shouldShowDetails: Boolean,
     tvShows: LazyPagingItems<TvShow>,
     sectionTitle: String?,
     onFocusChanged: (FocusState) -> Unit,
-    onMovieFocused: (TvShow) -> Unit,
-    onMovieClick: (TvShow) -> Unit,
+    onTvShowFocused: (TvShow, Int) -> Unit,
+    onTvShowClick: (TvShow) -> Unit,
     modifier: Modifier = Modifier,
+    lazyRowState: TvLazyListState? = null,
+    focusRequesters: Map<Int, FocusRequester> = emptyMap(),
 ) {
     Box(
         contentAlignment = Alignment.BottomStart,
@@ -107,7 +132,7 @@ private fun ImmersiveList(
     ) {
         Column {
             // TODO HERE you can add more deails for each row
-            if (isListFocused) {
+            if (shouldShowDetails) {
                 TvShowDescription(
                     tvShow = selectedTvShow,
                 )
@@ -118,9 +143,11 @@ private fun ImmersiveList(
                 itemDirection = ItemDirection.Horizontal,
                 title = sectionTitle,
                 showIndexOverImage = false,
-                onShowSelected = onMovieClick,
-                onShowFocused = onMovieFocused,
-                modifier = Modifier.onFocusChanged(onFocusChanged)
+                onShowSelected = onTvShowClick,
+                onShowFocused = onTvShowFocused,
+                modifier = Modifier.onFocusChanged(onFocusChanged),
+                lazyRowState = lazyRowState,
+                focusRequesters = focusRequesters,
             )
         }
     }
@@ -270,7 +297,9 @@ fun ImmersiveListShowsRow(
     ),
     showIndexOverImage: Boolean = false,
     onShowSelected: (TvShow) -> Unit = {},
-    onShowFocused: (TvShow) -> Unit = {}
+    onShowFocused: (TvShow, Int) -> Unit = { _, _ -> },
+    lazyRowState: TvLazyListState? = null,
+    focusRequesters: Map<Int, FocusRequester> = emptyMap(),
 ) {
     // Create infinite list by repeating the movies
     val infiniteShowsCount = if (tvShows.itemCount > 0) Int.MAX_VALUE else 0
@@ -291,21 +320,38 @@ fun ImmersiveListShowsRow(
 
         TvLazyRow(
             modifier = modifier.fillMaxWidth(),
+            state = lazyRowState ?: rememberTvLazyListState(),
             pivotOffsets = PivotOffsets(0.1f, 0f),
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically,
             contentPadding = PaddingValues(horizontal = 32.dp)
         ) {
-            items(tvShows.itemSnapshotList.items.size) { index ->
+            // Use safe item count to prevent index out of bounds
+            val safeItemCount = minOf(
+                tvShows.itemSnapshotList.items.size,
+                tvShows.itemCount.coerceAtLeast(0)
+            )
+
+
+            items(safeItemCount) { index ->
                 val tvShow = tvShows.itemSnapshotList.items[index]
+
+                // Skip if tvShow is null (can happen during paging updates)
+                if (tvShow == null) return@items
+
+                val focusRequester = focusRequesters[index]
+
                 ShowsRowItem(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .then(
+                            if (focusRequester != null) Modifier.focusRequester(focusRequester)
+                            else Modifier
+                        ),
                     index = index,
                     itemDirection = itemDirection,
-                    onTvShowSelected = {
-                        onShowSelected(it)
-                    },
-                    onTvShowFocused = onShowFocused,
+                    onTvShowSelected = onShowSelected,
+                    onTvShowFocused = { tvShow -> onShowFocused(tvShow, index) },
                     tvShow = tvShow,
                     showIndexOverImage = showIndexOverImage,
                 )
@@ -348,6 +394,7 @@ private fun ShowsRowItem(
                 } else {
                     FocusRequester.Default
                 }
+                down = FocusRequester.Default
             }
             .then(modifier)
     ) {
@@ -359,6 +406,40 @@ private fun ShowsRowItem(
                 movieUri = imageUrl,
                 index = index
             )
+        }
+    }
+}
+
+@Composable
+fun rememberTvShowRowFocusRequesters(
+    tvShows: LazyPagingItems<TvShow>?,
+    rowIndex: Int,
+    focusRequesters: MutableMap<Pair<Int, Int>, FocusRequester>,
+    focusManagementConfig: FocusManagementConfig?
+): Map<Int, FocusRequester> {
+    return remember(tvShows?.itemCount, rowIndex) {
+        if (tvShows == null || tvShows.itemCount == 0) {
+            emptyMap()
+        } else {
+            val startTime = System.currentTimeMillis()
+
+            // Use cached values to avoid multiple data access
+            val itemCount = tvShows.itemCount
+            val snapshotSize = tvShows.itemSnapshotList.items.size
+            val actualItemCount = minOf(itemCount, snapshotSize)
+            val maxFocusItems = focusManagementConfig?.maxFocusRequestersPerRow ?: 50
+            val limitedItemCount = minOf(actualItemCount, maxFocusItems)
+
+            // Simple range creation without expensive null checks
+            // Focus requesters will be created lazily when actually needed
+            val result = (0 until limitedItemCount).associate { index ->
+                index to focusRequesters.getOrPut(Pair(rowIndex, index)) { FocusRequester() }
+            }
+
+            val endTime = System.currentTimeMillis()
+            Logger.d { "TV Show Row $rowIndex focus requesters created in ${endTime - startTime}ms (${result.size} items)" }
+
+            result
         }
     }
 }
