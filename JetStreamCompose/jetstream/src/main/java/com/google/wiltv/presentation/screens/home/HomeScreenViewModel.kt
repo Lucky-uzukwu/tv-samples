@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 const val PAGE_SIZE = 20
@@ -66,22 +67,22 @@ class HomeScreeViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(5_000),
         PagingData.empty()
     )
-    
+
     // Cache catalog and genre movies to prevent refetching on navigation
     private val cachedCatalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>> by lazy {
-        kotlinx.coroutines.runBlocking {
+        runBlocking {
             fetchCatalogsAndMovies(catalogRepository, userRepository)
         }
     }
-    
+
     private val cachedGenreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>> by lazy {
-        kotlinx.coroutines.runBlocking {
+        runBlocking {
             fetchGenresAndMovies(genreRepository, userRepository)
         }
     }
-    
+
     private val cachedStreamingProviders: List<StreamingProvider> by lazy {
-        kotlinx.coroutines.runBlocking {
+        runBlocking {
             streamingProvidersRepository.getStreamingProviders(
                 type = "App\\Models\\Movie"
             ).firstOrNull() ?: emptyList()

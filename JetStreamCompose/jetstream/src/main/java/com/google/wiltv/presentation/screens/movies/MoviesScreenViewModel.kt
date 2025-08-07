@@ -48,19 +48,19 @@ class MoviesScreenViewModel @Inject constructor(
     
     // Cache catalog and genre movies to prevent refetching on navigation
     private val cachedCatalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>> by lazy {
-        kotlinx.coroutines.runBlocking {
+        runBlocking {
             fetchCatalogsAndMovies(catalogRepository, userRepository)
         }
     }
     
     private val cachedGenreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>> by lazy {
-        kotlinx.coroutines.runBlocking {
+        runBlocking {
             fetchGenresAndMovies(genreRepository, userRepository)
         }
     }
     
     private val cachedStreamingProviders: List<StreamingProvider> by lazy {
-        kotlinx.coroutines.runBlocking {
+        runBlocking {
             streamingProvidersRepository.getStreamingProviders(
                 type = "App\\Models\\Movie"
             ).firstOrNull() ?: emptyList()

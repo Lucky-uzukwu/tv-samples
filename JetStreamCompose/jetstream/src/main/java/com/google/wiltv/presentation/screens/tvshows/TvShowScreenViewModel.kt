@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @HiltViewModel
@@ -44,6 +45,34 @@ class TvShowScreenViewModel @Inject constructor(
         PagingData.empty()
     )
 
+    // Cache catalog and genre movies to prevent refetching on navigation
+    private val cachedCatalogToMovies: Map<Catalog, StateFlow<PagingData<TvShow>>> by lazy {
+        runBlocking {
+            fetchCatalogsAndTvShows(
+                catalogRepository,
+                userRepository
+            )
+        }
+    }
+
+    private val cachedGenreToMovies: Map<Genre, StateFlow<PagingData<TvShow>>> by lazy {
+        runBlocking {
+            fetchTvShowsByGenre(
+                genreRepository = genreRepository,
+                userRepository
+            )
+        }
+    }
+
+    private val cachedStreamingProviders: List<StreamingProvider> by lazy {
+        runBlocking {
+            streamingProvidersRepository.getStreamingProviders(
+                type = "App\\Models\\TvShow"
+            ).firstOrNull() ?: emptyList()
+        }
+    }
+
+
     // UI State combining all data
     val uiState: StateFlow<TvShowScreenUiState> = combine(
         userRepository.userToken,
@@ -52,25 +81,11 @@ class TvShowScreenViewModel @Inject constructor(
         when {
             token.isEmpty() -> TvShowScreenUiState.Error
             else -> {
-                // Create paginated flows for each catalog
-                val catalogAndTvShows = fetchCatalogsAndTvShows(
-                    catalogRepository,
-                    userRepository
-                )
-                val genreAndTvShows = fetchTvShowsByGenre(
-                    genreRepository = genreRepository,
-                    userRepository
-                )
-
-                val streamingProviders =
-                    streamingProvidersRepository.getStreamingProviders(
-                        type = "App\\Models\\TvShow"
-                    ).firstOrNull()
-
+                // Use cached paging sources - no refetch on recomposition
                 TvShowScreenUiState.Ready(
-                    catalogToTvShows = catalogAndTvShows,
-                    genreToTvShows = genreAndTvShows,
-                    streamingProviders = streamingProviders ?: emptyList()
+                    catalogToTvShows = cachedCatalogToMovies,
+                    genreToTvShows = cachedGenreToMovies,
+                    streamingProviders = cachedStreamingProviders
                 )
             }
         }
