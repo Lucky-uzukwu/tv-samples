@@ -23,6 +23,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -66,6 +68,9 @@ fun AuthScreen(
     val uiEvent by authScreenViewModel.uiEvent.collectAsState()
 
     var email by remember { mutableStateOf("") }
+
+    // Focus requester for the first form field in LoginWithTv
+    val tvLoginFirstFieldFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(uiEvent) {
         if (uiEvent is AuthScreenUiEvent.NavigateToLogin && uiState is AuthScreenUiStateNew.Success<*>) {
@@ -119,6 +124,7 @@ fun AuthScreen(
         LeftWelcomePanel(
             selectedAuthOption = selectedAuthOption,
             onAuthOptionSelected = { option -> selectedAuthOption = option },
+            tvLoginFirstFieldFocusRequester = tvLoginFirstFieldFocusRequester,
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(0.4f)
@@ -136,6 +142,7 @@ fun AuthScreen(
             isLoginWithTvLoading = uiState is AuthScreenUiStateNew.Loading,
             isLoginWithTvError = uiState is AuthScreenUiStateNew.Error,
             errorMessage = (uiState as? AuthScreenUiStateNew.Error)?.message,
+            tvLoginFirstFieldFocusRequester = tvLoginFirstFieldFocusRequester,
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(0.6f)
@@ -148,6 +155,7 @@ fun AuthScreen(
 fun LeftWelcomePanel(
     selectedAuthOption: AuthRoute,
     onAuthOptionSelected: (AuthRoute) -> Unit,
+    tvLoginFirstFieldFocusRequester: FocusRequester,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -192,7 +200,8 @@ fun LeftWelcomePanel(
             AuthOptionItem(
                 text = "Login using the TV",
                 isSelected = selectedAuthOption == AuthRoute.LOGIN_WITH_TV,
-                onClick = { onAuthOptionSelected(AuthRoute.LOGIN_WITH_TV) }
+                onClick = { onAuthOptionSelected(AuthRoute.LOGIN_WITH_TV) },
+                rightFocusRequester = if (selectedAuthOption == AuthRoute.LOGIN_WITH_TV) tvLoginFirstFieldFocusRequester else null
             )
         }
     }
@@ -202,13 +211,21 @@ fun LeftWelcomePanel(
 fun AuthOptionItem(
     text: String,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    rightFocusRequester: FocusRequester? = null
 ) {
     TvButton(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp),
+            .height(56.dp)
+            .let { modifier ->
+                if (rightFocusRequester != null) {
+                    modifier.focusProperties { right = rightFocusRequester }
+                } else {
+                    modifier
+                }
+            },
         colors = TvButtonDefaults.colors(
             containerColor = if (isSelected) Color(0xFF2196F3) else Color.White.copy(alpha = 0.1f),
             contentColor = if (isSelected) Color.White else Color.White.copy(alpha = 0.9f),
@@ -242,6 +259,7 @@ fun RightContentPanel(
     isLoginWithTvLoading: Boolean,
     isLoginWithTvError: Boolean,
     errorMessage: String?,
+    tvLoginFirstFieldFocusRequester: FocusRequester,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -260,7 +278,8 @@ fun RightContentPanel(
                     onSubmit = handleLoginWithTvOnSubmit,
                     isLoading = isLoginWithTvLoading,
                     isError = isLoginWithTvError,
-                    errorMessage = errorMessage
+                    errorMessage = errorMessage,
+                    firstFieldFocusRequester = tvLoginFirstFieldFocusRequester
                 )
             }
 

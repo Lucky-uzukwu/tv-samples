@@ -134,7 +134,7 @@ fun CatalogLayout(
         ) {
 
             // Short initial delay to beat drawer focus request
-            delay(50)
+            delay(20)
             Logger.d { "Starting focus restoration for position: $lastFocusedItem" }
 
             val streamingProviderCount = streamingProviders.size

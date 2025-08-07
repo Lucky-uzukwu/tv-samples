@@ -26,7 +26,7 @@ class SearchRepositoryImpl @Inject constructor(
         // TODO: Switch to new API structure , when Priesly pushes it
         val response = searchService.searchMovie(
             authToken = "Bearer $token",
-            query = query,
+            search = query,
             itemsPerPage = itemsPerPage,
             page = page
         )
@@ -34,6 +34,12 @@ class SearchRepositoryImpl @Inject constructor(
         if (response.isSuccessful) {
             val searchResponse = response.body()
             Logger.i { "Successfully fetched ${searchResponse?.member?.size} movies for catalog section out of ${searchResponse?.totalItems}." }
+            
+            // Log each movie name for debugging
+            searchResponse?.member?.forEach { movie ->
+                Logger.i { "Movie found: ${movie.title} (ID: ${movie.id})" }
+            }
+            
             if (searchResponse != null) {
                 emit(searchResponse)
             }
@@ -73,7 +79,7 @@ class SearchRepositoryImpl @Inject constructor(
         // TODO: Switch to new API structure , when Priesly pushes it
         val response = searchService.searchTvShows(
             authToken = "Bearer $token",
-            query = query,
+            search = query,
             itemsPerPage = itemsPerPage,
             page = page
         )
@@ -101,7 +107,7 @@ class SearchRepositoryImpl @Inject constructor(
             when (loginResponse?.code()) {
                 201 -> {
                     userRepository.saveUserToken(loginResponse.body()!!.token)
-                    searchMoviesByQuery(token, query, itemsPerPage, page)
+                    searchTvShowsByQuery(token, query, itemsPerPage, page)
                 }
             }
 

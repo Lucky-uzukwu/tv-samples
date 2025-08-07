@@ -10,12 +10,12 @@ import retrofit2.http.Query
 
 interface SearchService {
 
-    @GET("api/search")
+    @GET("/search")
     suspend fun searchMovie(
         @Header("Authorization") authToken: String,
         @Header("Accept") accept: String = "application/ld+json",
-        @Query("query") query: String = "5 IN [‚id of sp‘]",
-        @Query("type") type: String = "App\\Models\\Movie",
+        @Query("search") search: String = "5 IN [‚id of sp‘]",
+//        @Query("types[]") type: String = "App\\Models\\Movie",
 //        @Query("search") search: String = "5 IN [‚id of sp‘]",
 //        @Query("types") types: List<String>,
 //        @Query("genres") genres: List<String>,
@@ -32,12 +32,12 @@ interface SearchService {
         @Query("itemsPerPage") itemsPerPage: Int = 10,
     ): Response<MovieSearchResponse>
 
-    @GET("api/search")
+    @GET("/search")
     suspend fun searchTvShows(
         @Header("Authorization") authToken: String,
         @Header("Accept") accept: String = "application/ld+json",
-        @Query("query") query: String = "5 IN [‚id of sp‘]",
-        @Query("type") type: String = "App\\Models\\TvShow",
+        @Query("search") search: String = "5 IN [‚id of sp‘]",
+//        @Query("types[]") type: String = "App\\Models\\TvShow",
 //        @Query("search") search: String = "5 IN [‚id of sp‘]",
 //        @Query("types") types: List<String>,
 //        @Query("genres") genres: List<String>,

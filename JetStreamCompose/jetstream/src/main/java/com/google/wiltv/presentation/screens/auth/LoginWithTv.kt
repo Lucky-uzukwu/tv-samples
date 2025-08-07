@@ -18,6 +18,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -30,7 +32,8 @@ fun LoginWithTv(
     onSubmit: (emailAddress: String, password: String) -> Unit,
     isLoading: Boolean = false,
     isError: Boolean = false,
-    errorMessage: String? = null
+    errorMessage: String? = null,
+    firstFieldFocusRequester: FocusRequester? = null
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -64,7 +67,13 @@ fun LoginWithTv(
                 focusedTextColor = Color.Black,
             ),
             label = { Text("E-Mail Adresse") },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .let { modifier ->
+                    firstFieldFocusRequester?.let { focusRequester ->
+                        modifier.focusRequester(focusRequester)
+                    } ?: modifier
+                },
 
             )
 

@@ -7,7 +7,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -25,10 +24,12 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -108,16 +109,19 @@ fun SearchResult(
 ) {
     val childPadding = rememberChildPadding()
     var searchQuery by remember { mutableStateOf("") }
+    var lastSearchedQuery by remember { mutableStateOf("") }
+    var hasSearched by remember { mutableStateOf(false) }
     val tfFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val tfInteractionSource = remember { MutableInteractionSource() }
 
     val isTfFocused by tfInteractionSource.collectIsFocusedAsState()
 
-    val isMoviesEmpty =
-        movies?.collectAsLazyPagingItems()?.itemSnapshotList?.items?.isEmpty() == true
-    val isShowsEmpty =
-        shows?.collectAsLazyPagingItems()?.itemSnapshotList?.items?.isEmpty() == true
+    val movieItems = movies?.collectAsLazyPagingItems()
+    val showItems = shows?.collectAsLazyPagingItems()
+    
+    val isMoviesEmpty = movieItems?.itemSnapshotList?.items?.isEmpty() == true
+    val isShowsEmpty = showItems?.itemSnapshotList?.items?.isEmpty() == true
 
     Box(
         modifier = modifier
@@ -217,7 +221,11 @@ fun SearchResult(
                         ),
                         keyboardActions = KeyboardActions(
                             onSearch = {
-                                searchMovies(searchQuery)
+                                if (searchQuery.isNotEmpty()) {
+                                    lastSearchedQuery = searchQuery
+                                    hasSearched = true
+                                    searchMovies(searchQuery)
+                                }
                             }
                         ),
                         maxLines = 1,
@@ -230,132 +238,89 @@ fun SearchResult(
             }
         }
 
-        AnimatedContent(
-            targetState = TargetState(movies, shows),
-            label = "",
-        ) { state ->
-            val movieList = state.movies?.collectAsLazyPagingItems()?.itemSnapshotList?.items
-            val showList = state.shows?.collectAsLazyPagingItems()?.itemSnapshotList?.items
-            if (isMoviesEmpty && isShowsEmpty && searchQuery != "") {
+        // Search results display
+        when {
+            !hasSearched -> {
+                // Show empty state or instructions
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No result found",
+                        text = "Enter a search term and press Enter to find movies and shows",
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(16.dp)
                     )
                 }
-            } else {
+            }
+            hasSearched && lastSearchedQuery.isNotEmpty() && isMoviesEmpty && isShowsEmpty -> {
+                // Show no results found - persists until new search
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No result found for \"$lastSearchedQuery\"",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
+            hasSearched -> {
+                // Show search results
                 LazyVerticalGrid(
                     modifier = Modifier.padding(top = 80.dp, start = 40.dp),
                     columns = GridCells.Fixed(6),
                     contentPadding = PaddingValues(bottom = WilTvBottomListPadding)
                 ) {
-                    itemsIndexed(
-                        movieList.orEmpty(),
-                        contentType = { _, _ -> "movie" },
-                        key = { _, movie -> movie.id }) { index, movie ->
-                        MovieCard(
-                            onClick = { onMovieClick(movie) },
-                            modifier = Modifier
-                                .aspectRatio(1 / 1.5f)
-                                .padding(8.dp)
-                                .then(
-                                    Modifier
-                                ),
-                        ) {
-                            val imageUrl = movie.posterImageUrl
-                            imageUrl?.let {
-                                PosterImage(
-                                    title = movie.title,
-                                    posterUrl = it,
-                                    modifier = Modifier.fillMaxSize()
-                                )
+                    movieItems?.let { movies ->
+                        itemsIndexed(
+                            movies.itemSnapshotList.items,
+                            contentType = { _, _ -> "movie" },
+                            key = { _, movie -> "movie_${movie.id}" }) { index, movie ->
+                            MovieCard(
+                                onClick = { onMovieClick(movie) },
+                                modifier = Modifier
+                                    .aspectRatio(1 / 1.5f)
+                                    .padding(8.dp),
+                            ) {
+                                val imageUrl = movie.posterImageUrl
+                                imageUrl?.let {
+                                    PosterImage(
+                                        title = movie.title,
+                                        posterUrl = it,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
                             }
                         }
                     }
-//                    itemsIndexed(
-//                        showList.orEmpty(),
-//                        contentType = { _, _ -> "show" },
-//                        key = { _, show -> show.id }) { index, show ->
-//                        MovieCard(
-//                            onClick = { onShowClick(show) },
-//                            modifier = Modifier
-//                                .aspectRatio(1 / 1.5f)
-//                                .padding(8.dp)
-//                                .then(
-//                                    Modifier
-//                                ),
-//                        ) {
-//                            val imageUrl =
-//                                "https://api.nortv.xyz/" + "storage/" + show.posterImagePath
-//                            show.title?.let {
-//                                PosterImage(
-//                                    title = it,
-//                                    posterUrl = imageUrl,
-//                                    modifier = Modifier.fillMaxSize()
-//                                )
-//                            }
-//                        }
-//                    }
+                    
+                    // Add TV Shows if needed - currently commented out in the original
+                    showItems?.let { shows ->
+                        itemsIndexed(
+                            shows.itemSnapshotList.items,
+                            contentType = { _, _ -> "show" },
+                            key = { _, show -> "show_${show.id}" }) { index, show ->
+                            MovieCard(
+                                onClick = { onShowClick(show) },
+                                modifier = Modifier
+                                    .aspectRatio(1 / 1.5f)
+                                    .padding(8.dp),
+                            ) {
+                                val imageUrl = show.posterImageUrl
+                                imageUrl?.let {
+                                    PosterImage(
+                                        title = show.title ?: "",
+                                        posterUrl = it,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
-        }
-
-
-        Column {
-
-//            AnimatedContent(
-//                targetState = shows,
-//                label = "",
-//            ) { state ->
-//                val showList = state?.collectAsLazyPagingItems()?.itemSnapshotList?.items
-//                if (isShowsEmpty && isMoviesEmpty && searchQuery != "") {
-//                    Box(
-//                        modifier = Modifier.fillMaxSize(),
-//                        contentAlignment = Alignment.Center
-//                    ) {
-//                        Text(
-//                            text = "No result found",
-//                            style = MaterialTheme.typography.bodyLarge,
-//                            modifier = Modifier.padding(16.dp)
-//                        )
-//                    }
-//                } else {
-//                    val paddingTop = if (isMoviesEmpty) 10.dp else 160.dp
-//                    LazyVerticalGrid(
-//                        modifier = Modifier.padding(top = paddingTop, start = 40.dp),
-//                        columns = GridCells.Fixed(6),
-//                        contentPadding = PaddingValues(bottom = WilTvBottomListPadding)
-//                    ) {
-//                        itemsIndexed(
-//                            showList.orEmpty(),
-//                            key = { _, show -> show.id }) { index, show ->
-//                            MovieCard(
-//                                onClick = { onShowClick(show) },
-//                                modifier = Modifier
-//                                    .aspectRatio(1 / 1.5f)
-//                                    .padding(8.dp)
-//                                    .then(
-//                                        Modifier
-//                                    ),
-//                            ) {
-//                                val imageUrl =
-//                                    "https://api.nortv.xyz/" + "storage/" + show.posterImagePath
-//                                show.title?.let {
-//                                    PosterImage(
-//                                        title = it,
-//                                        posterUrl = imageUrl,
-//                                        modifier = Modifier.fillMaxSize()
-//                                    )
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
         }
 
 

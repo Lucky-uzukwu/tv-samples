@@ -33,7 +33,7 @@ https://www.apache.org/licenses/LICENSE-2.0
     <string name="delete_account_dialog_text">"By deactivating your account, you will no longer be able to sign in, your activity will be removed from NorTv and your profile preferences will go away.\n\nDo you wish to continue?\n"</string>
     <string name="yes_delete_account">Yes, delete my account</string>
     <string name="no_keep_it">No, keep it</string>
-    <string name="search_screen_et_placeholder">Search for movies, shows and more…</string>
+    <string name="search_screen_et_placeholder">Search for movies, shows and more… (Press Enter to search)</string>
     <string name="top_10_movies_title">Top 10 in the US</string>
     <string name="profile_screen_listItem_icon_content_description">%s icon</string>
     <string name="language_section_listItem_icon_content_description">%s language option</string>
