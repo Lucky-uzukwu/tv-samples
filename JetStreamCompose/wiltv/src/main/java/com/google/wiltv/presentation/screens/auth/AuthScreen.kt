@@ -1,3 +1,5 @@
+package com.google.wiltv.presentation.screens.auth
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,14 +31,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.tv.material3.Text
 import com.google.wiltv.data.entities.User
-import com.google.wiltv.presentation.screens.auth.AuthRoute
-import com.google.wiltv.presentation.screens.auth.AuthScreenUiEvent
-import com.google.wiltv.presentation.screens.auth.AuthScreenUiState
-import com.google.wiltv.presentation.screens.auth.AuthScreenViewModel
-import com.google.wiltv.presentation.screens.auth.LoginWithAccessCode
-import com.google.wiltv.presentation.screens.auth.LoginWithSmartphone
-import com.google.wiltv.presentation.screens.auth.LoginWithTv
-import com.google.wiltv.presentation.screens.auth.RegisterAccount
 import com.google.wiltv.state.UserStateHolder
 import com.google.wiltv.util.DeviceNetworkInfo
 import kotlinx.coroutines.launch
@@ -47,8 +41,7 @@ import androidx.tv.material3.ButtonDefaults as TvButtonDefaults
 fun AuthScreen(
     userStateHolder: UserStateHolder = hiltViewModel(),
     authScreenViewModel: AuthScreenViewModel = hiltViewModel(),
-    onNavigateToLogin: () -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToDashboard: () -> Unit,
 ) {
     val context = LocalContext.current
     val macAddress = remember { DeviceNetworkInfo.getMacAddress(context) }
@@ -83,7 +76,7 @@ fun AuthScreen(
                     }
                 }
             }
-            onNavigateToLogin()
+            onNavigateToDashboard()
             authScreenViewModel.clearEvent()
         }
     }
@@ -338,10 +331,7 @@ fun RightContentPanel(
 @Preview(showBackground = true)
 @Composable
 fun AuthScreenPreview() {
-//    JetStreamTheme {
     AuthScreen(
-        onNavigateToLogin = {},
-        onNavigateToRegister = {},
+        onNavigateToDashboard = {},
     )
-//    }
 }

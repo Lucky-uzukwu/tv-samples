@@ -1,6 +1,6 @@
 package com.google.wiltv.presentation
 
-import AuthScreen
+import com.google.wiltv.presentation.screens.auth.AuthScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,12 +46,9 @@ fun App(
         builder = {
             composable(route = Screens.AuthScreen()) {
                 AuthScreen(
-                    onNavigateToLogin = {
+                    onNavigateToDashboard = {
                         navController.navigate(Screens.Dashboard())
                     },
-                    onNavigateToRegister = {
-                        navController.navigate(Screens.Register())
-                    }
                 )
             }
             composable(
