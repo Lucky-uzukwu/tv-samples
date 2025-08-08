@@ -241,11 +241,11 @@ fun AuthOptionItem(
                 }
             },
         colors = TvButtonDefaults.colors(
-            containerColor = if (isSelected) Color(0xFF2196F3) else Color.White.copy(alpha = 0.1f),
+            containerColor = if (isSelected) Color(0xFFA855F7) else Color.White.copy(alpha = 0.1f),
             contentColor = if (isSelected) Color.White else Color.White.copy(alpha = 0.9f),
-            focusedContainerColor = if (isSelected) Color(0xFF1976D2) else Color.White.copy(alpha = 0.2f),
+            focusedContainerColor = if (isSelected) Color(0xFFA855F7) else Color(0xFFBD9DF1),
             focusedContentColor = Color.White,
-            pressedContainerColor = if (isSelected) Color(0xFF0D47A1) else Color.White.copy(alpha = 0.3f),
+            pressedContainerColor = if (isSelected) Color(0xFFA855F7) else Color(0xFFBD9DF1),
             pressedContentColor = Color.White
         ),
     ) {

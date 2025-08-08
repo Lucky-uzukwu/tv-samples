@@ -1,6 +1,7 @@
 package com.google.wiltv.presentation.screens.auth
 
 import android.view.KeyEvent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,11 +27,13 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.tv.material3.Border
 import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.ShapeDefaults
 import androidx.tv.material3.Text
 import com.google.wiltv.presentation.utils.handleDPadKeyEvents
 
@@ -129,14 +132,20 @@ fun LoginWithAccessCode(
                             keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_BACK
                 },
             colors = ButtonDefaults.colors(
-                containerColor = if (isFormValid) Color(0xFF2196F3) else Color.Gray, // Blue when valid, gray when disabled
+                containerColor = if (isFormValid) Color(0xFFA855F7) else Color.Gray, // Blue when valid, gray when disabled
                 contentColor = Color.White,
-                focusedContainerColor = if (isFormValid) Color(0xFF1976D2) else Color.DarkGray, // Darker blue when focused and valid
+                focusedContainerColor = if (isFormValid) Color(0xFFA855F7) else Color.DarkGray, // Darker blue when focused and valid
                 focusedContentColor = Color.White,
                 disabledContainerColor = Color.Gray,
                 disabledContentColor = Color.White.copy(alpha = 0.6f)
             ),
-            scale = ButtonDefaults.scale(focusedScale = 1.1f) // 10% scale increase when focused
+            border = ButtonDefaults.border(
+                focusedBorder = Border(
+                    border = BorderStroke(width = Dp.Hairline, color = Color.White),
+                    shape = ShapeDefaults.ExtraLarge
+                )
+            ),
+            scale = ButtonDefaults.scale(focusedScale = 1f)
         ) {
             Box(
                 modifier = Modifier.fillMaxWidth(),
@@ -150,7 +159,7 @@ fun LoginWithAccessCode(
             Spacer(modifier = Modifier.height(16.dp))
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                color = Color(0xFF2196F3)
+                color = Color(0xFFA855F7)
             )
         }
     }
