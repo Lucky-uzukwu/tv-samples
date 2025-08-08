@@ -53,17 +53,17 @@ fun LoginWithAccessCode(
     Column(
         modifier = Modifier
             .padding(16.dp)
-            .background(Color.White, shape = RoundedCornerShape(16.dp))
+            .background(Color(0xFF2A2A2A), shape = RoundedCornerShape(16.dp))
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Text(text = "WiLTV", style = MaterialTheme.typography.headlineLarge, color = Color.Black)
+        Text(text = "WiLTV", style = MaterialTheme.typography.headlineLarge, color = Color.White)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "Sign in to your account",
             style = MaterialTheme.typography.titleLarge,
-            color = Color.Black
+            color = Color.White
         )
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -72,12 +72,13 @@ fun LoginWithAccessCode(
             value = accessCode,
             onValueChange = { accessCode = it },
             colors = OutlinedTextFieldDefaults.colors().copy(
-                unfocusedLabelColor = Color.Black,
-                focusedLabelColor = Color.Black,
-                cursorColor = Color.Black,
-                unfocusedPlaceholderColor = Color.Black,
-                focusedPlaceholderColor = Color.Black,
-                focusedTextColor = Color.Black,
+                unfocusedLabelColor = Color.White,
+                focusedLabelColor = Color.White,
+                cursorColor = Color.White,
+                unfocusedPlaceholderColor = Color.White.copy(alpha = 0.7f),
+                focusedPlaceholderColor = Color.White.copy(alpha = 0.7f),
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
             ),
             label = { Text("Access code") },
             keyboardOptions = KeyboardOptions(

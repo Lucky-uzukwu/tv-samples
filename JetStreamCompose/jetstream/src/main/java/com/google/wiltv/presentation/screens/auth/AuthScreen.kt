@@ -279,7 +279,7 @@ fun RightContentPanel(
 ) {
     Box(
         modifier = modifier
-            .background(Color(0xFFF5F5F5))
+            .background(Color(0xFF1A1A1A))
             .padding(48.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -327,7 +327,7 @@ fun RegisterContent() {
             text = "Scan the QR Code below to register an account",
             fontSize = 20.sp,
             fontWeight = FontWeight.Medium,
-            color = Color.Black,
+            color = Color.White,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 32.dp)
         )
@@ -343,7 +343,7 @@ fun RegisterContent() {
         Text(
             text = "Or visit the following link to register:",
             fontSize = 14.sp,
-            color = Color.Gray,
+            color = Color.White.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
         )
 
@@ -364,7 +364,7 @@ fun RegisterContent() {
             Text(
                 text = "Or provide the access code ",
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = Color.White.copy(alpha = 0.7f)
             )
             Text(
                 text = "955271",
@@ -375,7 +375,7 @@ fun RegisterContent() {
             Text(
                 text = " to customer support to activate your account",
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = Color.White.copy(alpha = 0.7f)
             )
         }
     }
