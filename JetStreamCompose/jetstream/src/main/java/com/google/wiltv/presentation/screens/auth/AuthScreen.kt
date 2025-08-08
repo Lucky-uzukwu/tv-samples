@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -362,20 +363,10 @@ fun RegisterContent() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Or provide the access code ",
+                text = "Or provide the access code 955271 to customer support to activate your account",
                 fontSize = 14.sp,
-                color = Color.White.copy(alpha = 0.7f)
-            )
-            Text(
-                text = "955271",
-                fontSize = 14.sp,
-                color = Color(0xFF2196F3),
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = " to customer support to activate your account",
-                fontSize = 14.sp,
-                color = Color.White.copy(alpha = 0.7f)
+                color = Color.White.copy(alpha = 0.7f),
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
