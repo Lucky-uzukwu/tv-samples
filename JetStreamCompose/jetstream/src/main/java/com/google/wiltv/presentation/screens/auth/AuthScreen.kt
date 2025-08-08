@@ -353,22 +353,40 @@ fun RegisterContent() {
         Text(
             text = "https://nortv.xyz/account/register?accessCode=955271",
             fontSize = 14.sp,
-            color = Color(0xFF2196F3),
+            color = Color(0xFFA855F7),
             textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Row(
-            verticalAlignment = Alignment.CenterVertically
+//            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Or provide the access code 955271 to customer support to activate your account",
+                text = "Or provide the access code ",
+                fontSize = 14.sp,
+                color = Color.White.copy(alpha = 0.7f),
+            )
+            Text(
+                text = "955271",
+                fontSize = 14.sp,
+                color = Color(0xFFA855F7),
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = " to customer support to activate ",
                 fontSize = 14.sp,
                 color = Color.White.copy(alpha = 0.7f),
                 overflow = TextOverflow.Ellipsis,
             )
         }
+        Text(
+            text = "your account",
+            fontSize = 14.sp,
+            color = Color.White.copy(alpha = 0.7f),
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
