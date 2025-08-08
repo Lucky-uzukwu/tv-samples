@@ -46,6 +46,15 @@ class MockAuthRepositoryImpl : AuthRepository {
         )
     }
 
+    override suspend fun loginWithAccessCode(
+        accessCode: String,
+        deviceMacAddress: String,
+        clientIp: String,
+        deviceName: String
+    ): Flow<Pair<Int, TokenResponse>> = flow {
+        emit(200 to TokenResponse(token = "token"))
+    }
+
 
     override suspend fun login(
         identifier: String,

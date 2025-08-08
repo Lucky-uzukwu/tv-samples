@@ -1,7 +1,4 @@
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,13 +27,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
-import androidx.tv.material3.Button as TvButton
-import androidx.tv.material3.ButtonDefaults as TvButtonDefaults
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.tv.material3.Text
 import com.google.wiltv.data.entities.User
+import com.google.wiltv.presentation.common.QRCodeDisplay
 import com.google.wiltv.presentation.screens.auth.AuthRoute
 import com.google.wiltv.presentation.screens.auth.AuthScreenUiEvent
 import com.google.wiltv.presentation.screens.auth.AuthScreenUiStateNew
@@ -46,11 +39,11 @@ import com.google.wiltv.presentation.screens.auth.AuthScreenViewModel
 import com.google.wiltv.presentation.screens.auth.LoginWithAccessCode
 import com.google.wiltv.presentation.screens.auth.LoginWithSmartphone
 import com.google.wiltv.presentation.screens.auth.LoginWithTv
-import com.google.wiltv.presentation.common.QRCodeDisplay
 import com.google.wiltv.state.UserStateHolder
 import com.google.wiltv.util.DeviceNetworkInfo
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import androidx.tv.material3.Button as TvButton
+import androidx.tv.material3.ButtonDefaults as TvButtonDefaults
 
 @Composable
 fun AuthScreen(
@@ -67,27 +60,29 @@ fun AuthScreen(
     val uiState by authScreenViewModel.uiState.collectAsState()
     val uiEvent by authScreenViewModel.uiEvent.collectAsState()
 
-    var email by remember { mutableStateOf("") }
+    var identifierOrEmail by remember { mutableStateOf("") }
 
     // Focus requester for the first form field in LoginWithTv
     val tvLoginFirstFieldFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(uiEvent) {
         if (uiEvent is AuthScreenUiEvent.NavigateToLogin && uiState is AuthScreenUiStateNew.Success<*>) {
-            authScreenViewModel.getUser(identifier = email).collect {
-                it?.let {
-                    userStateHolder.updateUser(
-                        User(
-                            identifier = it.identifier,
-                            name = it.name,
-                            email = it.email,
-                            profilePhotoPath = it.profilePhotoPath,
-                            profilePhotoUrl = it.profilePhotoUrl,
-                            clientIp = clientIp,
-                            deviceName = deviceName,
-                            deviceMacAddress = macAddress,
+            if (identifierOrEmail.isNotBlank()) {
+                authScreenViewModel.getUser(identifier = identifierOrEmail).collect {
+                    it?.let {
+                        userStateHolder.updateUser(
+                            User(
+                                identifier = it.identifier,
+                                name = it.name,
+                                email = it.email,
+                                profilePhotoPath = it.profilePhotoPath,
+                                profilePhotoUrl = it.profilePhotoUrl,
+                                clientIp = clientIp,
+                                deviceName = deviceName,
+                                deviceMacAddress = macAddress,
+                            )
                         )
-                    )
+                    }
                 }
             }
             onNavigateToLogin()
@@ -103,11 +98,27 @@ fun AuthScreen(
         emailAddress: String,
         password: String,
     ) {
-        email = emailAddress
+        identifierOrEmail = emailAddress
         authScreenViewModel.viewModelScope.launch {
             authScreenViewModel.loginWithTv(
                 identifier = emailAddress,
                 password = password,
+                deviceMacAddress = macAddress,
+                clientIp = clientIp,
+                deviceName = deviceName,
+            ).collect {
+                it?.token?.let { token -> userStateHolder.updateToken(token) }
+            }
+        }
+    }
+
+    fun handleSubmitForAccessCodeLogin(
+        accessCode: String,
+    ) {
+        identifierOrEmail = accessCode
+        authScreenViewModel.viewModelScope.launch {
+            authScreenViewModel.loginWithAccessCode(
+                accessCode = accessCode,
                 deviceMacAddress = macAddress,
                 clientIp = clientIp,
                 deviceName = deviceName,
@@ -139,8 +150,11 @@ fun AuthScreen(
                     password
                 )
             },
-            isLoginWithTvLoading = uiState is AuthScreenUiStateNew.Loading,
-            isLoginWithTvError = uiState is AuthScreenUiStateNew.Error,
+            handleLoginWithAccessCodeOnSubmit = { accessCode ->
+                handleSubmitForAccessCodeLogin(accessCode)
+            },
+            isTvLoginLoading = uiState is AuthScreenUiStateNew.Loading,
+            isTvLoginWithTvError = uiState is AuthScreenUiStateNew.Error,
             errorMessage = (uiState as? AuthScreenUiStateNew.Error)?.message,
             tvLoginFirstFieldFocusRequester = tvLoginFirstFieldFocusRequester,
             modifier = Modifier
@@ -256,8 +270,9 @@ fun AuthOptionItem(
 fun RightContentPanel(
     selectedAuthOption: AuthRoute,
     handleLoginWithTvOnSubmit: (String, String) -> Unit,
-    isLoginWithTvLoading: Boolean,
-    isLoginWithTvError: Boolean,
+    handleLoginWithAccessCodeOnSubmit: (String) -> Unit,
+    isTvLoginLoading: Boolean,
+    isTvLoginWithTvError: Boolean,
     errorMessage: String?,
     tvLoginFirstFieldFocusRequester: FocusRequester,
     modifier: Modifier = Modifier
@@ -276,8 +291,8 @@ fun RightContentPanel(
             AuthRoute.LOGIN_WITH_TV -> {
                 LoginWithTv(
                     onSubmit = handleLoginWithTvOnSubmit,
-                    isLoading = isLoginWithTvLoading,
-                    isError = isLoginWithTvError,
+                    isLoading = isTvLoginLoading,
+                    isError = isTvLoginWithTvError,
                     errorMessage = errorMessage,
                     firstFieldFocusRequester = tvLoginFirstFieldFocusRequester
                 )
@@ -285,7 +300,11 @@ fun RightContentPanel(
 
             AuthRoute.LOGIN_WITH_ACCESS_CODE -> {
                 LoginWithAccessCode(
-                    onSubmit = { _, _ -> }
+                    onSubmit = handleLoginWithAccessCodeOnSubmit,
+                    isLoading = isTvLoginLoading,
+                    isError = isTvLoginWithTvError,
+                    errorMessage = errorMessage,
+                    firstFieldFocusRequester = tvLoginFirstFieldFocusRequester
                 )
             }
 

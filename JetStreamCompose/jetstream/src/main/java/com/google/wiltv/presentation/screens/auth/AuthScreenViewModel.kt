@@ -111,6 +111,56 @@ class AuthScreenViewModel @Inject constructor(
         }
     }
 
+    fun loginWithAccessCode(
+        accessCode: String,
+        deviceMacAddress: String,
+        clientIp: String,
+        deviceName: String,
+    ): Flow<TokenResponse?> = flow {
+        _uiState.update { AuthScreenUiStateNew.Loading }
+        val response = authRepository.loginWithAccessCode(
+            accessCode = accessCode,
+            deviceMacAddress = deviceMacAddress,
+            clientIp = clientIp,
+            deviceName = deviceName
+        )
+        response.collect { responsePair ->
+            val code = responsePair.first
+            val body = responsePair.second
+
+            when (code) {
+                201 -> {
+                    _uiState.update {
+                        AuthScreenUiStateNew.Success(
+                            body = body,
+                            message = "Login successful"
+                        )
+                    }
+                    emit(body)
+                    _uiEvent.update { AuthScreenUiEvent.NavigateToLogin }
+                }
+
+                400 -> {
+                    _uiState.update { AuthScreenUiStateNew.Error("Invalid input") }
+                    emit(null)
+
+                }
+
+                404 -> {
+                    _uiState.update { AuthScreenUiStateNew.Error("User not found please check accessCode") }
+                    _uiEvent.update { AuthScreenUiEvent.NavigateToRegister }
+                    emit(null)
+                }
+
+                422 -> {
+                    _uiState.update { AuthScreenUiStateNew.Error("Validation error") }
+                    emit(null)
+                }
+            }
+        }
+    }
+
+
     fun getUser(identifier: String): Flow<UserResponse?> = flow {
         _uiState.update { AuthScreenUiStateNew.Loading }
         val token = userRepository.userToken.firstOrNull() ?: return@flow emit(null)

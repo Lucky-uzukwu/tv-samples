@@ -41,4 +41,12 @@ interface AuthRepository {
         deviceName: String,
     ): Flow<Pair<Int, TokenResponse>>
 
+
+    suspend fun loginWithAccessCode(
+        accessCode: String,
+        deviceMacAddress: String,
+        clientIp: String,
+        deviceName: String,
+    ): Flow<Pair<Int, TokenResponse>>
+
 }

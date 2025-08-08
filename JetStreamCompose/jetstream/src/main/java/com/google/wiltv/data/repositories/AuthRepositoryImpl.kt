@@ -99,6 +99,47 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun loginWithAccessCode(
+        accessCode: String,
+        deviceMacAddress: String,
+        clientIp: String,
+        deviceName: String
+    ) = flow {
+        Logger.i { "Attempting to log in user with access code: $accessCode" }
+        val tokenRequest = TokenRequest(
+            request = accessCode,
+            mac = deviceMacAddress,
+            ip = clientIp,
+            device = deviceName,
+            password = null,
+            identifier = null
+        )
+        val response = tokenService.createToken(tokenRequest)
+
+        when (response.code()) {
+            404 -> {
+                Logger.i { "Customer not found with accessCode: $accessCode" }
+                emit(response.code() to TokenResponse(null))
+            }
+
+            201 -> {
+                Logger.i { "Successfully logged in user with accessCode: $accessCode" }
+                emit(response.code() to response.body()!!)
+            }
+
+            422 -> {
+                Logger.e { "Validation error occurred while login user with accessCode : $accessCode" }
+                emit(response.code() to TokenResponse(null))
+            }
+
+            400 -> {
+                Logger.e { "Invalid input while login user with accessCode : $accessCode" }
+                emit(response.code() to TokenResponse(null))
+            }
+        }
+    }
+
+
     override suspend fun getUser(token: String, identifier: String): Flow<UserResponse?> = flow {
         Logger.i { "Attempting to get user with identifier: $identifier" }
         val response = userService.getUserResource(
