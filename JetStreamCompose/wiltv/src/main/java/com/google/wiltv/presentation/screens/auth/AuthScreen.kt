@@ -3,7 +3,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,8 +22,6 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,14 +29,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.tv.material3.Text
 import com.google.wiltv.data.entities.User
-import com.google.wiltv.presentation.common.QRCodeDisplay
 import com.google.wiltv.presentation.screens.auth.AuthRoute
 import com.google.wiltv.presentation.screens.auth.AuthScreenUiEvent
-import com.google.wiltv.presentation.screens.auth.AuthScreenUiStateNew
+import com.google.wiltv.presentation.screens.auth.AuthScreenUiState
 import com.google.wiltv.presentation.screens.auth.AuthScreenViewModel
 import com.google.wiltv.presentation.screens.auth.LoginWithAccessCode
 import com.google.wiltv.presentation.screens.auth.LoginWithSmartphone
 import com.google.wiltv.presentation.screens.auth.LoginWithTv
+import com.google.wiltv.presentation.screens.auth.RegisterAccount
 import com.google.wiltv.state.UserStateHolder
 import com.google.wiltv.util.DeviceNetworkInfo
 import kotlinx.coroutines.launch
@@ -67,7 +64,7 @@ fun AuthScreen(
     val tvLoginFirstFieldFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(uiEvent) {
-        if (uiEvent is AuthScreenUiEvent.NavigateToLogin && uiState is AuthScreenUiStateNew.Success<*>) {
+        if (uiEvent is AuthScreenUiEvent.NavigateToLogin && uiState is AuthScreenUiState.Success<*>) {
             if (identifierOrEmail.isNotBlank()) {
                 authScreenViewModel.getUser(identifier = identifierOrEmail).collect {
                     it?.let {
@@ -89,6 +86,20 @@ fun AuthScreen(
             onNavigateToLogin()
             authScreenViewModel.clearEvent()
         }
+    }
+
+    LaunchedEffect(uiState) {
+        if (uiState is AuthScreenUiState.CodeGenerated) {
+            identifierOrEmail = (uiState as AuthScreenUiState.CodeGenerated).code
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        authScreenViewModel.initializeActivation(
+            deviceMacAddress = macAddress,
+            clientIp = clientIp,
+            deviceName = deviceName
+        )
     }
 
 
@@ -154,13 +165,14 @@ fun AuthScreen(
             handleLoginWithAccessCodeOnSubmit = { accessCode ->
                 handleSubmitForAccessCodeLogin(accessCode)
             },
-            isTvLoginLoading = uiState is AuthScreenUiStateNew.Loading,
-            isTvLoginWithTvError = uiState is AuthScreenUiStateNew.Error,
-            errorMessage = (uiState as? AuthScreenUiStateNew.Error)?.message,
+            isTvLoginLoading = uiState is AuthScreenUiState.Loading,
+            isTvLoginWithTvError = uiState is AuthScreenUiState.Error,
+            errorMessage = (uiState as? AuthScreenUiState.Error)?.message,
             tvLoginFirstFieldFocusRequester = tvLoginFirstFieldFocusRequester,
+            generatedAccessCode = identifierOrEmail,
             modifier = Modifier
                 .fillMaxHeight()
-                .weight(0.6f)
+                .weight(0.6f),
         )
     }
 
@@ -270,6 +282,7 @@ fun AuthOptionItem(
 @Composable
 fun RightContentPanel(
     selectedAuthOption: AuthRoute,
+    generatedAccessCode: String,
     handleLoginWithTvOnSubmit: (String, String) -> Unit,
     handleLoginWithAccessCodeOnSubmit: (String) -> Unit,
     isTvLoginLoading: Boolean,
@@ -286,7 +299,9 @@ fun RightContentPanel(
     ) {
         when (selectedAuthOption) {
             AuthRoute.REGISTER -> {
-                RegisterContent()
+                RegisterAccount(
+                    accessCode = generatedAccessCode,
+                )
             }
 
             AuthRoute.LOGIN_WITH_TV -> {
@@ -311,82 +326,10 @@ fun RightContentPanel(
 
             AuthRoute.LOGIN_WITH_SMART_PHONE -> {
                 LoginWithSmartphone(
-                    onSubmit = { _, _ -> }
+                    accessCode = generatedAccessCode,
                 )
             }
         }
-    }
-}
-
-@Composable
-fun RegisterContent() {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Scan the QR Code below to register an account",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
-
-        // QR Code for registration
-        QRCodeDisplay(
-            data = "https://nortv.xyz/account/register?accessCode=955271",
-            size = 200
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Or visit the following link to register:",
-            fontSize = 14.sp,
-            color = Color.White.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "https://nortv.xyz/account/register?accessCode=955271",
-            fontSize = 14.sp,
-            color = Color(0xFFA855F7),
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Row(
-//            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Or provide the access code ",
-                fontSize = 14.sp,
-                color = Color.White.copy(alpha = 0.7f),
-            )
-            Text(
-                text = "955271",
-                fontSize = 14.sp,
-                color = Color(0xFFA855F7),
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = " to customer support to activate ",
-                fontSize = 14.sp,
-                color = Color.White.copy(alpha = 0.7f),
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        Text(
-            text = "your account",
-            fontSize = 14.sp,
-            color = Color.White.copy(alpha = 0.7f),
-            overflow = TextOverflow.Ellipsis,
-        )
     }
 }
 

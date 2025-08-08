@@ -27,12 +27,14 @@ import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.set
 
 @Composable
 fun QRCodeDisplay(
+    modifier: Modifier = Modifier,
     data: String,
     size: Int = 200,
-    modifier: Modifier = Modifier
 ) {
     var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var isLoading by remember { mutableStateOf(true) }
@@ -67,6 +69,7 @@ fun QRCodeDisplay(
                     color = Color.Gray
                 )
             }
+
             hasError -> {
                 Text(
                     text = "QR Code\nGeneration\nFailed",
@@ -74,6 +77,7 @@ fun QRCodeDisplay(
                     color = Color.Red
                 )
             }
+
             qrBitmap != null -> {
                 Image(
                     bitmap = qrBitmap!!.asImageBitmap(),
@@ -89,11 +93,12 @@ fun QRCodeDisplay(
 private fun generateQRCode(data: String, size: Int): Bitmap {
     val writer = MultiFormatWriter()
     val bitMatrix: BitMatrix = writer.encode(data, BarcodeFormat.QR_CODE, size, size)
-    
-    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565)
+
+    val bitmap = createBitmap(size, size, Bitmap.Config.RGB_565)
     for (x in 0 until size) {
         for (y in 0 until size) {
-            bitmap.setPixel(x, y, if (bitMatrix[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
+            bitmap[x, y] =
+                if (bitMatrix[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE
         }
     }
     return bitmap

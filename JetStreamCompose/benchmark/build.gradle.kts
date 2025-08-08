@@ -53,7 +53,7 @@ android {
         }
     }
 
-    targetProjectPath = ":jetstream"
+    targetProjectPath = ":wiltv"
 }
 
 baselineProfile {
