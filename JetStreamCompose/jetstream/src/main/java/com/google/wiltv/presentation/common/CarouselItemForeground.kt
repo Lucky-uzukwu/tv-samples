@@ -54,7 +54,7 @@ fun CarouselItemForeground(
     val getYear = movie.releaseDate?.substring(0, 4)
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
-    
+
     Column(
         modifier = modifier
             .padding(start = 34.dp, bottom = 32.dp)
@@ -136,7 +136,7 @@ fun CarouselItemForeground(
                             }
                             goToMoreInfo()
                         },
-                        text = stringResource(R.string.coming_soon),
+                        text = stringResource(R.string.more_info),
                         icon = R.drawable.ic_info,
                         iconTint = MaterialTheme.colorScheme.inverseOnSurface,
                         buttonColor = ButtonDefaults.colors(
@@ -145,7 +145,6 @@ fun CarouselItemForeground(
                             focusedContentColor = MaterialTheme.colorScheme.inverseOnSurface,
                         ),
                     )
-                    Text("Click for more info")
                 }
             }
         }

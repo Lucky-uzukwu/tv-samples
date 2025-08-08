@@ -123,7 +123,7 @@ fun TvShowCarouselItemForeground(
                             }
                             onMoreInfoClick()
                         },
-                        text = stringResource(R.string.coming_soon),
+                        text = stringResource(R.string.more_info),
                         icon = R.drawable.ic_info,
                         iconTint = MaterialTheme.colorScheme.inverseOnSurface,
                         buttonColor = ButtonDefaults.colors(
@@ -132,7 +132,6 @@ fun TvShowCarouselItemForeground(
                             focusedContentColor = MaterialTheme.colorScheme.inverseOnSurface,
                         ),
                     )
-                    Text("Click for more info")
                 }
             }
 
