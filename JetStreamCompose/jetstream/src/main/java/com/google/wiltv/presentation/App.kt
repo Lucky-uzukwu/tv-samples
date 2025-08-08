@@ -1,8 +1,6 @@
 package com.google.wiltv.presentation
 
 import AuthScreen
-import LoginScreen
-import RegisterScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -53,20 +51,6 @@ fun App(
                     },
                     onNavigateToRegister = {
                         navController.navigate(Screens.Register())
-                    }
-                )
-            }
-            composable(route = Screens.Login()) { backStackEntry ->
-                LoginScreen(
-                    onSubmitSuccess = {
-                        navController.navigate(Screens.Dashboard())
-                    }
-                )
-            }
-            composable(route = Screens.Register()) { backStackEntry ->
-                RegisterScreen(
-                    onSubmitSuccess = {
-                        navController.navigate(Screens.Dashboard())
                     }
                 )
             }

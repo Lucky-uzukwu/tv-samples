@@ -1,0 +1,206 @@
+# TV Keyboard Implementation Plan
+
+## Overview
+Custom multi-language on-screen keyboard component for Android TV app using Jetpack Compose, optimized for D-pad navigation with extensible language support.
+
+## Implementation Checklist
+
+### Phase 1: Core Components Creation
+- [✅] Create keyboard package structure in /presentation/common/keyboard/
+- [✅] TvKeyboard.kt - Main keyboard composable with layout management
+- [✅] TvKeyboardKey.kt - Individual key component with focus states
+- [✅] TvKeyboardViewModel.kt - Keyboard state and input management
+- [✅] TvKeyboardLayout.kt - Base layout configurations
+- [✅] TvKeyboardState.kt - Data classes for keyboard state
+- [✅] TvKeyboardTextField.kt - Text field wrapper with keyboard integration
+
+### Phase 1.5: Language Abstraction Layer
+- [✅] KeyboardLayoutProvider.kt - Interface for different language layouts
+- [✅] LanguageConfig.kt - Language-specific configurations
+- [ ] KeyboardLayoutFactory.kt - Factory pattern for creating layouts
+- [✅] LocaleManager.kt - System locale and user preference handling
+- [✅] Create /layouts/ subfolder for language-specific implementations
+
+### Phase 2: Core Features
+- [✅] QWERTY layout implementation - QwertyLayoutProvider.kt created
+- [✅] D-pad navigation (up/down/left/right/center)
+- [✅] Focus management between keys
+- [✅] Visual feedback (focus highlights, press animations)
+- [✅] Special keys implementation:
+  - [✅] Space bar
+  - [✅] Backspace
+  - [✅] Enter/Done
+  - [✅] Shift (caps lock)
+  - [✅] Symbol/Number toggle (123 key)
+- [✅] Dark theme support using existing WilTV theme
+- [✅] Predictive text/suggestions bar - Implemented in main keyboard UI
+- [ ] Key press sound feedback (optional)
+
+### Phase 3: Multi-Language Layouts
+- [✅] English QWERTY layout implementation - QwertyLayoutProvider.kt
+- [ ] French AZERTY layout implementation
+- [ ] German QWERTZ layout implementation
+- [ ] Spanish layout with ñ key
+- [ ] Numeric keypad layout (universal)
+- [ ] Symbol keyboard layout (universal)
+- [✅] Language switcher UI (globe button) - Built into keyboard state
+- [✅] Layout switching animation - Built into keyboard transitions
+- [✅] Layout persistence per text field and user preference - Via LocaleManager
+
+### Phase 3.5: Extended Language Support
+- [ ] Arabic layout with RTL support
+- [ ] Cyrillic layout for Russian/Ukrainian
+- [ ] Chinese Pinyin input with candidate selection
+- [ ] Japanese Hiragana/Katakana layouts
+- [ ] Korean Hangul layout
+- [ ] Hindi Devanagari layout
+- [ ] Custom layout loader from JSON/XML
+
+### Phase 4: Advanced Features (Optional)
+- [ ] Predictive text/suggestions bar with language-aware predictions
+- [ ] Long press for alternate characters (accents, diacritics)
+- [ ] Dead key support for character combinations
+- [ ] Custom key mappings per language
+- [ ] Keyboard size/position options
+- [ ] Voice input integration with language detection
+- [ ] Swipe/gesture typing support
+- [ ] Auto-correction with language dictionaries
+- [ ] Emoji keyboard with recent/favorites
+
+## Integration Points
+
+### Immediate Integration Targets
+- [ ] SearchScreen.kt - Replace BasicTextField with TvKeyboardTextField
+- [✅] LoginWithAccessCode.kt - Use for access code input
+- [ ] LoginWithTv.kt - Use for login credentials
+- [ ] RegisterScreen.kt - Use for registration form
+
+### Future Integration
+- [ ] Profile editing screens
+- [ ] Settings screens
+- [ ] Any new forms or text inputs
+
+## Technical Requirements
+
+### Dependencies
+- androidx.tv.material (already included)
+- tv.foundation (already included)
+- Compose UI components
+- Hilt for dependency injection
+
+### Design Patterns
+- MVVM architecture (consistent with app)
+- Repository pattern for keyboard settings (if needed)
+- Compose state management
+- Focus-based navigation
+
+### Keyboard Layout Examples
+
+#### English (QWERTY)
+```
+┌─────────────────────────────────────┐
+│        [Suggestions Bar]            │
+├─────────────────────────────────────┤
+│ Q  W  E  R  T  Y  U  I  O  P       │
+│ A  S  D  F  G  H  J  K  L  ←       │
+│ ⇧  Z  X  C  V  B  N  M  ,  .       │
+│ 🌐 123   [  Space  ]   Done         │
+└─────────────────────────────────────┘
+```
+
+#### French (AZERTY)
+```
+┌─────────────────────────────────────┐
+│        [Suggestions Bar]            │
+├─────────────────────────────────────┤
+│ A  Z  E  R  T  Y  U  I  O  P       │
+│ Q  S  D  F  G  H  J  K  L  M  ←    │
+│ ⇧  W  X  C  V  B  N  ,  .  é       │
+│ 🌐 123   [  Espace  ]   Entrée      │
+└─────────────────────────────────────┘
+```
+
+#### Arabic (RTL)
+```
+┌─────────────────────────────────────┐
+│        [شريط الاقتراحات]            │
+├─────────────────────────────────────┤
+│ ض  ص  ث  ق  ف  غ  ع  ه  خ  ح  ←    │
+│ ش  س  ي  ب  ل  ا  ت  ن  م  ك       │
+│ ⇧  ئ  ء  ؤ  ر  ى  ة  و  ز  ظ  ط    │
+│ 🌐 ١٢٣   [  مسافة  ]   إدخال        │
+└─────────────────────────────────────┘
+```
+
+#### Chinese (Pinyin with Candidates)
+```
+┌─────────────────────────────────────┐
+│ Candidates: 你好 | 尼豪 | 泥好      │
+├─────────────────────────────────────┤
+│ Q  W  E  R  T  Y  U  I  O  P       │
+│ A  S  D  F  G  H  J  K  L  ←       │
+│ ⇧  Z  X  C  V  B  N  M  ,  .       │
+│ 🌐 中/英  [  空格  ]   确定         │
+└─────────────────────────────────────┘
+```
+
+## Testing Requirements
+- [ ] D-pad navigation testing on TV emulator
+- [ ] Focus management verification across different layouts
+- [ ] Text input accuracy for each language
+- [ ] Layout switching functionality and animations
+- [ ] RTL language support verification
+- [ ] Character encoding and Unicode support
+- [ ] Performance with long text in different scripts
+- [ ] Memory usage optimization with multiple layouts
+- [ ] Accessibility compliance for all languages
+- [ ] Locale switching and persistence
+- [ ] Special character and diacritic input
+- [ ] IME integration for complex scripts
+
+## Known Considerations
+1. TV screens are viewed from distance - keys need to be large
+2. D-pad navigation must be smooth and predictable
+3. Focus indicators must be clearly visible
+4. Minimize key presses required for common inputs
+5. Consider remote control limitations
+6. Support both Android TV and Google TV
+7. Language-specific considerations:
+   - RTL languages need mirrored navigation
+   - Asian languages need IME and candidate selection
+   - Accented characters need long-press or dead key support
+   - Some languages have more characters than Latin alphabet
+8. Performance considerations for switching between layouts
+9. Memory management with multiple keyboard layouts loaded
+10. Fallback to system keyboard if custom keyboard fails
+
+## Language Support Architecture
+
+### Interface Design
+```kotlin
+interface KeyboardLayoutProvider {
+    val layoutName: String
+    val locale: Locale
+    val isRTL: Boolean
+    fun getKeys(): List<List<KeyboardKey>>
+    fun getSpecialKeys(): Map<SpecialKeyType, KeyboardKey>
+    fun getAlternateCharacters(key: KeyboardKey): List<Char>
+}
+```
+
+### Configuration Pattern
+- Language packs as separate modules (optional)
+- JSON/XML layout definitions for easy customization
+- Runtime layout loading for user-defined keyboards
+- Lazy loading of language resources
+
+## Progress Notes
+- Created: 2025-08-08
+- Updated: 2025-08-08 - Added multi-language support architecture
+- Status: Planning phase complete with language extensibility
+- Next Step: Create keyboard package and language abstraction layer
+
+## References
+- Android TV Design Guidelines: https://developer.android.com/design/ui/tv
+- TV Material Design: https://developer.android.com/reference/kotlin/androidx/tv/material3/package-summary
+- Compose for TV: https://developer.android.com/training/tv/playback/compose
