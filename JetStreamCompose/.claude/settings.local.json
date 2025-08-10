@@ -13,7 +13,9 @@
       "WebFetch(domain:stackoverflow.com)",
       "Bash(adb logcat:*)",
       "Bash(adb shell am start:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "WebFetch(domain:pusher.com)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": []
   }

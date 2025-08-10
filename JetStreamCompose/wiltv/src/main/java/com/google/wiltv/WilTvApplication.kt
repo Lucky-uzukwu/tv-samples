@@ -3,22 +3,22 @@ package com.google.wiltv
 import android.app.Application
 import android.content.Context
 import com.google.wiltv.data.network.CatalogService
-import com.google.wiltv.data.network.CustomerService
 import com.google.wiltv.data.network.GenreService
+import com.google.wiltv.data.network.LoginRequestService
 import com.google.wiltv.data.network.MovieService
 import com.google.wiltv.data.network.SearchService
 import com.google.wiltv.data.network.StreamingProviderService
 import com.google.wiltv.data.network.TokenService
 import com.google.wiltv.data.network.TvShowsService
 import com.google.wiltv.data.network.UserService
-import com.google.wiltv.data.repositories.CatalogRepository
-import com.google.wiltv.data.repositories.CatalogRepositoryImpl
 import com.google.wiltv.data.repositories.AuthRepository
 import com.google.wiltv.data.repositories.AuthRepositoryImpl
+import com.google.wiltv.data.repositories.CatalogRepository
+import com.google.wiltv.data.repositories.CatalogRepositoryImpl
 import com.google.wiltv.data.repositories.GenreRepository
 import com.google.wiltv.data.repositories.GenreRepositoryImpl
-import com.google.wiltv.data.repositories.MockCatalogRepositoryImpl
 import com.google.wiltv.data.repositories.MockAuthRepositoryImpl
+import com.google.wiltv.data.repositories.MockCatalogRepositoryImpl
 import com.google.wiltv.data.repositories.MockGenreRepositoryImpl
 import com.google.wiltv.data.repositories.MockMovieRepositoryImpl
 import com.google.wiltv.data.repositories.MockSearchRepositoryImpl
@@ -114,18 +114,18 @@ object CustomerRepositoryModule {
     @Provides
     @Singleton
     fun provideMovieRepository(
-        customerService: CustomerService,
         userService: UserService,
         tokenService: TokenService,
+        loginRequestService: LoginRequestService,
         @Named("isMock") isMock: Boolean
     ): AuthRepository {
         return if (isMock) {
             MockAuthRepositoryImpl()
         } else {
             AuthRepositoryImpl(
-                customerService,
                 userService,
-                tokenService
+                loginRequestService,
+                tokenService,
             )
         }
     }

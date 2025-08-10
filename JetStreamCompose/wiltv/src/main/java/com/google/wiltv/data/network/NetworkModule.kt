@@ -62,14 +62,14 @@ class NetworkModule {
 
     @Provides
     @Singleton
-    fun customerService(retrofit: Retrofit): CustomerService {
-        return retrofit.create(CustomerService::class.java)
+    fun userService(retrofit: Retrofit): UserService {
+        return retrofit.create(UserService::class.java)
     }
 
     @Provides
     @Singleton
-    fun userService(retrofit: Retrofit): UserService {
-        return retrofit.create(UserService::class.java)
+    fun loginRequestService(retrofit: Retrofit): LoginRequestService {
+        return retrofit.create(LoginRequestService::class.java)
     }
 
     @Provides
@@ -114,6 +114,12 @@ class NetworkModule {
     @Singleton
     fun SearchService(retrofit: Retrofit): SearchService {
         return retrofit.create(SearchService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun BroadcastingService(retrofit: Retrofit): BroadcastingService {
+        return retrofit.create(BroadcastingService::class.java)
     }
 
     @Provides
