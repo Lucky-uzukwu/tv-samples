@@ -29,29 +29,7 @@ class GenreRepositoryImpl @Inject constructor(
                 emit(genres.member)
             }
         } else {
-            // Handle HTTP error codes
-            val errorBody =
-                response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error for getMovieGenre: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-            val loginResponse = user.password?.let {
-                authRepository.login(
-                    deviceMacAddress = user.deviceMacAddress,
-                    clientIp = user.clientIp,
-                    deviceName = user.deviceName,
-                    identifier = user.identifier,
-                    password = it
-                )
-            }
-            when (loginResponse?.code()) {
-                201 -> {
-                    userRepository.saveUserToken(loginResponse.body()!!.token)
-                    getMovieGenre()
-                }
-
-                else -> {
-                    Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
-                }
-            }
+            // TODO Handle HTTP error codes
         }
 
     }
@@ -71,29 +49,7 @@ class GenreRepositoryImpl @Inject constructor(
                 emit(genres.member)
             }
         } else {
-            // Handle HTTP error codes
-            val errorBody =
-                response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error for getTvShowsGenre: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-            val loginResponse = user.password?.let {
-                authRepository.login(
-                    deviceMacAddress = user.deviceMacAddress,
-                    clientIp = user.clientIp,
-                    deviceName = user.deviceName,
-                    identifier = user.identifier,
-                    password = it
-                )
-            }
-            when (loginResponse?.code()) {
-                201 -> {
-                    userRepository.saveUserToken(loginResponse.body()!!.token)
-                    getTvShowsGenre()
-                }
-
-                else -> {
-                    Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
-                }
-            }
+            // TODO Handle HTTP error codes
         }
 
     }

@@ -75,27 +75,7 @@ class MovieRepositoryImpl @Inject constructor(
                 emit(movies)
             }
         } else {
-            // Handle HTTP error codes
-            val errorBody =
-                response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-            val loginResponse = user.password?.let {
-                authRepository.login(
-                    deviceMacAddress = user.deviceMacAddress,
-                    clientIp = user.clientIp,
-                    deviceName = user.deviceName,
-                    identifier = user.identifier,
-                    password = it
-                )
-            }
-            when (loginResponse?.code()) {
-                201 -> {
-                    userRepository.saveUserToken(loginResponse.body()!!.token)
-                    getMoviesToShowInHeroSection(token, page, itemsPerPage)
-                }
-            }
-
-            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+            // TODO Handle HTTP error codes
         }
     }
 
@@ -122,27 +102,7 @@ class MovieRepositoryImpl @Inject constructor(
                     emit(moviesResponse)
                 }
             } else {
-                // Handle HTTP error codes
-                val errorBody =
-                    response.errorBody()?.string() // Get error message from server if available
-                Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-                val loginResponse = user.password?.let {
-                    authRepository.login(
-                        deviceMacAddress = user.deviceMacAddress,
-                        clientIp = user.clientIp,
-                        deviceName = user.deviceName,
-                        identifier = user.identifier,
-                        password = it
-                    )
-                }
-                when (loginResponse?.code()) {
-                    201 -> {
-                        userRepository.saveUserToken(loginResponse.body()!!.token)
-                        getMoviesToShowInCatalogSection(token, catalogId, itemsPerPage, page)
-                    }
-                }
-
-                Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+                // TODO Handle HTTP error codes
             }
         }
 
@@ -167,33 +127,7 @@ class MovieRepositoryImpl @Inject constructor(
                 emit(moviesResponse)
             }
         } else {
-            // Handle HTTP error codes
-            val errorBody =
-                response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-            val loginResponse = user.password?.let {
-                authRepository.login(
-                    deviceMacAddress = user.deviceMacAddress,
-                    clientIp = user.clientIp,
-                    deviceName = user.deviceName,
-                    identifier = user.identifier,
-                    password = it
-                )
-            }
-            when (loginResponse?.code()) {
-                201 -> {
-                    userRepository.saveUserToken(loginResponse.body()!!.token)
-                    getMoviesToShowInGenreSection(token, genreId, itemsPerPage, page)
-                }
-
-                else -> {
-                    Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
-                    // todo navigate to login
-
-                }
-            }
-
-            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+            // TODO Handle HTTP error codes
         }
     }
 
@@ -215,33 +149,7 @@ class MovieRepositoryImpl @Inject constructor(
                 emit(movieData)
             }
         } else {
-            // Handle HTTP error codes
-            val errorBody =
-                response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-            val loginResponse = user.password?.let {
-                authRepository.login(
-                    deviceMacAddress = user.deviceMacAddress,
-                    clientIp = user.clientIp,
-                    deviceName = user.deviceName,
-                    identifier = user.identifier,
-                    password = it
-                )
-            }
-            when (loginResponse?.code()) {
-                201 -> {
-                    userRepository.saveUserToken(loginResponse.body()!!.token)
-                    getMovieDetailsNew(token, movieId)
-                }
-
-                else -> {
-                    Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
-                    // todo navigate to login
-
-                }
-            }
-
-            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+            // TODO Handle HTTP error codes
         }
     }
 

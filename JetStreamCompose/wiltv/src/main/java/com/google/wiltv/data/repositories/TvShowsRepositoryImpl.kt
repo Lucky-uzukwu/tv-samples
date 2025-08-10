@@ -35,27 +35,7 @@ class TvShowsRepositoryImpl @Inject constructor(
                 emit(tvShows)
             }
         } else {
-            // Handle HTTP error codes
-            val errorBody =
-                response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error for getTvShowsToShowInHeroSection : ${response.code()} - ${response.message()}. Error body: $errorBody" }
-            val loginResponse = user.password?.let {
-                authRepository.login(
-                    deviceMacAddress = user.deviceMacAddress,
-                    clientIp = user.clientIp,
-                    deviceName = user.deviceName,
-                    identifier = user.identifier,
-                    password = it
-                )
-            }
-            when (loginResponse?.code()) {
-                201 -> {
-                    userRepository.saveUserToken(loginResponse.body()!!.token)
-                    getTvShowsToShowInHeroSection(token, page, itemsPerPage)
-                }
-            }
-
-            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+            // TODO Handle HTTP error codes
         }
     }
 
@@ -84,26 +64,7 @@ class TvShowsRepositoryImpl @Inject constructor(
                         return@flow // Success, exit flow
                     }
                 } else {
-                    // Handle HTTP error codes
-                    val errorBody =
-                        response.errorBody()?.string() // Get error message from server if available
-                    Logger.e { "API Error when getting tvshows in catalog section for $catalogId: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-                    val loginResponse = user.password?.let {
-                        authRepository.login(
-                            deviceMacAddress = user.deviceMacAddress,
-                            clientIp = user.clientIp,
-                            deviceName = user.deviceName,
-                            identifier = user.identifier,
-                            password = it
-                        )
-                    }
-                    when (loginResponse?.code()) {
-                        201 -> {
-                            userRepository.saveUserToken(loginResponse.body()!!.token)
-                            retries++ // Increment retries and continue loop
-                        }
-                        else -> Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
-                    }
+                    // TODO Handle HTTP error codes
                 }
             }
             Logger.e { "Failed to fetch tv shows for catalog $catalogId after $retries retries." }
@@ -135,27 +96,7 @@ class TvShowsRepositoryImpl @Inject constructor(
                         return@flow // Success, exit flow
                     }
                 } else {
-                    // Handle HTTP error codes
-                    val errorBody =
-                        response.errorBody()?.string() // Get error message from server if available
-                    Logger.e { "API Error for getTvShowsToShowInGenreSection: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-                    val loginResponse = user.password?.let {
-                        authRepository.login(
-                            deviceMacAddress = user.deviceMacAddress,
-                            clientIp = user.clientIp,
-                            deviceName = user.deviceName,
-                            identifier = user.identifier,
-                            password = it
-                        )
-                    }
-                    when (loginResponse?.code()) {
-                        201 -> {
-                            userRepository.saveUserToken(loginResponse.body()!!.token)
-                            retries++ // Increment retries and continue loop
-                        }
-
-                        else -> Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
-                    }
+                    // TODO Handle HTTP error codes
                 }
             }
             Logger.e { "Failed to fetch tv shows for genre $genreId after $retries retries." }
@@ -179,33 +120,7 @@ class TvShowsRepositoryImpl @Inject constructor(
                 emit(tvShowData)
             }
         } else {
-            // Handle HTTP error codes
-            val errorBody =
-                response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error for getTvShowsDetails: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-            val loginResponse = user.password?.let {
-                authRepository.login(
-                    deviceMacAddress = user.deviceMacAddress,
-                    clientIp = user.clientIp,
-                    deviceName = user.deviceName,
-                    identifier = user.identifier,
-                    password = it
-                )
-            }
-            when (loginResponse?.code()) {
-                201 -> {
-                    userRepository.saveUserToken(loginResponse.body()!!.token)
-                    getTvShowsDetails(token, tvShowId)
-                }
-
-                else -> {
-                    Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
-                    // todo navigate to login
-
-                }
-            }
-
-            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+            // TODO Handle HTTP error codes
         }
 
     }

@@ -44,27 +44,7 @@ class SearchRepositoryImpl @Inject constructor(
                 emit(searchResponse)
             }
         } else {
-            // Handle HTTP error codes
-            val errorBody =
-                response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-            val loginResponse = user.password?.let {
-                authRepository.login(
-                    deviceMacAddress = user.deviceMacAddress,
-                    clientIp = user.clientIp,
-                    deviceName = user.deviceName,
-                    identifier = user.identifier,
-                    password = it
-                )
-            }
-            when (loginResponse?.code()) {
-                201 -> {
-                    userRepository.saveUserToken(loginResponse.body()!!.token)
-                    searchMoviesByQuery(token, query, itemsPerPage, page)
-                }
-            }
-
-            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+            // TODO Handle HTTP error codes
         }
     }
 
@@ -91,27 +71,7 @@ class SearchRepositoryImpl @Inject constructor(
                 emit(searchResponse)
             }
         } else {
-            // Handle HTTP error codes
-            val errorBody =
-                response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-            val loginResponse = user.password?.let {
-                authRepository.login(
-                    deviceMacAddress = user.deviceMacAddress,
-                    clientIp = user.clientIp,
-                    deviceName = user.deviceName,
-                    identifier = user.identifier,
-                    password = it
-                )
-            }
-            when (loginResponse?.code()) {
-                201 -> {
-                    userRepository.saveUserToken(loginResponse.body()!!.token)
-                    searchTvShowsByQuery(token, query, itemsPerPage, page)
-                }
-            }
-
-            Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
+            // TODO Handle HTTP error codes
         }
     }
 

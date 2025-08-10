@@ -29,31 +29,7 @@ class CatalogRepositoryImpl @Inject constructor(
                 emit(categories.member)
             }
         } else {
-            // Handle HTTP error codes
-            val errorBody =
-                response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error for getMovieCatalog:  ${response.code()} - ${response.message()}. Error body: $errorBody" }
-            val loginResponse = user.password?.let {
-                authRepository.login(
-                    deviceMacAddress = user.deviceMacAddress,
-                    clientIp = user.clientIp,
-                    deviceName = user.deviceName,
-                    identifier = user.identifier,
-                    password = it
-                )
-            }
-            when (loginResponse?.code()) {
-                201 -> {
-                    Logger.i { "Login successful" }
-                    Logger.i { "Fetching categories for Movie section with new token: ${loginResponse.body()!!.token}" }
-                    userRepository.saveUserToken(loginResponse.body()!!.token)
-                    getMovieCatalog()
-                }
-
-                else -> {
-                    Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
-                }
-            }
+            // TODO Handle HTTP error codes
         }
 
     }
@@ -73,32 +49,7 @@ class CatalogRepositoryImpl @Inject constructor(
                 emit(categories.member)
             }
         } else {
-            // Handle HTTP error codes
-            val errorBody =
-                response.errorBody()?.string() // Get error message from server if available
-            Logger.e { "API Error for tv shows: ${response.code()} - ${response.message()}. Error body: $errorBody" }
-            val loginResponse = user.password?.let {
-                authRepository.login(
-                    deviceMacAddress = user.deviceMacAddress,
-                    clientIp = user.clientIp,
-                    deviceName = user.deviceName,
-                    identifier = user.identifier,
-                    password = it
-                )
-            }
-            when (loginResponse?.code()) {
-                201 -> {
-                    Logger.i { "Login successful" }
-                    Logger.i { "Fetching categories for Movie section with new token: ${loginResponse.body()!!.token}" }
-                    userRepository.saveUserToken(loginResponse.body()!!.token)
-                    getTvShowCatalog()
-                }
-
-                else -> {
-                    Logger.e { "Unexpected HTTP error: ${loginResponse?.code()}" }
-                }
-            }
-
+            // TODO Handle HTTP error codes
         }
     }
 }

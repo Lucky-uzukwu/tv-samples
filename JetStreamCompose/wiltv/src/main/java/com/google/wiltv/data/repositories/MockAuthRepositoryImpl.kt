@@ -1,6 +1,5 @@
 package com.google.wiltv.data.repositories
 
-import com.google.wiltv.data.network.CustomerDataResponse
 import com.google.wiltv.data.network.LoginResponse
 import com.google.wiltv.data.network.TokenResponse
 import com.google.wiltv.data.network.UserResponse
@@ -9,7 +8,7 @@ import kotlinx.coroutines.flow.flow
 import retrofit2.Response
 
 class MockAuthRepositoryImpl : AuthRepository {
-    override suspend fun requestTokenForCustomer(
+    override suspend fun requestTokenForNewCustomer(
         deviceMacAddress: String,
         clientIp: String,
         deviceName: String
@@ -26,6 +25,21 @@ class MockAuthRepositoryImpl : AuthRepository {
                 registrationRequiredMessage = "registrationRequiredMessage"
             )
         )
+
+    override suspend fun requestTokenForExistingCustomer(
+        deviceMacAddress: String,
+        clientIp: String,
+        deviceName: String
+    ): Response<LoginResponse> = Response.success(
+        LoginResponse(
+            code = "code",
+            deviceName = "code",
+            validUntil = "code",
+            createdAt = "code",
+            qrCode = "code",
+            confirmedAt = "code"
+        )
+    )
 
     override suspend fun getUser(
         token: String,
@@ -55,32 +69,6 @@ class MockAuthRepositoryImpl : AuthRepository {
         emit(200 to TokenResponse(token = "token"))
     }
 
-
-    override suspend fun login(
-        identifier: String,
-        password: String,
-        deviceMacAddress: String,
-        clientIp: String,
-        deviceName: String
-    ): Response<LoginResponse> = Response.success(LoginResponse(token = "token"))
-
-    override suspend fun register(
-        password: String,
-        password_confirmation: String,
-        email: String,
-        name: String,
-        identifier: String
-    ): Response<CustomerDataResponse> = Response.success(
-        CustomerDataResponse(
-            identifier = "identifier",
-            name = "name",
-            email = "email",
-            username = "username()",
-            devicesAllowed = 2,
-            registrationRequired = false,
-            registrationRequiredMessage = "registrationRequiredMessage",
-        )
-    )
 
     override suspend fun loginWithTv(
         identifier: String,

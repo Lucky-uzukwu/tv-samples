@@ -2,12 +2,17 @@ package com.google.wiltv.data.network
 
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.Header
 import retrofit2.http.POST
 
 interface TokenService {
 
     @POST("/token")
-    suspend fun createToken(@Body request: TokenRequest): Response<TokenResponse>
+    suspend fun createToken(
+        @Header("Accept") accept: String = "application/ld+json",
+        @Header("Content-Type") contentType: String = "application/json",
+        @Body request: TokenRequest
+    ): Response<TokenResponse>
 
 }
 
