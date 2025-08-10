@@ -1,16 +1,21 @@
 package com.google.wiltv.presentation.screens.auth
 
-import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.DeviceInfo
 import co.touchlab.kermit.Logger
 import com.google.gson.Gson
+import com.google.wiltv.data.network.BroadcastingService
 import com.google.wiltv.data.network.TokenResponse
 import com.google.wiltv.data.network.UserResponse
 import com.google.wiltv.data.repositories.AuthRepository
 import com.google.wiltv.data.repositories.UserRepository
 import com.google.wiltv.presentation.screens.auth.AuthScreenUiState.Idle
+import com.pusher.client.Pusher
+import com.pusher.client.PusherOptions
+import com.pusher.client.channel.Channel
+import com.pusher.client.connection.ConnectionEventListener
+import com.pusher.client.connection.ConnectionState
+import com.pusher.client.connection.ConnectionStateChange
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,13 +25,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
-import okhttp3.WebSocket
-import okhttp3.WebSocketListener
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 sealed class AuthScreenUiState {
@@ -34,7 +33,8 @@ sealed class AuthScreenUiState {
     object Loading : AuthScreenUiState()
 
     data class CodeGenerated(
-        val code: String,
+        val registrationCode: String,
+        val loginRequestCode: String
     ) : AuthScreenUiState()
 
     data class Connected(val message: String) : AuthScreenUiState()
@@ -52,6 +52,7 @@ sealed class AuthScreenUiEvent {
 class AuthScreenViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository,
+    private val broadcastingService: BroadcastingService,
 ) : ViewModel() {
 
     // Expose screen UI state
@@ -61,15 +62,10 @@ class AuthScreenViewModel @Inject constructor(
     private val _connectionStatus = MutableStateFlow("Connecting...")
     val connectionStatus: StateFlow<String> = _connectionStatus.asStateFlow()
 
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build()
-
-    private var webSocket: WebSocket? = null
+    private var pusher: Pusher? = null
+    private var channel: Channel? = null
     private val gson = Gson()
     private var connectionStartTime: Long = 0
-    private var heartbeatJob: kotlinx.coroutines.Job? = null
     private var isConnected = false
 
     // Expose screen UI events
@@ -85,21 +81,35 @@ class AuthScreenViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _uiState.value = AuthScreenUiState.Loading
-                val userResponse = createUser(
+
+                val registrationTokenResponse = authRepository.requestTokenForNewCustomer(
                     deviceMacAddress = deviceMacAddress,
                     clientIp = clientIp,
                     deviceName = deviceName
-                )
+                ).body()!!
+
+                val loginTokenResponse = authRepository.requestTokenForExistingCustomer(
+                    deviceMacAddress = deviceMacAddress,
+                    clientIp = clientIp,
+                    deviceName = deviceName
+                ).body()!!
 
                 // Log the code here
-                Logger.d { "User Identifier: ${userResponse.identifier}" }
+                Logger.d { "User Identifier: ${registrationTokenResponse.identifier}" }
 
                 _uiState.value = AuthScreenUiState.CodeGenerated(
-                    code = userResponse.identifier,
+                    registrationCode = registrationTokenResponse.identifier.padStart(6, '0'),
+                    loginRequestCode = loginTokenResponse.code.padStart(6, '0')
                 )
 
-                setupWebSocketConnection(
-                    userResponse.identifier,
+                setupPusherConnection(
+                    registrationTokenResponse.identifier.padStart(6, '0'),
+                    deviceMacAddress,
+                    clientIp,
+                    deviceName
+                )
+                setupPusherConnection(
+                    loginTokenResponse.code.padStart(6, '0'),
                     deviceMacAddress,
                     clientIp,
                     deviceName
@@ -110,249 +120,189 @@ class AuthScreenViewModel @Inject constructor(
         }
     }
 
-    private suspend fun createUser(
+    private fun setupPusherConnection(
+        code: String,
         deviceMacAddress: String,
-        clientIp: String,
-        deviceName: String
-    ): UserResponse = authRepository.requestTokenForCustomer(
-        deviceMacAddress = deviceMacAddress,
-        clientIp = clientIp,
-        deviceName = deviceName
-    ).body()!!
-
-    private fun setupWebSocketConnection(
-        code: String, deviceMacAddress: String,
         clientIp: String,
         deviceName: String,
     ) {
-        val websocketUrl =
-            "wss://reverb-connect.nortv.xyz/app/fYUAeE6atNyRV4SXR542Cnct?protocol=7&client=js&version=8.4.0&flash=false"
-
-        Logger.i { "📡 Initiating WebSocket connection..." }
-        Logger.d { "WebSocket URL: $websocketUrl" }
+        Logger.i { "📡 Initiating Pusher connection..." }
         Logger.d { "Connection parameters - Code: $code, Device: $deviceName, MAC: $deviceMacAddress, IP: $clientIp" }
 
         connectionStartTime = System.currentTimeMillis()
         isConnected = false
 
-        val request = Request.Builder()
-            .url(websocketUrl)
-            .build()
+        // Initialize Pusher with complete configuration
+        val options = PusherOptions().apply {
+            setCluster("eu")  // Add cluster configuration
+            setHost("reverb-connect.nortv.xyz")
+            setWsPort(80)     // Add WebSocket port
+            setWssPort(443)   // Add secure WebSocket port
+            setUseTLS(true)   // forceTLS: true
 
-        webSocket = client.newWebSocket(request, object : WebSocketListener() {
-            override fun onOpen(webSocket: WebSocket, response: Response) {
-                val connectionTime = System.currentTimeMillis() - connectionStartTime
-                isConnected = true
-                _connectionStatus.value = "Connected"
+            // Improved authorizer without runBlocking
+            setAuthorizer { channelName, socketId ->
+                Logger.d { "🔐 Authorizing channel: $channelName with socketId: $socketId" }
 
-                Logger.i { "✅ WebSocket connection established successfully" }
-                Logger.d { "Connection time: ${connectionTime}ms" }
-                Logger.d { "Response code: ${response.code}" }
-                Logger.d { "Protocol: ${response.protocol}" }
+                // Create a CompletableFuture for async auth
+                val future = CompletableFuture<String>()
 
-                // Subscribe to the channel
-                val subscribeMessage = mapOf(
-                    "event" to "pusher:subscribe",
-                    "data" to mapOf("channel" to "login.request.$code")
-                )
-                val subscribeJson = gson.toJson(subscribeMessage)
+                viewModelScope.launch {
+                    try {
+                        Logger.d { "📞 Calling auth endpoint for channel: $channelName" }
+                        val response =
+                            broadcastingService.authenticateChannel(channelName, socketId)
 
-                Logger.i { "📤 Subscribing to channel: login.request.$code" }
-                Logger.d { "Subscribe message: $subscribeJson" }
+                        if (response.isSuccessful && response.body() != null) {
+                            val authString = response.body()!!.auth
+                            Logger.d { "✅ Auth successful for channel: $channelName" }
+                            future.complete(authString)
+                        } else {
+                            val errorMsg = "Auth request failed with code: ${response.code()}"
+                            Logger.e { "❌ $errorMsg" }
+                            future.completeExceptionally(Exception(errorMsg))
+                        }
+                    } catch (e: Exception) {
+                        Logger.e { "❌ Auth failed for channel $channelName: ${e.message}" }
+                        future.completeExceptionally(e)
+                    }
+                }
 
-                webSocket.send(subscribeJson)
-
-                // Start heartbeat
-                startHeartbeat(webSocket)
-            }
-
-            override fun onMessage(webSocket: WebSocket, text: String) {
-                Logger.d { "📥 Incoming WebSocket message (${text.length} chars): $text" }
-
+                // Wait for the future to complete (with timeout)
                 try {
-                    val message = gson.fromJson(text, Map::class.java)
-                    val event = message["event"] as? String
-                    val channel = message["channel"] as? String
-                    val data = message["data"]
-
-                    Logger.i { "📨 Processing event: '$event'" }
-                    if (channel != null) {
-                        Logger.d { "Channel: $channel" }
-                    }
-                    if (data != null) {
-                        Logger.d { "Data payload: $data" }
-                    }
-
-                    when (event) {
-                        "pusher:subscription_succeeded" -> {
-                            Logger.i { "✅ Successfully subscribed to channel: login.request.$code" }
-                            _connectionStatus.value =
-                                "Subscribed to login.request.$code - Listening for request-confirmed event"
-                        }
-
-                        "pusher_internal:subscription_succeeded" -> {
-                            Logger.i { "🔧 Internal Pusher subscription succeeded" }
-                            val channelData = (data as? Map<*, *>)?.get("channel")
-                            Logger.d { "Internal subscription channel: $channelData" }
-                            if (channelData != null) {
-                                Logger.d { "Internal subscription data: $data" }
-                            }
-                        }
-
-                        "request-confirmed" -> {
-                            val dataString = message["data"] as? String
-                            Logger.i { "🎯 Login confirmation received!" }
-                            Logger.d { "Confirmation data: $dataString" }
-                            _connectionStatus.value = "Event Received: $dataString"
-                            handleLoginConfirmed(code, deviceMacAddress, clientIp, deviceName)
-                        }
-
-                        "pusher:error" -> {
-                            val errorData = message["data"] as? Map<*, *>
-                            val errorMessage =
-                                errorData?.get("message") as? String ?: "Unknown error"
-                            val errorCode = errorData?.get("code") as? Number
-                            Logger.e { "❌ WebSocket error received - Code: $errorCode, Message: $errorMessage" }
-                            _connectionStatus.value = "WebSocket Error: $errorMessage"
-                        }
-
-                        "pusher:connection_established" -> {
-                            Logger.i { "🔗 Pusher connection established" }
-                            val socketId = (data as? Map<*, *>)?.get("socket_id")
-                            Logger.d { "Socket ID: $socketId" }
-                        }
-
-                        "pusher:pong" -> {
-                            Logger.d { "💓 Heartbeat pong received" }
-                        }
-
-                        else -> {
-                            Logger.w { "⚠️ Unhandled event type: '$event'" }
-                        }
-                    }
+                    future.get(10, java.util.concurrent.TimeUnit.SECONDS)
                 } catch (e: Exception) {
-                    Logger.e { "💥 Error parsing WebSocket message: ${e.message}" }
-                    Logger.d { "Failed message content: $text" }
-                    _connectionStatus.value = "Error parsing message: ${e.message}"
+                    Logger.e { "Auth timeout or error: ${e.message}" }
+                    throw e
                 }
             }
 
-            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                isConnected = false
-                val errorMessage = t.message ?: "Unknown error"
+        }
 
-                Logger.e { "💥 WebSocket connection failed: $errorMessage" }
-                Logger.e { "Exception type: ${t::class.simpleName}" }
+        pusher = Pusher("fYUAeE6atNyRV4SXR542Cnct", options)
 
-                response?.let {
-                    Logger.e { "Response code: ${it.code}" }
-                    Logger.e { "Response message: ${it.message}" }
-                    Logger.d { "Response headers: ${it.headers}" }
-                }
-
-                // Categorize common network errors
-                when {
-                    t is java.net.UnknownHostException -> {
-                        Logger.e { "🌐 Network issue: Unable to resolve host" }
-                        _connectionStatus.value = "Connection Error: Unable to resolve host"
-                    }
-
-                    t is java.net.ConnectException -> {
-                        Logger.e { "🔌 Network issue: Connection refused" }
-                        _connectionStatus.value = "Connection Error: Connection refused"
-                    }
-
-                    t is java.net.SocketTimeoutException -> {
-                        Logger.e { "⏱️ Network issue: Connection timeout" }
-                        _connectionStatus.value = "Connection Error: Timeout"
-                    }
-
-                    t is javax.net.ssl.SSLException -> {
-                        Logger.e { "🔒 SSL/TLS issue: ${t.message}" }
-                        _connectionStatus.value = "Connection Error: SSL issue"
-                    }
-
-                    else -> {
-                        Logger.e { "❓ Unrecognized connection error: $errorMessage" }
-                        _connectionStatus.value = "Connection Error: $errorMessage"
-                    }
-                }
-
-                // Stop heartbeat on failure
-                stopHeartbeat()
-            }
-
-            override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-                isConnected = false
-                val uptime = if (connectionStartTime > 0) {
+        // Connection state listener
+        pusher?.connect(object : ConnectionEventListener {
+            override fun onConnectionStateChange(change: ConnectionStateChange) {
+                val connectionTime = if (connectionStartTime > 0) {
                     System.currentTimeMillis() - connectionStartTime
                 } else 0
 
-                Logger.i { "🔌 WebSocket connection closed" }
-                Logger.d { "Close code: $code" }
-                Logger.d { "Close reason: $reason" }
-                Logger.d { "Connection uptime: ${uptime}ms" }
+                Logger.i { "🔗 Pusher connection state: ${change.currentState}" }
 
-                // Interpret common close codes
-                val closeReason = when (code) {
-                    1000 -> "Normal closure"
-                    1001 -> "Going away"
-                    1002 -> "Protocol error"
-                    1003 -> "Unsupported data"
-                    1005 -> "No status received"
-                    1006 -> "Abnormal closure"
-                    1007 -> "Invalid frame payload data"
-                    1008 -> "Policy violation"
-                    1009 -> "Message too big"
-                    1010 -> "Mandatory extension"
-                    1011 -> "Internal server error"
-                    1015 -> "TLS handshake failure"
-                    else -> "Unknown close code"
-                }
+                when (change.currentState) {
+                    ConnectionState.CONNECTED -> {
+                        isConnected = true
+                        Logger.i { "✅ Pusher connection established for code : $code with TLS after ${connectionTime}ms" }
+                        _connectionStatus.value = "Connected"
 
-                Logger.i { "📋 Close code meaning: $closeReason" }
-                _connectionStatus.value = "Connection Closed: $closeReason"
-
-                // Stop heartbeat on close
-                stopHeartbeat()
-            }
-
-
-        })
-    }
-
-    private fun startHeartbeat(webSocket: WebSocket) {
-        Logger.d { "💓 Starting WebSocket heartbeat..." }
-
-        heartbeatJob = viewModelScope.launch {
-            while (isConnected) {
-                try {
-                    delay(30_000) // Send ping every 30 seconds
-
-                    if (isConnected) {
-                        val pingMessage =
-                            mapOf("event" to "pusher:ping", "data" to emptyMap<String, Any>())
-                        val pingJson = gson.toJson(pingMessage)
-
-                        Logger.d { "💓 Sending heartbeat ping" }
-                        Logger.v { "Ping message: $pingJson" }
-
-                        webSocket.send(pingJson)
-
-                        Logger.d { "💓 Heartbeat - Connection healthy (uptime: ${System.currentTimeMillis() - connectionStartTime}ms)" }
+                        // Subscribe to channel AFTER connection is established
+                        subscribeToChannel(code, deviceMacAddress, clientIp, deviceName)
                     }
-                } catch (e: Exception) {
-                    Logger.e { "💥 Heartbeat error: ${e.message}" }
-                    break
+
+                    ConnectionState.CONNECTING -> {
+                        Logger.i { "🔄 Pusher connecting..." }
+                        _connectionStatus.value = "Connecting..."
+                    }
+
+                    ConnectionState.DISCONNECTED -> {
+                        isConnected = false
+                        Logger.w { "🔌 Pusher disconnected" }
+                        _connectionStatus.value = "Disconnected"
+                    }
+
+                    ConnectionState.RECONNECTING -> {
+                        Logger.i { "🔄 Pusher reconnecting..." }
+                        _connectionStatus.value = "Reconnecting..."
+                    }
+
+                    ConnectionState.DISCONNECTING -> {
+                        Logger.i { "🔄 Pusher disconnecting..." }
+                        _connectionStatus.value = "Disconnecting..."
+                    }
+
+                    else -> {
+                        Logger.d { "🔄 Pusher state: ${change.currentState}" }
+                    }
                 }
             }
-        }
+
+            override fun onError(message: String, code: String?, e: Exception?) {
+                isConnected = false
+                Logger.e { "❌ Pusher connection error: $message${code?.let { ", Code: $it" } ?: ""}" }
+                e?.let {
+                    Logger.e { "Exception: ${it.message}" }
+                    Logger.e { "Exception type: ${it::class.simpleName}" }
+                }
+                _connectionStatus.value = "Connection Error: $message"
+
+                // Update UI state to show error
+                _uiState.value = AuthScreenUiState.Error("Connection failed: $message")
+            }
+        })
+
+        Logger.i { "📤 Pusher client configured and connecting..." }
     }
 
-    private fun stopHeartbeat() {
-        Logger.d { "🔴 Stopping WebSocket heartbeat" }
-        heartbeatJob?.cancel()
-        heartbeatJob = null
+    private fun subscribeToChannel(
+        code: String,
+        deviceMacAddress: String,
+        clientIp: String,
+        deviceName: String
+    ) {
+        val channelName = "login.request.$code"
+        Logger.i { "📡 Subscribing to channel: $channelName" }
+
+        try {
+            // Subscribe to the channel
+            channel = pusher?.subscribe(channelName)
+
+            // Bind to subscription succeeded event
+            channel?.bind("pusher:subscription_succeeded") { event ->
+                Logger.i { "✅ Successfully subscribed to $channelName" }
+                val statusMessage =
+                    "[Subscribed to login.request.$code] - [Listening for request-confirmed event]"
+                Logger.i { statusMessage }
+                _connectionStatus.value = statusMessage
+                _uiState.value = AuthScreenUiState.Connected(statusMessage)
+            }
+
+            // Bind to subscription error event
+            channel?.bind("pusher:subscription_error") { event ->
+                Logger.e { "❌ Subscription error for $channelName: ${event.data}" }
+                _uiState.value = AuthScreenUiState.Error("Failed to subscribe to channel")
+            }
+
+            // IMPORTANT: Bind to your custom events
+            channel?.bind("request-confirmed") { event ->
+                Logger.i { "🎉 Login request confirmed!" }
+                Logger.d { "Event data: ${event.data}" }
+
+                // Parse the event data if needed
+                try {
+                    handleLoginConfirmed(code, deviceMacAddress, clientIp, deviceName)
+                } catch (e: Exception) {
+                    Logger.e { "Failed to process login confirmation: ${e.message}" }
+                    _uiState.value = AuthScreenUiState.Error("Failed to process login confirmation")
+                }
+            }
+
+            // You might also want to bind to other events like "login-denied", "login-timeout", etc.
+            channel?.bind("login-denied") { event ->
+                Logger.w { "⚠️ Login request denied" }
+                Logger.d { "Denial reason: ${event.data}" }
+                _uiState.value = AuthScreenUiState.Error("Login request was denied")
+            }
+
+            channel?.bind("login-timeout") { event ->
+                Logger.w { "⏱️ Login request timed out" }
+                _uiState.value = AuthScreenUiState.Error("Login request timed out")
+            }
+
+        } catch (e: Exception) {
+            Logger.e { "💥 Error subscribing to channel: ${e.message}" }
+            _uiState.value = AuthScreenUiState.Error("Failed to setup channel subscription")
+        }
     }
 
     override fun onCleared() {
@@ -365,21 +315,21 @@ class AuthScreenViewModel @Inject constructor(
         Logger.i { "🧹 AuthScreenViewModel cleanup initiated" }
         Logger.d { "Connection uptime before cleanup: ${uptime}ms" }
 
-        // Stop heartbeat first
-        stopHeartbeat()
-
-        // Close WebSocket connection gracefully
-        webSocket?.let { ws ->
-            Logger.i { "🔌 Closing WebSocket connection gracefully" }
-            ws.close(1000, "ViewModel cleared")
-        } ?: Logger.d { "WebSocket was already null during cleanup" }
+        // Disconnect Pusher client gracefully
+        pusher?.let { pusherClient ->
+            Logger.i { "🔌 Closing Pusher connection gracefully" }
+            pusherClient.disconnect()
+        } ?: Logger.d { "Pusher was already null during cleanup" }
 
         isConnected = false
+        pusher = null
+        channel = null
         Logger.i { "✅ AuthScreenViewModel cleanup completed" }
     }
 
     private fun handleLoginConfirmed(
-        code: String, deviceMacAddress: String,
+        code: String,
+        deviceMacAddress: String,
         clientIp: String,
         deviceName: String,
     ) {
@@ -389,29 +339,24 @@ class AuthScreenViewModel @Inject constructor(
             try {
                 Logger.d { "📞 Calling loginWithAccessCode..." }
                 val token = loginWithAccessCode(code, deviceMacAddress, clientIp, deviceName)
-                val tokenValue = token.firstOrNull()?.token
+                val tokenValue = token.collect {
+                    val userToken = it?.token
+                    if (userToken != null) {
+                        _uiState.update {
+                            AuthScreenUiState.Success(
+                                userToken,
+                                message = "Login successful"
+                            )
+                        }
+                        userRepository.saveUserToken(userToken)
+                        _uiEvent.update { AuthScreenUiEvent.NavigateToLogin }
+                    }
 
-                if (tokenValue != null) {
-                    Logger.i { "✅ Authentication successful - Token received" }
-                    Logger.d { "Token preview: ${tokenValue.take(10)}..." }
-                } else {
-                    Logger.w { "⚠️ Authentication completed but no token received" }
+
                 }
-
-                _uiState.update {
-                    AuthScreenUiState.Success(
-                        tokenValue,
-                        message = "Login successful"
-                    )
-                }
-
-                _uiEvent.update { AuthScreenUiEvent.NavigateToLogin }
-
-
-                // Close WebSocket after successful login
-                Logger.i { "🔌 Closing WebSocket after successful login" }
-                webSocket?.close(1000, "Login successful")
-
+                // Close Pusher connection after successful login
+                Logger.i { "🔌 Closing Pusher connection after successful login" }
+                pusher?.disconnect()
             } catch (e: Exception) {
                 Logger.e { "💥 Authentication failed: ${e.message}" }
                 Logger.e { "Exception type: ${e::class.simpleName}" }
@@ -555,3 +500,8 @@ class AuthScreenViewModel @Inject constructor(
         _uiEvent.value = null
     }
 }
+
+
+data class LoginRequestEvent(
+    val loginRequest: String
+)

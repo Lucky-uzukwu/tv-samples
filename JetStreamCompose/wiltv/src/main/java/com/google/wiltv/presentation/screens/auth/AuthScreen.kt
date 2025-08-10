@@ -53,21 +53,31 @@ fun AuthScreen(
 
     var identifierOrEmail by remember { mutableStateOf("") }
 
+    var registrationCode by remember { mutableStateOf("") }
+    var loginRequestCode by remember { mutableStateOf("") }
+
     // Focus requester for the first form field in LoginWithTv
     val tvLoginFirstFieldFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(uiEvent) {
         if (uiEvent is AuthScreenUiEvent.NavigateToLogin && uiState is AuthScreenUiState.Success<*>) {
-            if (identifierOrEmail.isNotBlank()) {
-                authScreenViewModel.getUser(identifier = identifierOrEmail).collect {
-                    it?.let {
+            val identifier = when {
+                registrationCode.isNotBlank() -> registrationCode
+                loginRequestCode.isNotBlank() -> loginRequestCode
+                identifierOrEmail.isNotBlank() -> identifierOrEmail
+                else -> null
+            }
+
+            identifier?.let { id ->
+                authScreenViewModel.getUser(identifier = id).collect { user ->
+                    user?.let {
                         userStateHolder.updateUser(
                             User(
-                                identifier = it.identifier,
-                                name = it.name,
-                                email = it.email,
-                                profilePhotoPath = it.profilePhotoPath,
-                                profilePhotoUrl = it.profilePhotoUrl,
+                                identifier = user.identifier,
+                                name = user.name,
+                                email = user.email,
+                                profilePhotoPath = user.profilePhotoPath,
+                                profilePhotoUrl = user.profilePhotoUrl,
                                 clientIp = clientIp,
                                 deviceName = deviceName,
                                 deviceMacAddress = macAddress,
@@ -83,7 +93,8 @@ fun AuthScreen(
 
     LaunchedEffect(uiState) {
         if (uiState is AuthScreenUiState.CodeGenerated) {
-            identifierOrEmail = (uiState as AuthScreenUiState.CodeGenerated).code
+            registrationCode = (uiState as AuthScreenUiState.CodeGenerated).registrationCode
+            loginRequestCode = (uiState as AuthScreenUiState.CodeGenerated).loginRequestCode
         }
     }
 
@@ -162,7 +173,8 @@ fun AuthScreen(
             isTvLoginWithTvError = uiState is AuthScreenUiState.Error,
             errorMessage = (uiState as? AuthScreenUiState.Error)?.message,
             tvLoginFirstFieldFocusRequester = tvLoginFirstFieldFocusRequester,
-            generatedAccessCode = identifierOrEmail,
+            generatedRegistrationCode = registrationCode,
+            generatedLoginCode = loginRequestCode,
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(0.6f),
@@ -275,7 +287,8 @@ fun AuthOptionItem(
 @Composable
 fun RightContentPanel(
     selectedAuthOption: AuthRoute,
-    generatedAccessCode: String,
+    generatedRegistrationCode: String,
+    generatedLoginCode: String,
     handleLoginWithTvOnSubmit: (String, String) -> Unit,
     handleLoginWithAccessCodeOnSubmit: (String) -> Unit,
     isTvLoginLoading: Boolean,
@@ -293,7 +306,7 @@ fun RightContentPanel(
         when (selectedAuthOption) {
             AuthRoute.REGISTER -> {
                 RegisterAccount(
-                    accessCode = generatedAccessCode,
+                    accessCode = generatedRegistrationCode,
                 )
             }
 
@@ -319,7 +332,7 @@ fun RightContentPanel(
 
             AuthRoute.LOGIN_WITH_SMART_PHONE -> {
                 LoginWithSmartphone(
-                    accessCode = generatedAccessCode,
+                    accessCode = generatedLoginCode,
                 )
             }
         }
