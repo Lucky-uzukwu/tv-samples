@@ -1,6 +1,5 @@
 package com.google.wiltv.data.repositories
 
-import com.google.wiltv.data.network.CustomerDataResponse
 import com.google.wiltv.data.network.LoginResponse
 import com.google.wiltv.data.network.TokenResponse
 import com.google.wiltv.data.network.UserResponse
@@ -9,29 +8,19 @@ import retrofit2.Response
 
 interface AuthRepository {
 
-    suspend fun requestTokenForCustomer(
+    suspend fun requestTokenForNewCustomer(
         deviceMacAddress: String,
         clientIp: String,
         deviceName: String,
     ): Response<UserResponse>
 
-    suspend fun getUser(token: String, identifier: String): Flow<UserResponse?>
-
-    suspend fun login(
-        identifier: String,
-        password: String,
+    suspend fun requestTokenForExistingCustomer(
         deviceMacAddress: String,
         clientIp: String,
         deviceName: String,
     ): Response<LoginResponse>
 
-    suspend fun register(
-        password: String,
-        password_confirmation: String,
-        email: String,
-        name: String,
-        identifier: String
-    ): Response<CustomerDataResponse>
+    suspend fun getUser(token: String, identifier: String): Flow<UserResponse?>
 
     suspend fun loginWithTv(
         identifier: String,

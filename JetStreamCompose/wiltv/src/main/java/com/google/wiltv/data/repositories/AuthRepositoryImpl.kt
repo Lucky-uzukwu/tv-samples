@@ -1,11 +1,9 @@
 package com.google.wiltv.data.repositories
 
 import co.touchlab.kermit.Logger
-import com.google.wiltv.data.network.CustomerDataResponse
-import com.google.wiltv.data.network.CustomerService
 import com.google.wiltv.data.network.LoginRequest
+import com.google.wiltv.data.network.LoginRequestService
 import com.google.wiltv.data.network.LoginResponse
-import com.google.wiltv.data.network.SetPasswordRequest
 import com.google.wiltv.data.network.TokenRequest
 import com.google.wiltv.data.network.TokenResponse
 import com.google.wiltv.data.network.TokenService
@@ -14,18 +12,18 @@ import com.google.wiltv.data.network.UserResponse
 import com.google.wiltv.data.network.UserService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import retrofit2.Response
 import javax.inject.Inject
 import javax.inject.Singleton
-import retrofit2.Response
 
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
-    private val customerService: CustomerService,
     private val userService: UserService,
+    private val loginRequestService: LoginRequestService,
     private val tokenService: TokenService
 ) : AuthRepository {
 
-    override suspend fun requestTokenForCustomer(
+    override suspend fun requestTokenForNewCustomer(
         deviceMacAddress: String,
         clientIp: String,
         deviceName: String,
@@ -40,23 +38,17 @@ class AuthRepositoryImpl @Inject constructor(
 
     }
 
-    override suspend fun register(
-        password: String,
-        password_confirmation: String,
-        email: String,
-        name: String,
-        identifier: String
-    ): Response<CustomerDataResponse> {
-        return customerService.setPassword(
-            identifier = identifier,
-            request = SetPasswordRequest(
-                password = password,
-                password_confirmation = password_confirmation,
-                email = email,
-                name = name,
-            )
+    override suspend fun requestTokenForExistingCustomer(
+        deviceMacAddress: String,
+        clientIp: String,
+        deviceName: String
+    ): Response<LoginResponse> = loginRequestService.createUserResource(
+        LoginRequest(
+            requesterMacAddress = deviceMacAddress,
+            deviceName = deviceName,
+            requesterIpAddress = clientIp
         )
-    }
+    )
 
     override suspend fun loginWithTv(
         identifier: String,
@@ -74,7 +66,7 @@ class AuthRepositoryImpl @Inject constructor(
             device = deviceName,
             request = null
         )
-        val response = tokenService.createToken(tokenRequest)
+        val response = tokenService.createToken(request = tokenRequest)
 
         when (response.code()) {
             404 -> {
@@ -114,7 +106,7 @@ class AuthRepositoryImpl @Inject constructor(
             password = null,
             identifier = null
         )
-        val response = tokenService.createToken(tokenRequest)
+        val response = tokenService.createToken(request = tokenRequest)
 
         when (response.code()) {
             404 -> {
@@ -163,20 +155,4 @@ class AuthRepositoryImpl @Inject constructor(
             }
         }
     }
-
-    override suspend fun login(
-        identifier: String,
-        password: String,
-        deviceMacAddress: String,
-        clientIp: String,
-        deviceName: String
-    ): Response<LoginResponse> = customerService.login(
-        LoginRequest(
-            identifier = identifier,
-            password = password,
-            deviceMacAddress = deviceMacAddress,
-            clientIp = clientIp,
-            deviceName = deviceName
-        )
-    )
 }
