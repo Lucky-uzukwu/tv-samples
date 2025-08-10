@@ -180,6 +180,9 @@ dependencies {
     implementation("com.google.zxing:core:3.5.3")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     
+    // Pusher client for real-time communication
+    implementation("com.pusher:pusher-java-client:2.2.1")
+    
     // Testing dependencies
 //    testImplementation("junit:junit:4.13.2")
 //    testImplementation("org.mockito:mockito-core:5.7.0")
