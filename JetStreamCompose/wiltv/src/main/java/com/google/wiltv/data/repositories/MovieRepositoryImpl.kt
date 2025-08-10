@@ -68,7 +68,7 @@ class MovieRepositoryImpl @Inject constructor(
         )
 
         if (response.isSuccessful) {
-            val movies = response.body()
+             val movies = response.body()
             Logger.i { "API Response: $movies" }
             Logger.i { "Successfully fetched ${movies?.member?.size} movies for hero section." }
             if (movies != null) {

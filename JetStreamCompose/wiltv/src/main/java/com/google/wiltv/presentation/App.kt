@@ -1,6 +1,7 @@
 package com.google.wiltv.presentation
 
 import com.google.wiltv.presentation.screens.auth.AuthScreen
+import com.google.wiltv.presentation.screens.profileselection.ProfileSelectionScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -34,8 +35,14 @@ fun App(
     val navController = rememberNavController()
     var isComingBackFromDifferentScreen by remember { mutableStateOf(false) }
     val userState by userStateHolder.userState.collectAsState()
-    val startDestination =
-        if (userState.user?.token !== null) Screens.Dashboard() else Screens.AuthScreen()
+    val startDestination = 
+        if (userState.user?.token !== null) {
+            // If authenticated, go directly to profile selection
+            Screens.ProfileSelection()
+        } else {
+            // If not authenticated, start with auth screen
+            Screens.AuthScreen()
+        }
 
     val selectedMovie = remember { mutableStateOf<MovieNew?>(null) }
     val selectedTvShow = remember { mutableStateOf<TvShow?>(null) }
@@ -47,8 +54,18 @@ fun App(
             composable(route = Screens.AuthScreen()) {
                 AuthScreen(
                     onNavigateToDashboard = {
+                        navController.navigate(Screens.ProfileSelection())
+                    },
+                )
+            }
+            composable(route = Screens.ProfileSelection()) {
+                ProfileSelectionScreen(
+                    onProfileSelected = { profile ->
                         navController.navigate(Screens.Dashboard())
                     },
+                    onManageProfiles = {
+                        // TODO: Navigate to profile management
+                    }
                 )
             }
             composable(

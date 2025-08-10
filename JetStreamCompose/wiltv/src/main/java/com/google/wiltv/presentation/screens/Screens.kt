@@ -37,6 +37,7 @@ enum class Screens(
     val tabIcon: ImageVector? = null
 ) {
     AuthScreen,
+    ProfileSelection,
     Login,
     Register,
     Search(isTabItem = true, tabIcon = Icons.Default.Search),

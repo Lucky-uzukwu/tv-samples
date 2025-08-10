@@ -3,7 +3,9 @@ package com.google.wiltv.state
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.wiltv.data.entities.User
+import com.google.wiltv.data.entities.Profile
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.data.repositories.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class UserStateHolder @Inject constructor(
     private val userRepository: UserRepository,
+    private val profileRepository: ProfileRepository,
 ) : ViewModel() {
 
     // Expose User state
@@ -23,6 +26,9 @@ class UserStateHolder @Inject constructor(
 
     init {
         viewModelScope.launch {
+            // Initialize default profiles on first launch
+            profileRepository.initializeDefaultProfiles()
+            
             combine(
                 userRepository.userAccessCode,
                 userRepository.userName,
@@ -34,20 +40,24 @@ class UserStateHolder @Inject constructor(
                 userRepository.userClientIp,
                 userRepository.userDeviceName,
                 userRepository.userDeviceMacAddress,
-            ) { user ->
+                profileRepository.getAllProfiles(),
+                profileRepository.getSelectedProfile()
+            ) { userParams ->
                 UserState(
                     user = User(
-                        identifier = user[0] ?: "",
-                        name = user[1] ?: "",
-                        email = user[2] ?: "",
-                        profilePhotoPath = user[3],
-                        profilePhotoUrl = user[4],
-                        token = user[5],
-                        password = user[6] ?: "",
-                        clientIp = user[7] ?: "",
-                        deviceName = user[8] ?: "",
-                        deviceMacAddress = user[9] ?: ""
-                    )
+                        identifier = userParams[0] as? String ?: "",
+                        name = userParams[1] as? String ?: "",
+                        email = userParams[2] as? String ?: "",
+                        profilePhotoPath = userParams[3] as? String,
+                        profilePhotoUrl = userParams[4] as? String,
+                        token = userParams[5] as? String,
+                        password = userParams[6] as? String ?: "",
+                        clientIp = userParams[7] as? String ?: "",
+                        deviceName = userParams[8] as? String ?: "",
+                        deviceMacAddress = userParams[9] as? String ?: ""
+                    ),
+                    profiles = userParams[10] as? List<Profile> ?: emptyList(),
+                    selectedProfile = userParams[11] as? Profile
                 )
             }.collect { newState ->
                 _userState.value = newState
@@ -81,6 +91,20 @@ class UserStateHolder @Inject constructor(
         _userState.update { UserState() }
         viewModelScope.launch {
             userRepository.clearUserData()
+        }
+    }
+
+    suspend fun selectProfile(profileId: String) {
+        profileRepository.selectProfile(profileId)
+    }
+
+    suspend fun clearSelectedProfile() {
+        profileRepository.selectProfile("")
+    }
+
+    fun clearAllProfiles() {
+        viewModelScope.launch {
+            profileRepository.clearAllProfiles()
         }
     }
 }
