@@ -4,8 +4,6 @@ import com.google.wiltv.data.network.Catalog
 import com.google.wiltv.data.network.CatalogResponse
 import com.google.wiltv.domain.ApiResult
 import com.google.wiltv.domain.DataError
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 
 class MockCatalogRepositoryImpl : CatalogRepository {
     override suspend fun getMovieCatalog(): ApiResult<CatalogResponse, DataError.Network> {

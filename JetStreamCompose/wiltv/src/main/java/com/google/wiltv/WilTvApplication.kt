@@ -185,7 +185,6 @@ object CatalogRepositoryModule {
     @Singleton
     fun provideMovieRepository(
         catalogService: CatalogService,
-        authRepository: AuthRepository,
         userRepository: UserRepository,
         @Named("isMock") isMock: Boolean
     ): CatalogRepository {
