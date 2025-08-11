@@ -33,6 +33,8 @@ import androidx.tv.material3.Text
 import com.google.wiltv.data.entities.User
 import com.google.wiltv.state.UserStateHolder
 import com.google.wiltv.util.DeviceNetworkInfo
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import androidx.tv.material3.Button as TvButton
 import androidx.tv.material3.ButtonDefaults as TvButtonDefaults
@@ -56,9 +58,34 @@ fun AuthScreen(
     var registrationCode by remember { mutableStateOf("") }
     var loginRequestCode by remember { mutableStateOf("") }
 
+    var registrationErrorMessage by remember { mutableStateOf<String?>(null) }
+    var loginWithSmartphoneErrorMessage by remember { mutableStateOf<String?>(null) }
+    var loginWithTvErrorMessage by remember { mutableStateOf<String?>(null) }
+    var loginWithAccessCodeErrorMessage by remember { mutableStateOf<String?>(null) }
+
+
+    // Current selected auth option
+    var selectedAuthOption by remember { mutableStateOf(AuthRoute.REGISTER) }
+
     // Focus requester for the first form field in LoginWithTv
     val tvLoginFirstFieldFocusRequester = remember { FocusRequester() }
 
+    LaunchedEffect(Unit) {
+        authScreenViewModel.initializeActivation(
+            deviceMacAddress = macAddress,
+            clientIp = clientIp,
+            deviceName = deviceName,
+            isNewCustomer = true
+        )
+        delay(1000)
+
+        authScreenViewModel.initializeActivation(
+            deviceMacAddress = macAddress,
+            clientIp = clientIp,
+            deviceName = deviceName,
+            isNewCustomer = false
+        )
+    }
     LaunchedEffect(uiEvent) {
         if (uiEvent is AuthScreenUiEvent.NavigateToLogin && uiState is AuthScreenUiState.Success<*>) {
             val identifier = when {
@@ -69,22 +96,23 @@ fun AuthScreen(
             }
 
             identifier?.let { id ->
-                authScreenViewModel.getUser(identifier = id).collect { user ->
-                    user?.let {
-                        userStateHolder.updateUser(
-                            User(
-                                identifier = user.identifier,
-                                name = user.name,
-                                email = user.email,
-                                profilePhotoPath = user.profilePhotoPath,
-                                profilePhotoUrl = user.profilePhotoUrl,
-                                clientIp = clientIp,
-                                deviceName = deviceName,
-                                deviceMacAddress = macAddress,
+                authScreenViewModel.getUser(identifier = id)
+                    .collectLatest { user ->
+                        user?.let {
+                            userStateHolder.updateUser(
+                                User(
+                                    identifier = user.identifier,
+                                    name = user.name,
+                                    email = user.email,
+                                    profilePhotoPath = user.profilePhotoPath,
+                                    profilePhotoUrl = user.profilePhotoUrl,
+                                    clientIp = clientIp,
+                                    deviceName = deviceName,
+                                    deviceMacAddress = macAddress,
+                                )
                             )
-                        )
+                        }
                     }
-                }
             }
             onNavigateToDashboard()
             authScreenViewModel.clearEvent()
@@ -92,57 +120,74 @@ fun AuthScreen(
     }
 
     LaunchedEffect(uiState) {
-        if (uiState is AuthScreenUiState.CodeGenerated) {
-            registrationCode = (uiState as AuthScreenUiState.CodeGenerated).registrationCode
-            loginRequestCode = (uiState as AuthScreenUiState.CodeGenerated).loginRequestCode
+        when (uiState) {
+            is AuthScreenUiState.RegistrationCode -> {
+                registrationCode = (uiState as AuthScreenUiState.RegistrationCode).code!!
+            }
+
+            is AuthScreenUiState.LoginRequestCode -> {
+                loginRequestCode = (uiState as AuthScreenUiState.LoginRequestCode).code!!
+            }
+
+            is AuthScreenUiState.RegistrationError -> {
+                registrationErrorMessage =
+                    (uiState as AuthScreenUiState.RegistrationError).message.asString(context)
+            }
+
+            is AuthScreenUiState.LoginWithSmartphoneError -> {
+                loginWithSmartphoneErrorMessage =
+                    (uiState as AuthScreenUiState.LoginWithSmartphoneError).message.asString(
+                        context
+                    )
+            }
+
+            is AuthScreenUiState.LoginWithAccessCodeError -> {
+                loginWithAccessCodeErrorMessage =
+                    (uiState as AuthScreenUiState.LoginWithAccessCodeError).message.asString(
+                        context
+                    )
+            }
+
+            is AuthScreenUiState.LoginWithTvError -> {
+                loginWithTvErrorMessage =
+                    (uiState as AuthScreenUiState.LoginWithTvError).message.asString(
+                        context
+                    )
+            }
+
+            else -> {}
         }
     }
 
-    LaunchedEffect(Unit) {
-        authScreenViewModel.initializeActivation(
-            deviceMacAddress = macAddress,
-            clientIp = clientIp,
-            deviceName = deviceName
-        )
-    }
-
-
-    // Current selected auth option
-    var selectedAuthOption by remember { mutableStateOf(AuthRoute.REGISTER) }
 
     fun handleSubmitForTvLogin(
         emailAddress: String,
         password: String,
     ) {
         identifierOrEmail = emailAddress
-        authScreenViewModel.viewModelScope.launch {
-            authScreenViewModel.loginWithTv(
-                identifier = emailAddress,
-                password = password,
-                deviceMacAddress = macAddress,
-                clientIp = clientIp,
-                deviceName = deviceName,
-            ).collect {
-                it?.token?.let { token -> userStateHolder.updateToken(token) }
-            }
-        }
+        authScreenViewModel.loginWithTvAndStoreToken(
+            identifier = emailAddress,
+            password = password,
+            deviceMacAddress = macAddress,
+            clientIp = clientIp,
+            deviceName = deviceName,
+            onTokenReceived = { token -> userStateHolder.updateToken(token) }
+        )
     }
 
     fun handleSubmitForAccessCodeLogin(
         accessCode: String,
     ) {
         identifierOrEmail = accessCode
-        authScreenViewModel.viewModelScope.launch {
-            authScreenViewModel.loginWithAccessCode(
-                accessCode = accessCode,
-                deviceMacAddress = macAddress,
-                clientIp = clientIp,
-                deviceName = deviceName,
-            ).collect {
-                it?.token?.let { token -> userStateHolder.updateToken(token) }
-            }
-        }
+        authScreenViewModel.loginWithAccessCodeAndStoreToken(
+            accessCode = accessCode,
+            deviceMacAddress = macAddress,
+            clientIp = clientIp,
+            deviceName = deviceName,
+            onTokenReceived = { token -> userStateHolder.updateToken(token) }
+        )
     }
+
 
     Row(
         modifier = Modifier.fillMaxSize()
@@ -157,7 +202,7 @@ fun AuthScreen(
                 .weight(0.4f)
         )
 
-        // Right Panel - Content Section  
+        // Right Panel - Content Section
         RightContentPanel(
             selectedAuthOption = selectedAuthOption,
             handleLoginWithTvOnSubmit = { emailAddress, password ->
@@ -170,8 +215,10 @@ fun AuthScreen(
                 handleSubmitForAccessCodeLogin(accessCode)
             },
             isTvLoginLoading = uiState is AuthScreenUiState.Loading,
-            isTvLoginWithTvError = uiState is AuthScreenUiState.Error,
-            errorMessage = (uiState as? AuthScreenUiState.Error)?.message,
+            registrationErrorMessage = registrationErrorMessage,
+            loginWithSmartphoneErrorMessage = loginWithSmartphoneErrorMessage,
+            loginWithTvErrorMessage = loginWithTvErrorMessage,
+            loginWithAccessCodeErrorMessage = loginWithAccessCodeErrorMessage,
             tvLoginFirstFieldFocusRequester = tvLoginFirstFieldFocusRequester,
             generatedRegistrationCode = registrationCode,
             generatedLoginCode = loginRequestCode,
@@ -292,8 +339,10 @@ fun RightContentPanel(
     handleLoginWithTvOnSubmit: (String, String) -> Unit,
     handleLoginWithAccessCodeOnSubmit: (String) -> Unit,
     isTvLoginLoading: Boolean,
-    isTvLoginWithTvError: Boolean,
-    errorMessage: String?,
+    registrationErrorMessage: String?,
+    loginWithSmartphoneErrorMessage: String?,
+    loginWithTvErrorMessage: String?,
+    loginWithAccessCodeErrorMessage: String?,
     tvLoginFirstFieldFocusRequester: FocusRequester,
     modifier: Modifier = Modifier
 ) {
@@ -306,6 +355,7 @@ fun RightContentPanel(
         when (selectedAuthOption) {
             AuthRoute.REGISTER -> {
                 RegisterAccount(
+                    errorMessage = registrationErrorMessage,
                     accessCode = generatedRegistrationCode,
                 )
             }
@@ -314,8 +364,7 @@ fun RightContentPanel(
                 LoginWithTv(
                     onSubmit = handleLoginWithTvOnSubmit,
                     isLoading = isTvLoginLoading,
-                    isError = isTvLoginWithTvError,
-                    errorMessage = errorMessage,
+                    errorMessage = loginWithTvErrorMessage,
                     firstFieldFocusRequester = tvLoginFirstFieldFocusRequester
                 )
             }
@@ -324,8 +373,7 @@ fun RightContentPanel(
                 LoginWithAccessCode(
                     onSubmit = handleLoginWithAccessCodeOnSubmit,
                     isLoading = isTvLoginLoading,
-                    isError = isTvLoginWithTvError,
-                    errorMessage = errorMessage,
+                    errorMessage = loginWithAccessCodeErrorMessage,
                     firstFieldFocusRequester = tvLoginFirstFieldFocusRequester
                 )
             }
@@ -333,6 +381,7 @@ fun RightContentPanel(
             AuthRoute.LOGIN_WITH_SMART_PHONE -> {
                 LoginWithSmartphone(
                     accessCode = generatedLoginCode,
+                    errorMessage = loginWithSmartphoneErrorMessage
                 )
             }
         }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -39,10 +40,9 @@ import com.google.wiltv.presentation.utils.handleDPadKeyEvents
 
 @Composable
 fun LoginWithAccessCode(
-    onSubmit: (accessCode: String) -> Unit,
     modifier: Modifier = Modifier,
+    onSubmit: (accessCode: String) -> Unit,
     isLoading: Boolean = false,
-    isError: Boolean = false,
     errorMessage: String? = null,
     firstFieldFocusRequester: FocusRequester? = null
 ) {
@@ -57,7 +57,8 @@ fun LoginWithAccessCode(
         modifier = Modifier
             .padding(16.dp)
             .background(Color(0xFF2A2A2A), shape = RoundedCornerShape(16.dp))
-            .padding(24.dp),
+            .padding(24.dp)
+            .fillMaxHeight(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
@@ -104,14 +105,14 @@ fun LoginWithAccessCode(
 
         Spacer(modifier = Modifier.height(16.dp))
         // render error if exist
-        if (isError) {
+        if (errorMessage != null) {
             Text(
-                text = errorMessage ?: "Unknown Error",
+                text = errorMessage,
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Red
             )
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(36.dp))
 
         // Submit Button
         Button(

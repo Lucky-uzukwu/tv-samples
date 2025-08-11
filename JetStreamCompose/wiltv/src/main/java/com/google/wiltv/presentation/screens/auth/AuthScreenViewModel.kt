@@ -9,6 +9,9 @@ import com.google.wiltv.data.network.TokenResponse
 import com.google.wiltv.data.network.UserResponse
 import com.google.wiltv.data.repositories.AuthRepository
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.presentation.UiText
+import com.google.wiltv.presentation.asUiText
 import com.google.wiltv.presentation.screens.auth.AuthScreenUiState.Idle
 import com.pusher.client.Pusher
 import com.pusher.client.PusherOptions
@@ -32,14 +35,16 @@ sealed class AuthScreenUiState {
     object Idle : AuthScreenUiState()
     object Loading : AuthScreenUiState()
 
-    data class CodeGenerated(
-        val registrationCode: String,
-        val loginRequestCode: String
-    ) : AuthScreenUiState()
+    data class RegistrationCode(val code: String?) : AuthScreenUiState()
+    data class LoginRequestCode(val code: String?) : AuthScreenUiState()
 
     data class Connected(val message: String) : AuthScreenUiState()
     data class Success<T>(val body: T, val message: String) : AuthScreenUiState()
-    data class Error(val message: String) : AuthScreenUiState()
+    data class Error(val message: UiText) : AuthScreenUiState()
+    data class RegistrationError(val message: UiText) : AuthScreenUiState()
+    data class LoginWithSmartphoneError(val message: UiText) : AuthScreenUiState()
+    data class LoginWithAccessCodeError(val message: UiText) : AuthScreenUiState()
+    data class LoginWithTvError(val message: UiText) : AuthScreenUiState()
 }
 
 sealed class AuthScreenUiEvent {
@@ -76,49 +81,74 @@ class AuthScreenViewModel @Inject constructor(
     fun initializeActivation(
         deviceMacAddress: String,
         clientIp: String,
-        deviceName: String
+        deviceName: String,
+        isNewCustomer: Boolean = true
     ) {
         viewModelScope.launch {
-            try {
-                _uiState.value = AuthScreenUiState.Loading
+            _uiState.value = AuthScreenUiState.Loading
 
-                val registrationTokenResponse = authRepository.requestTokenForNewCustomer(
+            if (isNewCustomer) {
+                val registrationResult = authRepository.requestTokenForNewCustomer(
                     deviceMacAddress = deviceMacAddress,
                     clientIp = clientIp,
                     deviceName = deviceName
-                ).body()!!
+                )
+                when (registrationResult) {
+                    is ApiResult.Success -> {
+                        Logger.d { "API Success (New Customer): ${registrationResult.data}" }
+                        val registrationTokenResponse = registrationResult.data
+                        setupPusherConnection(
+                            registrationTokenResponse.identifier,
+                            deviceMacAddress,
+                            clientIp,
+                            deviceName
+                        )
 
-                val loginTokenResponse = authRepository.requestTokenForExistingCustomer(
+                        _uiState.value = AuthScreenUiState.RegistrationCode(
+                            code = registrationTokenResponse.identifier,
+                        )
+                    }
+
+                    is ApiResult.Error -> {
+                        Logger.e { "API Error (New Customer): ${registrationResult.message}" }
+                        _uiState.value = AuthScreenUiState.RegistrationError(
+                            registrationResult.error.asUiText(registrationResult.message)
+                        )
+                    }
+                }
+            } else {
+                val loginResult = authRepository.requestTokenForExistingCustomer(
                     deviceMacAddress = deviceMacAddress,
                     clientIp = clientIp,
                     deviceName = deviceName
-                ).body()!!
-
-                // Log the code here
-                Logger.d { "User Identifier: ${registrationTokenResponse.identifier}" }
-
-                _uiState.value = AuthScreenUiState.CodeGenerated(
-                    registrationCode = registrationTokenResponse.identifier.padStart(6, '0'),
-                    loginRequestCode = loginTokenResponse.code.padStart(6, '0')
                 )
+                when (loginResult) {
+                    is ApiResult.Success -> {
+                        Logger.d { "API Success (Login ): ${loginResult.data}" }
+                        val loginTokenResponse = loginResult.data
+                        setupPusherConnection(
+                            loginTokenResponse.code,
+                            deviceMacAddress,
+                            clientIp,
+                            deviceName
+                        )
 
-                setupPusherConnection(
-                    registrationTokenResponse.identifier.padStart(6, '0'),
-                    deviceMacAddress,
-                    clientIp,
-                    deviceName
-                )
-                setupPusherConnection(
-                    loginTokenResponse.code.padStart(6, '0'),
-                    deviceMacAddress,
-                    clientIp,
-                    deviceName
-                )
-            } catch (e: Exception) {
-                _uiState.value = AuthScreenUiState.Error("Failed to initialize: ${e.message}")
+                        _uiState.value = AuthScreenUiState.LoginRequestCode(
+                            code = loginTokenResponse.code,
+                        )
+                    }
+
+                    is ApiResult.Error -> {
+                        Logger.e { "API Error (Login fallback): ${loginResult.message}" }
+                        _uiState.value = AuthScreenUiState.LoginWithSmartphoneError(
+                            loginResult.error.asUiText(loginResult.message)
+                        )
+                    }
+                }
             }
         }
     }
+
 
     private fun setupPusherConnection(
         code: String,
@@ -237,7 +267,8 @@ class AuthScreenViewModel @Inject constructor(
                 _connectionStatus.value = "Connection Error: $message"
 
                 // Update UI state to show error
-                _uiState.value = AuthScreenUiState.Error("Connection failed: $message")
+                _uiState.value =
+                    AuthScreenUiState.Error(UiText.DynamicString("Connection failed: $message"))
             }
         })
 
@@ -270,7 +301,8 @@ class AuthScreenViewModel @Inject constructor(
             // Bind to subscription error event
             channel?.bind("pusher:subscription_error") { event ->
                 Logger.e { "❌ Subscription error for $channelName: ${event.data}" }
-                _uiState.value = AuthScreenUiState.Error("Failed to subscribe to channel")
+                _uiState.value =
+                    AuthScreenUiState.Error(UiText.DynamicString("Failed to subscribe to channel"))
             }
 
             // IMPORTANT: Bind to your custom events
@@ -283,7 +315,8 @@ class AuthScreenViewModel @Inject constructor(
                     handleLoginConfirmed(code, deviceMacAddress, clientIp, deviceName)
                 } catch (e: Exception) {
                     Logger.e { "Failed to process login confirmation: ${e.message}" }
-                    _uiState.value = AuthScreenUiState.Error("Failed to process login confirmation")
+                    _uiState.value =
+                        AuthScreenUiState.Error(UiText.DynamicString("Failed to process login confirmation"))
                 }
             }
 
@@ -291,17 +324,20 @@ class AuthScreenViewModel @Inject constructor(
             channel?.bind("login-denied") { event ->
                 Logger.w { "⚠️ Login request denied" }
                 Logger.d { "Denial reason: ${event.data}" }
-                _uiState.value = AuthScreenUiState.Error("Login request was denied")
+                _uiState.value =
+                    AuthScreenUiState.Error(UiText.DynamicString("Login request was denied"))
             }
 
             channel?.bind("login-timeout") { event ->
                 Logger.w { "⏱️ Login request timed out" }
-                _uiState.value = AuthScreenUiState.Error("Login request timed out")
+                _uiState.value =
+                    AuthScreenUiState.Error(UiText.DynamicString("Login request timed out"))
             }
 
         } catch (e: Exception) {
             Logger.e { "💥 Error subscribing to channel: ${e.message}" }
-            _uiState.value = AuthScreenUiState.Error("Failed to setup channel subscription")
+            _uiState.value =
+                AuthScreenUiState.Error(UiText.DynamicString("Failed to setup channel subscription"))
         }
     }
 
@@ -360,7 +396,8 @@ class AuthScreenViewModel @Inject constructor(
             } catch (e: Exception) {
                 Logger.e { "💥 Authentication failed: ${e.message}" }
                 Logger.e { "Exception type: ${e::class.simpleName}" }
-                _uiState.value = AuthScreenUiState.Error("Authentication failed: ${e.message}")
+                _uiState.value =
+                    AuthScreenUiState.Error(UiText.DynamicString("Authentication failed: ${e.message}"))
             }
         }
     }
@@ -380,38 +417,24 @@ class AuthScreenViewModel @Inject constructor(
             clientIp = clientIp,
             deviceName = deviceName
         )
-        response.collect { responsePair ->
-            val code = responsePair.first
-            val body = responsePair.second
+        
+        when (response) {
+            is ApiResult.Success -> {
+                Logger.d { "API Success (Login with tv): ${response.data}" }
+                val responseData = response.data
+                emit(responseData)
+                _uiState.value = AuthScreenUiState.Success(
+                    body = responseData,
+                    message = "Login with tv successful"
+                )
+                _uiEvent.update { AuthScreenUiEvent.NavigateToLogin }
+            }
 
-            when (code) {
-                201 -> {
-                    _uiState.update {
-                        AuthScreenUiState.Success(
-                            body = body,
-                            message = "Login successful"
-                        )
-                    }
-                    emit(body)
-                    _uiEvent.update { AuthScreenUiEvent.NavigateToLogin }
-                }
-
-                400 -> {
-                    _uiState.update { AuthScreenUiState.Error("Invalid input") }
-                    emit(null)
-
-                }
-
-                404 -> {
-                    _uiState.update { AuthScreenUiState.Error("User not found please check identifer or password") }
-                    _uiEvent.update { AuthScreenUiEvent.NavigateToRegister }
-                    emit(null)
-                }
-
-                422 -> {
-                    _uiState.update { AuthScreenUiState.Error("Validation error") }
-                    emit(null)
-                }
+            is ApiResult.Error -> {
+                Logger.e { "API Error (Login with tv): ${response.message}" }
+                _uiState.value = AuthScreenUiState.LoginWithTvError(
+                    response.error.asUiText(response.message)
+                )
             }
         }
     }
@@ -429,42 +452,67 @@ class AuthScreenViewModel @Inject constructor(
             clientIp = clientIp,
             deviceName = deviceName
         )
-        response.collect { responsePair ->
-            val code = responsePair.first
-            val body = responsePair.second
 
-            when (code) {
-                201 -> {
-                    _uiState.update {
-                        AuthScreenUiState.Success(
-                            body = body,
-                            message = "Login successful"
-                        )
-                    }
-                    emit(body)
-                    _uiEvent.update { AuthScreenUiEvent.NavigateToLogin }
-                }
+        when (response) {
+            is ApiResult.Success -> {
+                Logger.d { "API Success (Login with access code): ${response.data}" }
+                val responseData = response.data
+                emit(responseData)
+                _uiState.value = AuthScreenUiState.Success(
+                    body = responseData,
+                    message = "Login successful"
+                )
+                _uiEvent.update { AuthScreenUiEvent.NavigateToLogin }
+            }
 
-                400 -> {
-                    _uiState.update { AuthScreenUiState.Error("Invalid input") }
-                    emit(null)
-
-                }
-
-                404 -> {
-                    _uiState.update { AuthScreenUiState.Error("User not found please check accessCode") }
-                    _uiEvent.update { AuthScreenUiEvent.NavigateToRegister }
-                    emit(null)
-                }
-
-                422 -> {
-                    _uiState.update { AuthScreenUiState.Error("Validation error") }
-                    emit(null)
-                }
+            is ApiResult.Error -> {
+                Logger.e { "API Error (Login with access code): ${response.message}" }
+                _uiState.value = AuthScreenUiState.LoginWithAccessCodeError(
+                    response.error.asUiText(response.message)
+                )
             }
         }
     }
 
+    fun loginWithTvAndStoreToken(
+        identifier: String,
+        password: String,
+        deviceMacAddress: String,
+        clientIp: String,
+        deviceName: String,
+        onTokenReceived: suspend (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            loginWithTv(
+                identifier = identifier,
+                password = password,
+                deviceMacAddress = deviceMacAddress,
+                clientIp = clientIp,
+                deviceName = deviceName
+            ).collect { tokenResponse ->
+                tokenResponse?.token?.let { token -> onTokenReceived(token) }
+            }
+        }
+    }
+
+    fun loginWithAccessCodeAndStoreToken(
+        accessCode: String,
+        deviceMacAddress: String,
+        clientIp: String,
+        deviceName: String,
+        onTokenReceived: suspend (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            loginWithAccessCode(
+                accessCode = accessCode,
+                deviceMacAddress = deviceMacAddress,
+                clientIp = clientIp,
+                deviceName = deviceName
+            ).collect { tokenResponse ->
+                tokenResponse?.token?.let { token -> onTokenReceived(token) }
+            }
+        }
+    }
 
     fun getUser(identifier: String): Flow<UserResponse?> = flow {
         _uiState.update { AuthScreenUiState.Loading }
@@ -477,7 +525,7 @@ class AuthScreenViewModel @Inject constructor(
         response.collect { userResponse ->
             when (userResponse) {
                 null -> {
-                    _uiState.update { AuthScreenUiState.Error("User not found") }
+                    _uiState.update { AuthScreenUiState.Error(UiText.DynamicString("User not found")) }
                     emit(userResponse)
                 }
 
@@ -501,7 +549,6 @@ class AuthScreenViewModel @Inject constructor(
     }
 }
 
-
-data class LoginRequestEvent(
-    val loginRequest: String
-)
+sealed interface UserEvent {
+    data class Error(val error: UiText) : UserEvent
+}

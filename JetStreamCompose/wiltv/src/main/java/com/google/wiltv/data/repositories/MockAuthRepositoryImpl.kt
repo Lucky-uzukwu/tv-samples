@@ -3,6 +3,8 @@ package com.google.wiltv.data.repositories
 import com.google.wiltv.data.network.LoginResponse
 import com.google.wiltv.data.network.TokenResponse
 import com.google.wiltv.data.network.UserResponse
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.domain.DataError
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.Response
@@ -12,8 +14,8 @@ class MockAuthRepositoryImpl : AuthRepository {
         deviceMacAddress: String,
         clientIp: String,
         deviceName: String
-    ): Response<UserResponse> =
-        Response.success(
+    ): ApiResult<UserResponse, DataError.Network> =
+        ApiResult.Success(
             UserResponse(
                 identifier = "identifier",
                 username = "username",
@@ -30,7 +32,7 @@ class MockAuthRepositoryImpl : AuthRepository {
         deviceMacAddress: String,
         clientIp: String,
         deviceName: String
-    ): Response<LoginResponse> = Response.success(
+    ): ApiResult<LoginResponse, DataError.Network> = ApiResult.Success(
         LoginResponse(
             code = "code",
             deviceName = "code",
@@ -65,8 +67,8 @@ class MockAuthRepositoryImpl : AuthRepository {
         deviceMacAddress: String,
         clientIp: String,
         deviceName: String
-    ): Flow<Pair<Int, TokenResponse>> = flow {
-        emit(200 to TokenResponse(token = "token"))
+    ): ApiResult<TokenResponse, DataError.Network> {
+        return ApiResult.Success(TokenResponse(token = "token"))
     }
 
 
@@ -76,7 +78,7 @@ class MockAuthRepositoryImpl : AuthRepository {
         deviceMacAddress: String,
         clientIp: String,
         deviceName: String
-    ): Flow<Pair<Int, TokenResponse>> = flow {
-        emit(200 to TokenResponse(token = "token"))
+    ): ApiResult<TokenResponse, DataError.Network> {
+        return ApiResult.Success(TokenResponse(token = "token"))
     }
 }

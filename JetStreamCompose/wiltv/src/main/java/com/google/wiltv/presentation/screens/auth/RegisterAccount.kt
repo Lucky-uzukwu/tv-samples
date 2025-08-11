@@ -21,74 +21,84 @@ import com.google.wiltv.presentation.common.QRCodeDisplay
 @Composable
 fun RegisterAccount(
     modifier: Modifier = Modifier,
+    errorMessage: String? = null,
     accessCode: String,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(
-            text = "Scan the QR Code below to register an account",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
-
-        // QR Code for registration
-        QRCodeDisplay(
-            data = "https://nortv.xyz/account/register?accessCode=$accessCode",
-            size = 200
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Or visit the following link to register:",
-            fontSize = 14.sp,
-            color = Color.White.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "https://nortv.xyz/account/register?accessCode=$accessCode",
-            fontSize = 14.sp,
-            color = Color(0xFFA855F7),
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Row(
-//            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
+        if (errorMessage == null) {
             Text(
-                text = "Or provide the access code ",
+                text = "Scan the QR Code below to register an account",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 32.dp)
+            )
+
+            // QR Code for registration
+            QRCodeDisplay(
+                data = "https://nortv.xyz/account/register?accessCode=$accessCode",
+                size = 200
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Or visit the following link to register:",
                 fontSize = 14.sp,
                 color = Color.White.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             Text(
-                text = accessCode,
+                text = "https://nortv.xyz/account/register?accessCode=$accessCode",
                 fontSize = 14.sp,
                 color = Color(0xFFA855F7),
-                fontWeight = FontWeight.Bold
+                textAlign = TextAlign.Center
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Or provide the access code ",
+                    fontSize = 14.sp,
+                    color = Color.White.copy(alpha = 0.7f),
+                )
+                Text(
+                    text = accessCode,
+                    fontSize = 14.sp,
+                    color = Color(0xFFA855F7),
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = " to customer support to activate ",
+                    fontSize = 14.sp,
+                    color = Color.White.copy(alpha = 0.7f),
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
             Text(
-                text = " to customer support to activate ",
+                text = "your account",
                 fontSize = 14.sp,
                 color = Color.White.copy(alpha = 0.7f),
                 overflow = TextOverflow.Ellipsis,
             )
+        } else {
+            Text(
+                text = errorMessage,
+                fontSize = 14.sp,
+                color = Color.Red,
+                textAlign = TextAlign.Center
+            )
         }
-        Text(
-            text = "your account",
-            fontSize = 14.sp,
-            color = Color.White.copy(alpha = 0.7f),
-            overflow = TextOverflow.Ellipsis,
-        )
     }
 }

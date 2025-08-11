@@ -10,6 +10,8 @@ import com.google.wiltv.data.network.TokenService
 import com.google.wiltv.data.network.UserRequest
 import com.google.wiltv.data.network.UserResponse
 import com.google.wiltv.data.network.UserService
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.domain.DataError
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.Response
@@ -27,8 +29,9 @@ class AuthRepositoryImpl @Inject constructor(
         deviceMacAddress: String,
         clientIp: String,
         deviceName: String,
-    ): Response<UserResponse> {
-        return userService.createUserResource(
+    ): ApiResult<UserResponse, DataError.Network> {
+        Logger.i { "Attempting to create new user with device: $deviceName" }
+        val response = userService.createUserResource(
             UserRequest(
                 mac = deviceMacAddress,
                 ip = clientIp,
@@ -36,19 +39,24 @@ class AuthRepositoryImpl @Inject constructor(
             )
         )
 
+        return mapToResult(response)
     }
 
     override suspend fun requestTokenForExistingCustomer(
         deviceMacAddress: String,
         clientIp: String,
         deviceName: String
-    ): Response<LoginResponse> = loginRequestService.createUserResource(
-        LoginRequest(
-            requesterMacAddress = deviceMacAddress,
-            deviceName = deviceName,
-            requesterIpAddress = clientIp
+    ): ApiResult<LoginResponse, DataError.Network> {
+        Logger.i { "Attempting to create login request for device: $deviceName" }
+        val response = loginRequestService.createUserResource(
+            LoginRequest(
+                requesterMacAddress = deviceMacAddress,
+                deviceName = deviceName,
+                requesterIpAddress = clientIp
+            )
         )
-    )
+        return mapToResult(response)
+    }
 
     override suspend fun loginWithTv(
         identifier: String,
@@ -56,7 +64,7 @@ class AuthRepositoryImpl @Inject constructor(
         deviceMacAddress: String,
         clientIp: String,
         deviceName: String
-    ): Flow<Pair<Int, TokenResponse>> = flow {
+    ): ApiResult<TokenResponse, DataError.Network> {
         Logger.i { "Attempting to log in user with TV with identifier: $identifier" }
         val tokenRequest = TokenRequest(
             identifier = identifier,
@@ -67,28 +75,7 @@ class AuthRepositoryImpl @Inject constructor(
             request = null
         )
         val response = tokenService.createToken(request = tokenRequest)
-
-        when (response.code()) {
-            404 -> {
-                Logger.i { "Customer not found with identifier: $identifier" }
-                emit(response.code() to TokenResponse(null))
-            }
-
-            201 -> {
-                Logger.i { "Successfully logged in user with TV with identifier: $identifier" }
-                emit(response.code() to response.body()!!)
-            }
-
-            422 -> {
-                Logger.e { "Validation error occurred while login user with identifier : $identifier" }
-                emit(response.code() to TokenResponse(null))
-            }
-
-            400 -> {
-                Logger.e { "Invalid input while login user with identifier : $identifier" }
-                emit(response.code() to TokenResponse(null))
-            }
-        }
+        return mapToResult(response)
     }
 
     override suspend fun loginWithAccessCode(
@@ -96,8 +83,8 @@ class AuthRepositoryImpl @Inject constructor(
         deviceMacAddress: String,
         clientIp: String,
         deviceName: String
-    ) = flow {
-        Logger.i { "Attempting to log in user with access code: $accessCode" }
+    ): ApiResult<TokenResponse, DataError.Network> {
+        Logger.i { "Attempting to login with access code for device: $deviceName" }
         val tokenRequest = TokenRequest(
             request = accessCode,
             mac = deviceMacAddress,
@@ -107,28 +94,7 @@ class AuthRepositoryImpl @Inject constructor(
             identifier = null
         )
         val response = tokenService.createToken(request = tokenRequest)
-
-        when (response.code()) {
-            404 -> {
-                Logger.i { "Customer not found with accessCode: $accessCode" }
-                emit(response.code() to TokenResponse(null))
-            }
-
-            201 -> {
-                Logger.i { "Successfully logged in user with accessCode: $accessCode" }
-                emit(response.code() to response.body()!!)
-            }
-
-            422 -> {
-                Logger.e { "Validation error occurred while login user with accessCode : $accessCode" }
-                emit(response.code() to TokenResponse(null))
-            }
-
-            400 -> {
-                Logger.e { "Invalid input while login user with accessCode : $accessCode" }
-                emit(response.code() to TokenResponse(null))
-            }
-        }
+        return mapToResult(response)
     }
 
 

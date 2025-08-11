@@ -3,8 +3,9 @@ package com.google.wiltv.data.repositories
 import com.google.wiltv.data.network.LoginResponse
 import com.google.wiltv.data.network.TokenResponse
 import com.google.wiltv.data.network.UserResponse
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.domain.DataError
 import kotlinx.coroutines.flow.Flow
-import retrofit2.Response
 
 interface AuthRepository {
 
@@ -12,13 +13,13 @@ interface AuthRepository {
         deviceMacAddress: String,
         clientIp: String,
         deviceName: String,
-    ): Response<UserResponse>
+    ): ApiResult<UserResponse, DataError.Network>
 
     suspend fun requestTokenForExistingCustomer(
         deviceMacAddress: String,
         clientIp: String,
         deviceName: String,
-    ): Response<LoginResponse>
+    ): ApiResult<LoginResponse, DataError.Network>
 
     suspend fun getUser(token: String, identifier: String): Flow<UserResponse?>
 
@@ -28,7 +29,7 @@ interface AuthRepository {
         deviceMacAddress: String,
         clientIp: String,
         deviceName: String,
-    ): Flow<Pair<Int, TokenResponse>>
+    ): ApiResult<TokenResponse, DataError.Network>
 
 
     suspend fun loginWithAccessCode(
@@ -36,6 +37,6 @@ interface AuthRepository {
         deviceMacAddress: String,
         clientIp: String,
         deviceName: String,
-    ): Flow<Pair<Int, TokenResponse>>
+    ): ApiResult<TokenResponse, DataError.Network>
 
 }
