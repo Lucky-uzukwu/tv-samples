@@ -17,6 +17,7 @@
 package com.google.wiltv.presentation.screens.profile
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -29,6 +30,7 @@ enum class ProfileScreens(
     val icon: ImageVector,
     private val title: String? = null,
 ) {
+    Profiles(Icons.Default.AccountCircle),
     Accounts(Icons.Default.Person),
 //    About(Icons.Default.Info),
     Subtitles(Icons.Default.Subtitles),

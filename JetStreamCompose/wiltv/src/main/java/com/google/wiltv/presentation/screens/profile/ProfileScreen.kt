@@ -65,7 +65,8 @@ fun ProfileScreen(
     @FloatRange(from = 0.0, to = 1.0)
     sidebarWidthFraction: Float = 0.32f,
     viewModel: ProfileScreenViewModel = hiltViewModel(),
-    logOutOnClick: () -> Unit
+    logOutOnClick: () -> Unit,
+    onNavigateToProfileSelection: () -> Unit = {}
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -181,8 +182,15 @@ fun ProfileScreen(
                             false
                         },
                     navController = profileNavController,
-                    startDestination = ProfileScreens.Accounts(),
+                    startDestination = ProfileScreens.Profiles(),
                     builder = {
+                        composable(ProfileScreens.Profiles()) {
+                            ProfileSection(
+                                selectedProfile = s.selectedProfile,
+                                profiles = s.profiles,
+                                onSwitchProfileClick = onNavigateToProfileSelection
+                            )
+                        }
                         composable(ProfileScreens.Accounts()) {
                             AccountsSection(
                                 userEmailAddress = s.user.email,
@@ -227,7 +235,8 @@ fun ProfileScreenPreview() {
     ComposeTvTheme {
         Box(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
             ProfileScreen(
-                logOutOnClick = {}
+                logOutOnClick = {},
+                onNavigateToProfileSelection = {}
             )
         }
     }

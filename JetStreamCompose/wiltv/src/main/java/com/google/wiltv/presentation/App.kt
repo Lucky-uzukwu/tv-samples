@@ -37,7 +37,8 @@ private data class DashboardCallbacks(
     val openVideoPlayer: (String) -> Unit,
     val setSelectedMovie: (MovieNew) -> Unit,
     val setSelectedTvShow: (TvShow) -> Unit,
-    val onLogOutClick: () -> Unit
+    val onLogOutClick: () -> Unit,
+    val onNavigateToProfileSelection: () -> Unit
 )
 
 @Composable
@@ -241,6 +242,9 @@ fun App(
                         onLogOutClick = {
                             userStateHolder.clearUser()
                             navController.navigate(Screens.AuthScreen())
+                        },
+                        onNavigateToProfileSelection = {
+                            navController.navigate(Screens.ProfileSelection())
                         }
                     )
                 }
@@ -255,6 +259,7 @@ fun App(
                     setSelectedMovie = dashboardCallbacks.setSelectedMovie,
                     setSelectedTvShow = dashboardCallbacks.setSelectedTvShow,
                     onLogOutClick = dashboardCallbacks.onLogOutClick,
+                    onNavigateToProfileSelection = dashboardCallbacks.onNavigateToProfileSelection
                 )
             }
             composable(route = Screens.VideoPlayer()) {

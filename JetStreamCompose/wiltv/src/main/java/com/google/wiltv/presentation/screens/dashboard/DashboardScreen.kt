@@ -53,7 +53,8 @@ fun DashboardScreen(
     openStreamingProvideShowList: (streamingProvider: StreamingProvider) -> Unit = {},
     setSelectedMovie: (movie: MovieNew) -> Unit,
     setSelectedTvShow: (tvShow: TvShow) -> Unit,
-    onLogOutClick: () -> Unit
+    onLogOutClick: () -> Unit,
+    onNavigateToProfileSelection: () -> Unit = {}
 ) {
     val navController = rememberNavController()
 
@@ -72,7 +73,8 @@ fun DashboardScreen(
                 openTvShowDetailsScreen = openTvShowDetailsScreen,
                 onLogOutClick = onLogOutClick,
                 openStreamingProviderMovieList = openStreamingProviderMovieList,
-                openStreamingProvideShowList = openStreamingProvideShowList
+                openStreamingProvideShowList = openStreamingProvideShowList,
+                onNavigateToProfileSelection = onNavigateToProfileSelection
             )
         },
     ) { screen ->
@@ -92,7 +94,8 @@ private fun Body(
     setSelectedMovie: (movie: MovieNew) -> Unit,
     setSelectedTvShow: (tvShow: TvShow) -> Unit,
     navController: NavHostController = rememberNavController(),
-    onLogOutClick: () -> Unit
+    onLogOutClick: () -> Unit,
+    onNavigateToProfileSelection: () -> Unit = {}
 ) {
     val navGraph = remember(
         openMovieDetailsScreen,
@@ -108,7 +111,8 @@ private fun Body(
         navController.createGraph(startDestination = Screens.Home()) {
             composable(Screens.Profile()) {
                 ProfileScreen(
-                    logOutOnClick = onLogOutClick
+                    logOutOnClick = onLogOutClick,
+                    onNavigateToProfileSelection = onNavigateToProfileSelection
                 )
             }
             composable(Screens.Home()) {
@@ -178,5 +182,6 @@ fun DashboardScreenNewPreview() {
         setSelectedMovie = { },
         setSelectedTvShow = { },
         onLogOutClick = { },
+        onNavigateToProfileSelection = { }
     )
 }
