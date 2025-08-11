@@ -17,14 +17,19 @@ import com.google.wiltv.data.repositories.GenreRepository
 import com.google.wiltv.data.repositories.MovieRepository
 import com.google.wiltv.data.repositories.StreamingProvidersRepository
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.presentation.UiText
+import com.google.wiltv.presentation.asUiText
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class MoviesScreenViewModel @Inject constructor(
@@ -45,67 +50,88 @@ class MoviesScreenViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(5_000),
         PagingData.empty()
     )
-    
-    // Cache catalog and genre movies to prevent refetching on navigation
-    private val cachedCatalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>> by lazy {
-        runBlocking {
-            fetchCatalogsAndMovies(catalogRepository, userRepository)
-        }
-    }
-    
-    private val cachedGenreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>> by lazy {
-        runBlocking {
-            fetchGenresAndMovies(genreRepository, userRepository)
-        }
-    }
-    
-    private val cachedStreamingProviders: List<StreamingProvider> by lazy {
-        runBlocking {
-            streamingProvidersRepository.getStreamingProviders(
-                type = "App\\Models\\Movie"
-            ).firstOrNull() ?: emptyList()
-        }
+
+
+    private val _uiState = MutableStateFlow<MoviesScreenUiState>(MoviesScreenUiState.Loading)
+    val uiState: StateFlow<MoviesScreenUiState> = _uiState.asStateFlow()
+
+    init {
+        fetchMovieScreenData()
     }
 
-    // UI State - only check token validity, use cached data
-    val uiState: StateFlow<MoviesScreenUiState> = combine(
-        userRepository.userToken,
-    ) { token ->
-        val token = token.firstOrNull() ?: ""
-        when {
-            token.isEmpty() -> MoviesScreenUiState.Error
-            else -> {
-                // Use cached paging sources - no refetch on recomposition
-                MoviesScreenUiState.Ready(
-                    catalogToMovies = cachedCatalogToMovies,
-                    genreToMovies = cachedGenreToMovies,
-                    streamingProviders = cachedStreamingProviders
+    fun fetchMovieScreenData() {
+        viewModelScope.launch {
+            try {
+                combine(
+                    userRepository.userToken,
+                ) { token ->
+                    val token = token.firstOrNull() ?: ""
+                    when {
+                        token.isEmpty() -> MoviesScreenUiState.Error(UiText.DynamicString("Unauthorized"))
+                        else -> {
+                            val catalogToMovies = fetchCatalogsAndMovies(
+                                catalogRepository,
+                                userRepository
+                            )
+                            val genreToMovies = fetchGenresAndMovies(
+                                genreRepository = genreRepository,
+                                userRepository
+                            )
+                            val streamingProviders =
+                                streamingProvidersRepository.getStreamingProviders(
+                                    type = "App\\Models\\TvShow"
+                                ).firstOrNull() ?: emptyList()
+
+                            if (catalogToMovies.isEmpty() && genreToMovies.isEmpty() && streamingProviders.isEmpty()) {
+                                return@combine MoviesScreenUiState.Error(UiText.DynamicString("No data found"))
+                            } else {
+                                return@combine MoviesScreenUiState.Ready(
+                                    catalogToMovies = catalogToMovies,
+                                    genreToMovies = genreToMovies,
+                                    streamingProviders = streamingProviders
+                                )
+                            }
+                        }
+                    }
+                }.collect { state ->
+                    _uiState.value = state
+                }
+            } catch (e: Exception) {
+                _uiState.value = MoviesScreenUiState.Error(
+                    message = UiText.DynamicString(
+                        value = "Error Fetching movies",
+                    )
                 )
             }
         }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = MoviesScreenUiState.Loading
-    )
+    }
 
     private suspend fun fetchCatalogsAndMovies(
         catalogRepository: CatalogRepository,
         userRepository: UserRepository
     ): Map<Catalog, StateFlow<PagingData<MovieNew>>> {
-        val catalogs = catalogRepository.getMovieCatalog().firstOrNull() ?: emptyList()
-        val catalogToMovies = catalogs.associateWith { catalog ->
-            MoviesPagingSources().getMoviesCatalogPagingSource(
-                catalog = catalog,
-                movieRepository = movieRepository,
-                userRepository = userRepository
-            ).cachedIn(viewModelScope).stateIn(
-                viewModelScope,
-                SharingStarted.WhileSubscribed(5_000),
-                PagingData.empty()
-            )
+        val catalogsResponse = catalogRepository.getMovieCatalog()
+        when (catalogsResponse) {
+            is ApiResult.Success -> {
+                val catalogToMovies = catalogsResponse.data.member.associateWith { catalog ->
+                    MoviesPagingSources().getMoviesCatalogPagingSource(
+                        catalog = catalog,
+                        movieRepository = movieRepository,
+                        userRepository = userRepository
+                    ).cachedIn(viewModelScope).stateIn(
+                        viewModelScope,
+                        SharingStarted.WhileSubscribed(5_000),
+                        PagingData.empty()
+                    )
+                }
+                return catalogToMovies
+            }
+
+            is ApiResult.Error -> {
+                MoviesScreenUiState.Error(catalogsResponse.error.asUiText(catalogsResponse.message))
+            }
         }
-        return catalogToMovies
+        return emptyMap()
     }
 
     private suspend fun fetchGenresAndMovies(
@@ -126,11 +152,15 @@ class MoviesScreenViewModel @Inject constructor(
         }
         return genreToMovies
     }
+
+    fun retryOperation() {
+        fetchMovieScreenData()
+    }
 }
 
 sealed interface MoviesScreenUiState {
     data object Loading : MoviesScreenUiState
-    data object Error : MoviesScreenUiState
+    data class Error(val message: UiText) : MoviesScreenUiState
     data class Ready(
         val catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
         val genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>,

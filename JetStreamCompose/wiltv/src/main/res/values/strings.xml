@@ -59,9 +59,37 @@ https://www.apache.org/licenses/LICENSE-2.0
     <string name="unknown_error">An unknown error occurred</string>
     <string name="error_disk_full">Failed to save the item because your device\'s disk is full</string>
     <string name="bad_request">Bad request</string>
+    <string name="local_user_not_found">There seems to be an issue please restart your application</string>
     <string name="forbidden">User not allowed</string>
     <string name="validation_error">Invalid Input</string>
     <string name="not_found">User account not found</string>
     <string name="error_serialization">Oops, couldn\'t parse data.</string>
     <string name="error_password_too_short">The password is too short</string>
+
+    <!-- Error messages -->
+    <string name="error_network_title">Connection Problem</string>
+    <string name="error_network_message">Check your internet connection and try again</string>
+    <string name="error_server_title">Server Error</string>
+    <string name="error_server_message">The server is having problems. Please try again later</string>
+    <string name="error_client_title">Request Error</string>
+    <string name="error_client_message">There was a problem with your request</string>
+    <string name="error_timeout_title">Request Timeout</string>
+    <string name="error_timeout_message">The request took too long. Please try again</string>
+    <string name="error_unknown_title">Something Went Wrong</string>
+    <string name="error_unknown_message">An unexpected error occurred. Please try again</string>
+    <string name="error_unauthorized_title">Sign In Required</string>
+    <string name="error_unauthorized_message">Please sign in to continue</string>
+    <string name="error_forbidden_title">Access Denied</string>
+    <string name="error_forbidden_message">You don\'t have permission to access this content</string>
+    <string name="error_not_found_title">Not Found</string>
+    <string name="error_not_found_message">The requested content was not found</string>
+    <string name="error_validation_title">Invalid Data</string>
+    <string name="error_validation_message">Please check your input and try again</string>
+
+    <!-- Error actions -->
+    <string name="error_retry">Try Again</string>
+    <string name="error_go_back">Go Back</string>
+    <string name="error_go_home">Go Home</string>
+    <string name="error_sign_in">Sign In</string>
+
 </resources>

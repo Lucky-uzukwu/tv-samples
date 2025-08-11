@@ -18,13 +18,18 @@ import com.google.wiltv.data.repositories.GenreRepository
 import com.google.wiltv.data.repositories.MovieRepository
 import com.google.wiltv.data.repositories.StreamingProvidersRepository
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.presentation.UiText
+import com.google.wiltv.presentation.asUiText
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 const val PAGE_SIZE = 20
@@ -58,6 +63,10 @@ class HomeScreeViewModel @Inject constructor(
 //            )
 //        ).flow
 
+    init {
+        fetchHomeScreenData()
+    }
+
     val heroSectionMovies: StateFlow<PagingData<MovieNew>> = Pager(
         PagingConfig(pageSize = 5, initialLoadSize = 5)
     ) {
@@ -68,66 +77,83 @@ class HomeScreeViewModel @Inject constructor(
         PagingData.empty()
     )
 
-    // Cache catalog and genre movies to prevent refetching on navigation
-    private val cachedCatalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>> by lazy {
-        runBlocking {
-            fetchCatalogsAndMovies(catalogRepository, userRepository)
-        }
-    }
+    private val _uiState = MutableStateFlow<HomeScreenUiState>(HomeScreenUiState.Loading)
+    val uiState: StateFlow<HomeScreenUiState> = _uiState.asStateFlow()
 
-    private val cachedGenreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>> by lazy {
-        runBlocking {
-            fetchGenresAndMovies(genreRepository, userRepository)
-        }
-    }
 
-    private val cachedStreamingProviders: List<StreamingProvider> by lazy {
-        runBlocking {
-            streamingProvidersRepository.getStreamingProviders(
-                type = "App\\Models\\Movie"
-            ).firstOrNull() ?: emptyList()
-        }
-    }
+    fun fetchHomeScreenData() {
+        viewModelScope.launch {
+            try {
+                combine(
+                    userRepository.userToken,
+                ) { token ->
+                    val token = token.firstOrNull() ?: ""
+                    when {
+                        token.isEmpty() -> HomeScreenUiState.Error(UiText.DynamicString("Unauthorized"))
+                        else -> {
+                            val catalogToMovies = fetchCatalogsAndMovies(
+                                catalogRepository,
+                                userRepository
+                            )
+                            val genreToMovies = fetchGenresAndMovies(
+                                genreRepository = genreRepository,
+                                userRepository
+                            )
+                            val streamingProviders =
+                                streamingProvidersRepository.getStreamingProviders(
+                                    type = "App\\Models\\TvShow"
+                                ).firstOrNull() ?: emptyList()
 
-    // UI State - only check token validity, use cached data
-    val uiState: StateFlow<HomeScreenUiState> = combine(
-        userRepository.userToken,
-    ) { token ->
-        val token = token.firstOrNull() ?: ""
-        when {
-            token.isEmpty() -> HomeScreenUiState.Error
-            else -> {
-                // Use cached paging sources - no refetch on recomposition
-                HomeScreenUiState.Ready(
-                    catalogToMovies = cachedCatalogToMovies,
-                    genreToMovies = cachedGenreToMovies,
-                    streamingProviders = cachedStreamingProviders
+                            if (catalogToMovies.isEmpty() && genreToMovies.isEmpty() && streamingProviders.isEmpty()) {
+                                return@combine HomeScreenUiState.Error(UiText.DynamicString("No data found"))
+                            } else {
+                                return@combine HomeScreenUiState.Ready(
+                                    catalogToMovies = catalogToMovies,
+                                    genreToMovies = genreToMovies,
+                                    streamingProviders = streamingProviders
+                                )
+                            }
+                        }
+                    }
+                }.collect { state ->
+                    _uiState.value = state
+                }
+            } catch (e: Exception) {
+                _uiState.value = HomeScreenUiState.Error(
+                    message = UiText.DynamicString(
+                        value = "Error Fetching movies",
+                    )
                 )
             }
         }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = HomeScreenUiState.Loading
-    )
+    }
 
     private suspend fun fetchCatalogsAndMovies(
         catalogRepository: CatalogRepository,
         userRepository: UserRepository
     ): Map<Catalog, StateFlow<PagingData<MovieNew>>> {
-        val catalogs = catalogRepository.getMovieCatalog().firstOrNull() ?: emptyList()
-        val catalogToMovies = catalogs.associateWith { catalog ->
-            MoviesPagingSources().getMoviesCatalogPagingSource(
-                catalog = catalog,
-                movieRepository = movieRepository,
-                userRepository = userRepository
-            ).cachedIn(viewModelScope).stateIn(
-                viewModelScope,
-                SharingStarted.WhileSubscribed(5_000),
-                PagingData.empty()
-            )
+        val catalogsResponse = catalogRepository.getMovieCatalog()
+        when (catalogsResponse) {
+            is ApiResult.Success -> {
+                val catalogToMovies = catalogsResponse.data.member.associateWith { catalog ->
+                    MoviesPagingSources().getMoviesCatalogPagingSource(
+                        catalog = catalog,
+                        movieRepository = movieRepository,
+                        userRepository = userRepository
+                    ).cachedIn(viewModelScope).stateIn(
+                        viewModelScope,
+                        SharingStarted.WhileSubscribed(5_000),
+                        PagingData.empty()
+                    )
+                }
+                return catalogToMovies
+            }
+
+            is ApiResult.Error -> {
+                HomeScreenUiState.Error(catalogsResponse.error.asUiText(catalogsResponse.message))
+            }
         }
-        return catalogToMovies
+        return emptyMap()
     }
 
     private suspend fun fetchGenresAndMovies(
@@ -148,11 +174,15 @@ class HomeScreeViewModel @Inject constructor(
         }
         return genreToMovies
     }
+
+    fun retryOperation() {
+        fetchHomeScreenData()
+    }
 }
 
 sealed interface HomeScreenUiState {
     data object Loading : HomeScreenUiState
-    data object Error : HomeScreenUiState
+    data class Error(val message: UiText) : HomeScreenUiState
     data class Ready(
         val catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
         val genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>,

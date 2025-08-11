@@ -14,12 +14,11 @@ import androidx.tv.material3.ExperimentalTvMaterial3Api
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.StreamingProvider
 import com.google.wiltv.presentation.common.CatalogLayout
-import com.google.wiltv.presentation.common.Error
 import com.google.wiltv.presentation.common.FocusManagementConfig
 import com.google.wiltv.presentation.common.Loading
+import com.google.wiltv.presentation.screens.ErrorScreen
 import com.google.wiltv.presentation.screens.backgroundImageState
 import com.google.wiltv.presentation.screens.home.carouselSaver
-import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -35,13 +34,13 @@ fun MoviesScreen(
     val featuredMovies = moviesScreenViewModel.heroSectionMovies.collectAsLazyPagingItems()
     val carouselState = rememberSaveable(saver = carouselSaver) { CarouselState(0) }
 
-    when (val s = uiState) {
+    when (val currentState = uiState) {
         is MoviesScreenUiState.Ready -> {
             val backgroundState = backgroundImageState()
             CatalogLayout(
                 featuredMovies = featuredMovies,
-                catalogToMovies = s.catalogToMovies,
-                genreToMovies = s.genreToMovies,
+                catalogToMovies = currentState.catalogToMovies,
+                genreToMovies = currentState.genreToMovies,
                 onMovieClick = onMovieClick,
                 goToVideoPlayer = goToVideoPlayer,
                 setSelectedMovie = setSelectedMovie,
@@ -49,7 +48,7 @@ fun MoviesScreen(
                 backgroundState = backgroundState,
                 modifier = Modifier.fillMaxSize(),
                 contentDescription = "Movie Screen",
-                streamingProviders = s.streamingProviders,
+                streamingProviders = currentState.streamingProviders,
                 onStreamingProviderClick = onStreamingProviderClick,
                 focusManagementConfig = FocusManagementConfig(
                     enableFocusRestoration = true,
@@ -59,7 +58,14 @@ fun MoviesScreen(
         }
 
         is MoviesScreenUiState.Loading -> Loading(modifier = Modifier.fillMaxSize())
-        is MoviesScreenUiState.Error -> Error(modifier = Modifier.fillMaxSize())
+        is MoviesScreenUiState.Error -> ErrorScreen(
+            uiText = currentState.message,
+            onRetry = {
+                moviesScreenViewModel
+                    .retryOperation()
+            },
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
 

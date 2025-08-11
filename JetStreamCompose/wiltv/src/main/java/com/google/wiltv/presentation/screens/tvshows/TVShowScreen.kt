@@ -12,10 +12,10 @@ import androidx.tv.material3.CarouselState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import com.google.wiltv.data.models.StreamingProvider
 import com.google.wiltv.data.models.TvShow
-import com.google.wiltv.presentation.common.Error
 import com.google.wiltv.presentation.common.FocusManagementConfig
 import com.google.wiltv.presentation.common.Loading
 import com.google.wiltv.presentation.common.TvCatalogLayout
+import com.google.wiltv.presentation.screens.ErrorScreen
 import com.google.wiltv.presentation.screens.backgroundImageState
 import com.google.wiltv.presentation.screens.home.carouselSaver
 
@@ -56,7 +56,14 @@ fun TVShowScreen(
         }
 
         is TvShowScreenUiState.Loading -> Loading(modifier = Modifier.fillMaxSize())
-        is TvShowScreenUiState.Error -> Error(modifier = Modifier.fillMaxSize())
+        is TvShowScreenUiState.Error -> ErrorScreen(
+            uiText = currentState.message,
+            onRetry = {
+                tvShowScreenViewModel
+                    .retryOperation()
+            },
+            modifier = Modifier.fillMaxSize()
+        )
 
     }
 }

@@ -17,13 +17,18 @@ import com.google.wiltv.data.repositories.GenreRepository
 import com.google.wiltv.data.repositories.StreamingProvidersRepository
 import com.google.wiltv.data.repositories.TvShowsRepository
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.presentation.UiText
+import com.google.wiltv.presentation.asUiText
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -45,73 +50,88 @@ class TvShowScreenViewModel @Inject constructor(
         PagingData.empty()
     )
 
-    // Cache catalog and genre movies to prevent refetching on navigation
-    private val cachedCatalogToMovies: Map<Catalog, StateFlow<PagingData<TvShow>>> by lazy {
-        runBlocking {
-            fetchCatalogsAndTvShows(
-                catalogRepository,
-                userRepository
-            )
-        }
+    private val _uiState = MutableStateFlow<TvShowScreenUiState>(TvShowScreenUiState.Loading)
+    val uiState: StateFlow<TvShowScreenUiState> = _uiState.asStateFlow()
+
+
+    init {
+        loadTvShowData()
     }
 
-    private val cachedGenreToMovies: Map<Genre, StateFlow<PagingData<TvShow>>> by lazy {
-        runBlocking {
-            fetchTvShowsByGenre(
-                genreRepository = genreRepository,
-                userRepository
-            )
-        }
-    }
+    fun loadTvShowData() {
+        viewModelScope.launch {
+            try {
+                combine(
+                    userRepository.userToken,
+                ) { token ->
+                    val token = token.firstOrNull() ?: ""
+                    when {
+                        token.isEmpty() -> TvShowScreenUiState.Error(UiText.DynamicString("Unauthorized"))
+                        else -> {
+                            val catalogToMovies = fetchCatalogsAndTvShows(
+                                catalogRepository,
+                                userRepository
+                            )
+                            val genreToMovies = fetchTvShowsByGenre(
+                                genreRepository = genreRepository,
+                                userRepository
+                            )
+                            val streamingProviders =
+                                streamingProvidersRepository.getStreamingProviders(
+                                    type = "App\\Models\\TvShow"
+                                ).firstOrNull() ?: emptyList()
 
-    private val cachedStreamingProviders: List<StreamingProvider> by lazy {
-        runBlocking {
-            streamingProvidersRepository.getStreamingProviders(
-                type = "App\\Models\\TvShow"
-            ).firstOrNull() ?: emptyList()
-        }
-    }
-
-
-    // UI State combining all data
-    val uiState: StateFlow<TvShowScreenUiState> = combine(
-        userRepository.userToken,
-    ) { token ->
-        val token = token.firstOrNull() ?: ""
-        when {
-            token.isEmpty() -> TvShowScreenUiState.Error
-            else -> {
-                // Use cached paging sources - no refetch on recomposition
-                TvShowScreenUiState.Ready(
-                    catalogToTvShows = cachedCatalogToMovies,
-                    genreToTvShows = cachedGenreToMovies,
-                    streamingProviders = cachedStreamingProviders
+                            if (catalogToMovies.isEmpty() && genreToMovies.isEmpty() && streamingProviders.isEmpty()) {
+                                return@combine TvShowScreenUiState.Error(UiText.DynamicString("No data found"))
+                            } else {
+                                return@combine TvShowScreenUiState.Ready(
+                                    catalogToTvShows = catalogToMovies,
+                                    genreToTvShows = genreToMovies,
+                                    streamingProviders = streamingProviders
+                                )
+                            }
+                        }
+                    }
+                }.collect { state ->
+                    _uiState.value = state
+                }
+            } catch (e: Exception) {
+                _uiState.value = TvShowScreenUiState.Error(
+                    message = UiText.DynamicString(
+                        value = "Error fetching tv shows",
+                    )
                 )
             }
         }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = TvShowScreenUiState.Loading
-    )
+    }
 
     private suspend fun fetchCatalogsAndTvShows(
         catalogRepository: CatalogRepository,
         userRepository: UserRepository
     ): Map<Catalog, StateFlow<PagingData<TvShow>>> {
-        val catalogs = catalogRepository.getTvShowCatalog().firstOrNull() ?: emptyList()
-        val catalogToTvShowPagingSource = catalogs.associateWith { catalog ->
-            TvShowPagingSources().getTvShowsCatalogPagingSource(
-                catalog = catalog,
-                tvShowRepository = tvShowRepository,
-                userRepository = userRepository
-            ).cachedIn(viewModelScope).stateIn(
-                viewModelScope,
-                SharingStarted.WhileSubscribed(5_000),
-                PagingData.empty()
-            )
+        val catalogsResponse = catalogRepository.getTvShowCatalog()
+        when (catalogsResponse) {
+            is ApiResult.Success -> {
+                val catalogToTvShowPagingSource =
+                    catalogsResponse.data.member.associateWith { catalog ->
+                        TvShowPagingSources().getTvShowsCatalogPagingSource(
+                            catalog = catalog,
+                            tvShowRepository = tvShowRepository,
+                            userRepository = userRepository
+                        ).cachedIn(viewModelScope).stateIn(
+                            viewModelScope,
+                            SharingStarted.WhileSubscribed(5_000),
+                            PagingData.empty()
+                        )
+                    }
+                return catalogToTvShowPagingSource
+            }
+
+            is ApiResult.Error -> {
+                TvShowScreenUiState.Error(catalogsResponse.error.asUiText(catalogsResponse.message))
+            }
         }
-        return catalogToTvShowPagingSource
+        return emptyMap()
     }
 
     private suspend fun fetchTvShowsByGenre(
@@ -133,11 +153,15 @@ class TvShowScreenViewModel @Inject constructor(
         return genreToTvShowPagingData
     }
 
+    fun retryOperation() {
+        loadTvShowData()
+    }
+
 }
 
 sealed interface TvShowScreenUiState {
     data object Loading : TvShowScreenUiState
-    data object Error : TvShowScreenUiState
+    data class Error(val message: UiText) : TvShowScreenUiState
     data class Ready(
         val catalogToTvShows: Map<Catalog, StateFlow<PagingData<TvShow>>>,
         val genreToTvShows: Map<Genre, StateFlow<PagingData<TvShow>>>,

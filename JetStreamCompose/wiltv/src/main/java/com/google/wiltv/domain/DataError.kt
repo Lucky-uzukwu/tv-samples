@@ -13,10 +13,12 @@ sealed interface DataError : Error {
         PAYLOAD_TOO_LARGE,
         SERVER_ERROR,
         SERIALIZATION,
-        UNKNOWN
+        UNKNOWN,
+        LOCAL_USER_NOT_FOUND,
     }
 
     enum class Local : DataError {
-        DISK_FULL
+        DISK_FULL,
+
     }
 }

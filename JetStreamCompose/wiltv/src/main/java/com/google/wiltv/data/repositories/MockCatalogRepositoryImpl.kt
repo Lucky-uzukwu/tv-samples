@@ -1,29 +1,38 @@
 package com.google.wiltv.data.repositories
 
 import com.google.wiltv.data.network.Catalog
+import com.google.wiltv.data.network.CatalogResponse
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.domain.DataError
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class MockCatalogRepositoryImpl : CatalogRepository {
-    override fun getMovieCatalog(): Flow<List<Catalog>> = flow {
+    override suspend fun getMovieCatalog(): ApiResult<CatalogResponse, DataError.Network> {
 
-        emit(
-            listOf(
-                Catalog(
-                    id = "1",
-                    name = "Movie catalog"
-                )
+        return ApiResult.Success(
+            CatalogResponse(
+                listOf(
+                    Catalog(
+                        id = "1",
+                        name = "Movie catalog"
+                    )
+                ),
+                1
             )
         )
     }
 
-    override fun getTvShowCatalog(): Flow<List<Catalog>> = flow {
-        emit(
-            listOf(
-                Catalog(
-                    id = "1",
-                    name = "Show catalog"
-                )
+    override suspend fun getTvShowCatalog(): ApiResult<CatalogResponse, DataError.Network> {
+        return ApiResult.Success(
+            CatalogResponse(
+                listOf(
+                    Catalog(
+                        id = "1",
+                        name = "Movie catalog"
+                    )
+                ),
+                1
             )
         )
     }

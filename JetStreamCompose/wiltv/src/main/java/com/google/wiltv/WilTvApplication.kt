@@ -194,7 +194,6 @@ object CatalogRepositoryModule {
         } else {
             CatalogRepositoryImpl(
                 catalogService,
-                authRepository,
                 userRepository
             )
         }

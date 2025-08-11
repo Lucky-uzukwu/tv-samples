@@ -16,10 +16,11 @@
 
 package com.google.wiltv.data.repositories
 
-import com.google.wiltv.data.network.Catalog
-import kotlinx.coroutines.flow.Flow
+import com.google.wiltv.data.network.CatalogResponse
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.domain.DataError
 
 interface CatalogRepository {
-    fun getMovieCatalog(): Flow<List<Catalog>>
-    fun getTvShowCatalog(): Flow<List<Catalog>>
+    suspend fun getMovieCatalog(): ApiResult<CatalogResponse, DataError.Network>
+    suspend  fun getTvShowCatalog(): ApiResult<CatalogResponse, DataError.Network>
 }

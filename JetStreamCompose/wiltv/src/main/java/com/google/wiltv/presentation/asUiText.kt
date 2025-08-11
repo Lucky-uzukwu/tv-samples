@@ -62,6 +62,12 @@ fun DataError.asUiText(message: String? = null): UiText {
         } else {
             DynamicString(message!!)
         }
+
+        DataError.Network.LOCAL_USER_NOT_FOUND -> if (message == "") {
+            StringResource(R.string.local_user_not_found)
+        } else {
+            DynamicString(message!!)
+        }
     }
 }
 
