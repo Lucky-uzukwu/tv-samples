@@ -94,7 +94,17 @@ private fun Body(
     navController: NavHostController = rememberNavController(),
     onLogOutClick: () -> Unit
 ) {
-    val navGraph = remember(navController) {
+    val navGraph = remember(
+        openMovieDetailsScreen,
+        openVideoPlayer,
+        openTvShowDetailsScreen,
+        openCategoryMovieList,
+        setSelectedMovie,
+        setSelectedTvShow,
+        openStreamingProviderMovieList,
+        openStreamingProvideShowList,
+        onLogOutClick
+    ) {
         navController.createGraph(startDestination = Screens.Home()) {
             composable(Screens.Profile()) {
                 ProfileScreen(

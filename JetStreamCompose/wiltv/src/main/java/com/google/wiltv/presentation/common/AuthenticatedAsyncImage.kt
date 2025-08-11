@@ -39,20 +39,17 @@ fun AuthenticatedAsyncImage(
 ) {
     val context = LocalContext.current
     
-    // Log the URL being requested
-    Log.d("AuthenticatedAsyncImage", "Loading image: $model")
-    
     // Get the authenticated ImageLoader from Hilt
     val imageLoader = EntryPointAccessors
         .fromApplication(context, ImageLoaderEntryPoint::class.java)
         .getAuthenticatedImageLoader()
-    
-    Log.d("AuthenticatedAsyncImage", "Using AuthenticatedImageLoader: ${imageLoader.javaClass.simpleName}")
 
     AsyncImage(
         model = ImageRequest.Builder(context)
             .data(model)
-            .crossfade(true)
+            .crossfade(300)
+            .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+            .diskCachePolicy(coil.request.CachePolicy.ENABLED)
             .build(),
         contentDescription = contentDescription,
         imageLoader = imageLoader,
@@ -60,18 +57,9 @@ fun AuthenticatedAsyncImage(
         placeholder = placeholder,
         error = error,
         fallback = fallback,
-        onLoading = { state ->
-            Log.d("AuthenticatedAsyncImage", "Loading image: $model")
-            onLoading?.invoke(state)
-        },
-        onSuccess = { state ->
-            Log.d("AuthenticatedAsyncImage", "Successfully loaded image: $model")
-            onSuccess?.invoke(state)
-        },
-        onError = { state ->
-            Log.e("AuthenticatedAsyncImage", "Failed to load image: $model, error: ${state.result.throwable?.message}")
-            onError?.invoke(state)
-        },
+        onLoading = onLoading,
+        onSuccess = onSuccess,
+        onError = onError,
         alignment = alignment,
         contentScale = contentScale,
         alpha = alpha,

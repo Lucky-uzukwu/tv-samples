@@ -63,10 +63,6 @@ fun ProfileSelectionScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        viewModel.loadProfiles()
-    }
-
     when (val state = uiState) {
         is ProfileSelectionUiState.Loading -> {
             Loading(modifier = Modifier.fillMaxSize())

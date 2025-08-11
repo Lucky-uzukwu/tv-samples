@@ -1,9 +1,11 @@
 package com.google.wiltv.data.models
 
+import androidx.compose.runtime.Stable
 import com.google.wiltv.data.entities.MovieEntity
 import com.google.wiltv.data.entities.VideoEntity
 import com.google.wiltv.data.entities.toVideoEntity
 
+@Stable
 data class MovieNew(
     val id: Int,
     val title: String,
@@ -92,6 +94,7 @@ fun MovieNew.toMovieEntity(): MovieEntity = MovieEntity(
 )
 
 
+@Stable
 data class TvShow(
     val id: Int,
     val title: String?,
@@ -125,6 +128,7 @@ data class TvShow(
     val streamingProviders: List<StreamingProvider>?,
 )
 
+@Stable
 data class Season(
     val id: Int,
     val tvShowId: Int,
@@ -145,6 +149,7 @@ data class Season(
     val episodes: List<Episode>?
 )
 
+@Stable
 data class Episode(
     val id: Int,
     val title: String,

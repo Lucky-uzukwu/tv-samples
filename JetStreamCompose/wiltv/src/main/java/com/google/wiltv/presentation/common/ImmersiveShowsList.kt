@@ -73,8 +73,10 @@ fun ImmersiveShowsList(
     var isListFocused by remember { mutableStateOf(false) }
     var shouldShowDetails by remember { mutableStateOf(false) }
 
-    var selectedTvShow by remember(tvShows) {
-        mutableStateOf(tvShows.itemSnapshotList.firstOrNull())
+    val selectedTvShow by remember {
+        androidx.compose.runtime.derivedStateOf {
+            tvShows.itemSnapshotList.firstOrNull()
+        }
     }
 
     // Clear details when clearDetailsSignal is triggered
@@ -91,7 +93,6 @@ fun ImmersiveShowsList(
         sectionTitle = sectionTitle,
         onTvShowClick = onTvShowClick,
         onTvShowFocused = { tvShow, index ->
-            selectedTvShow = tvShow
             setSelectedTvShow(tvShow)
             onItemFocused(tvShow, index)
         },
@@ -326,15 +327,14 @@ fun ImmersiveListShowsRow(
             verticalAlignment = Alignment.CenterVertically,
             contentPadding = PaddingValues(horizontal = 32.dp)
         ) {
-            // Use safe item count to prevent index out of bounds
-            val safeItemCount = minOf(
-                tvShows.itemSnapshotList.items.size,
-                tvShows.itemCount.coerceAtLeast(0)
-            )
-
-
-            items(safeItemCount) { index ->
-                val tvShow = tvShows.itemSnapshotList.items[index]
+            items(
+                count = tvShows.itemCount,
+                key = { index -> 
+                    tvShows.peek(index)?.id ?: "tvshow_$index"
+                },
+                contentType = { "TvShowItem" }
+            ) { index ->
+                val tvShow = tvShows[index]
 
                 // Skip if tvShow is null (can happen during paging updates)
                 if (tvShow == null) return@items

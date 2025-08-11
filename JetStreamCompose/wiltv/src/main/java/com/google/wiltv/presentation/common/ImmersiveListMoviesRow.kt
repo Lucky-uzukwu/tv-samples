@@ -60,8 +60,10 @@ fun ImmersiveListMoviesRow(
     var isListFocused by remember { mutableStateOf(false) }
     var shouldShowDetails by remember { mutableStateOf(false) }
 
-    var selectedMovie by remember(movies) {
-        mutableStateOf(movies.itemSnapshotList.firstOrNull())
+    val selectedMovie by remember {
+        androidx.compose.runtime.derivedStateOf {
+            movies.itemSnapshotList.firstOrNull()
+        }
     }
 
     // Clear details when clearDetailsSignal is triggered
@@ -78,7 +80,6 @@ fun ImmersiveListMoviesRow(
         sectionTitle = sectionTitle,
         onMovieClick = onMovieClick,
         onMovieFocused = { movie, index ->
-            selectedMovie = movie
             setSelectedMovie(movie)
             onItemFocused(movie, index)
         },
@@ -280,14 +281,14 @@ fun ImmersiveListMoviesRow(
             verticalAlignment = Alignment.CenterVertically,
             contentPadding = PaddingValues(horizontal = 32.dp)
         ) {
-            // Use safe item count to prevent index out of bounds
-            val safeItemCount = minOf(
-                movies.itemSnapshotList.items.size,
-                movies.itemCount.coerceAtLeast(0)
-            )
-
-            items(safeItemCount) { index ->
-                val movie = movies.itemSnapshotList.items.getOrNull(index)
+            items(
+                count = movies.itemCount,
+                key = { index -> 
+                    movies.peek(index)?.id ?: "movie_$index"
+                },
+                contentType = { "MovieItem" }
+            ) { index ->
+                val movie = movies[index]
 
                 // Skip if movie is null (can happen during paging updates)
                 if (movie == null) return@items

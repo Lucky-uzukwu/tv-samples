@@ -31,7 +31,11 @@ class ProfileSelectionViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<ProfileSelectionUiState>(ProfileSelectionUiState.Loading)
     val uiState: StateFlow<ProfileSelectionUiState> = _uiState.asStateFlow()
 
-    fun loadProfiles() {
+    init {
+        loadProfiles()
+    }
+
+    private fun loadProfiles() {
         viewModelScope.launch {
             try {
                 combine(

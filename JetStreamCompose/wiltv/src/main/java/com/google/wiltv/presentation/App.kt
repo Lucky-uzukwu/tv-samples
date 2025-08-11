@@ -1,5 +1,6 @@
 package com.google.wiltv.presentation
 
+import androidx.compose.runtime.Stable
 import com.google.wiltv.presentation.screens.auth.AuthScreen
 import com.google.wiltv.presentation.screens.profileselection.ProfileSelectionScreen
 import androidx.compose.runtime.Composable
@@ -25,6 +26,19 @@ import com.google.wiltv.presentation.screens.streamingprovider.show.StreamingPro
 import com.google.wiltv.presentation.screens.tvshowsdetails.TvShowDetailsScreen
 import com.google.wiltv.presentation.screens.videoPlayer.VideoPlayerScreen
 import com.google.wiltv.state.UserStateHolder
+
+@Stable
+private data class DashboardCallbacks(
+    val openCategoryMovieList: (String) -> Unit,
+    val openStreamingProviderMovieList: (com.google.wiltv.data.models.StreamingProvider) -> Unit,
+    val openStreamingProvideShowList: (com.google.wiltv.data.models.StreamingProvider) -> Unit,
+    val openTvShowDetailsScreen: (String) -> Unit,
+    val openMovieDetailsScreen: (String) -> Unit,
+    val openVideoPlayer: (String) -> Unit,
+    val setSelectedMovie: (MovieNew) -> Unit,
+    val setSelectedTvShow: (TvShow) -> Unit,
+    val onLogOutClick: () -> Unit
+)
 
 @Composable
 fun App(
@@ -186,47 +200,61 @@ fun App(
                 )
             }
             composable(route = Screens.Dashboard()) {
+                val dashboardCallbacks = remember(navController, selectedMovie, selectedTvShow, userStateHolder) {
+                    DashboardCallbacks(
+                        openCategoryMovieList = { categoryId ->
+                            navController.navigate(
+                                Screens.CategoryMovieList.withArgs(categoryId)
+                            )
+                        },
+                        openStreamingProviderMovieList = { streamingProvider ->
+                            navController.navigate(
+                                Screens.StreamingProviderMoviesList.withArgs("${streamingProvider.id}-${streamingProvider.name}")
+                            )
+                        },
+                        openStreamingProvideShowList = { streamingProvider ->
+                            navController.navigate(
+                                Screens.StreamingProviderShowsList.withArgs("${streamingProvider.id}-${streamingProvider.name}")
+                            )
+                        },
+                        openTvShowDetailsScreen = { tvShowId ->
+                            navController.navigate(
+                                Screens.TvShowDetails.withArgs(tvShowId)
+                            )
+                        },
+                        openMovieDetailsScreen = { movieId ->
+                            navController.navigate(
+                                Screens.MovieDetails.withArgs(movieId)
+                            )
+                        },
+                        openVideoPlayer = { movieId ->
+                            navController.navigate(Screens.VideoPlayer.withArgs(movieId))
+                        },
+                        setSelectedMovie = {
+                            selectedMovie.value = it
+                            selectedTvShow.value = null
+                        },
+                        setSelectedTvShow = {
+                            selectedTvShow.value = it
+                            selectedMovie.value = null
+                        },
+                        onLogOutClick = {
+                            userStateHolder.clearUser()
+                            navController.navigate(Screens.AuthScreen())
+                        }
+                    )
+                }
+                
                 DashboardScreen(
-                    openCategoryMovieList = { categoryId ->
-                        navController.navigate(
-                            Screens.CategoryMovieList.withArgs(categoryId)
-                        )
-                    },
-                    openStreamingProviderMovieList = { streamingProvider ->
-                        navController.navigate(
-                            Screens.StreamingProviderMoviesList.withArgs("${streamingProvider.id}-${streamingProvider.name}")
-                        )
-                    },
-                    openStreamingProvideShowList = { streamingProvider ->
-                        navController.navigate(
-                            Screens.StreamingProviderShowsList.withArgs("${streamingProvider.id}-${streamingProvider.name}")
-                        )
-                    },
-                    openTvShowDetailsScreen = { tvShowId ->
-                        navController.navigate(
-                            Screens.TvShowDetails.withArgs(tvShowId)
-                        )
-                    },
-                    openMovieDetailsScreen = { movieId ->
-                        navController.navigate(
-                            Screens.MovieDetails.withArgs(movieId)
-                        )
-                    },
-                    openVideoPlayer = { movieId ->
-                        navController.navigate(Screens.VideoPlayer.withArgs(movieId))
-                    },
-                    setSelectedMovie = {
-                        selectedMovie.value = it
-                        selectedTvShow.value = null
-                    },
-                    setSelectedTvShow = {
-                        selectedTvShow.value = it
-                        selectedMovie.value = null
-                    },
-                    onLogOutClick = {
-                        userStateHolder.clearUser()
-                        navController.navigate(Screens.AuthScreen())
-                    },
+                    openCategoryMovieList = dashboardCallbacks.openCategoryMovieList,
+                    openStreamingProviderMovieList = dashboardCallbacks.openStreamingProviderMovieList,
+                    openStreamingProvideShowList = dashboardCallbacks.openStreamingProvideShowList,
+                    openTvShowDetailsScreen = dashboardCallbacks.openTvShowDetailsScreen,
+                    openMovieDetailsScreen = dashboardCallbacks.openMovieDetailsScreen,
+                    openVideoPlayer = dashboardCallbacks.openVideoPlayer,
+                    setSelectedMovie = dashboardCallbacks.setSelectedMovie,
+                    setSelectedTvShow = dashboardCallbacks.setSelectedTvShow,
+                    onLogOutClick = dashboardCallbacks.onLogOutClick,
                 )
             }
             composable(route = Screens.VideoPlayer()) {
