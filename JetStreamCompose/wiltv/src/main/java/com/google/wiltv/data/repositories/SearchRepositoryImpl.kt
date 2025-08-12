@@ -4,6 +4,8 @@ import co.touchlab.kermit.Logger
 import com.google.wiltv.data.network.MovieSearchResponse
 import com.google.wiltv.data.network.SearchService
 import com.google.wiltv.data.network.ShowSearchResponse
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.domain.DataError
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -15,64 +17,42 @@ class SearchRepositoryImpl @Inject constructor(
     private val userRepository: UserRepository,
     private val searchService: SearchService
 ) : SearchRepository {
-    override fun searchMoviesByQuery(
+    override suspend fun searchMoviesByQuery(
         token: String,
         query: String,
         itemsPerPage: Int,
         page: Int
-    ): Flow<MovieSearchResponse> = flow {
-        val user = userRepository.getUser() ?: return@flow
-
-        // TODO: Switch to new API structure , when Priesly pushes it
+    ): ApiResult<MovieSearchResponse, DataError.Network> {
+        Logger.i { "Searching movies with query: $query" }
+        val user = userRepository.getUser()
+            ?: return ApiResult.Error(DataError.Network.LOCAL_USER_NOT_FOUND)
+        
         val response = searchService.searchMovie(
             authToken = "Bearer $token",
             search = query,
             itemsPerPage = itemsPerPage,
             page = page
         )
-
-        if (response.isSuccessful) {
-            val searchResponse = response.body()
-            Logger.i { "Successfully fetched ${searchResponse?.member?.size} movies for catalog section out of ${searchResponse?.totalItems}." }
-            
-            // Log each movie name for debugging
-            searchResponse?.member?.forEach { movie ->
-                Logger.i { "Movie found: ${movie.title} (ID: ${movie.id})" }
-            }
-            
-            if (searchResponse != null) {
-                emit(searchResponse)
-            }
-        } else {
-            // TODO Handle HTTP error codes
-        }
+        return mapToResult(response)
     }
 
-    override fun searchTvShowsByQuery(
+    override suspend fun searchTvShowsByQuery(
         token: String,
         query: String,
         itemsPerPage: Int,
         page: Int
-    ): Flow<ShowSearchResponse> = flow {
-        val user = userRepository.getUser() ?: return@flow
-
-        // TODO: Switch to new API structure , when Priesly pushes it
+    ): ApiResult<ShowSearchResponse, DataError.Network> {
+        Logger.i { "Searching TV shows with query: $query" }
+        val user = userRepository.getUser()
+            ?: return ApiResult.Error(DataError.Network.LOCAL_USER_NOT_FOUND)
+        
         val response = searchService.searchTvShows(
             authToken = "Bearer $token",
             search = query,
             itemsPerPage = itemsPerPage,
             page = page
         )
-
-        if (response.isSuccessful) {
-            val searchResponse = response.body()
-            Logger.i { "Successfully fetched ${searchResponse?.member?.size} movies for catalog section out of ${searchResponse?.totalItems}." }
-            if (searchResponse != null) {
-                emit(searchResponse)
-            }
-        } else {
-            // TODO Handle HTTP error codes
-        }
+        return mapToResult(response)
     }
 
 

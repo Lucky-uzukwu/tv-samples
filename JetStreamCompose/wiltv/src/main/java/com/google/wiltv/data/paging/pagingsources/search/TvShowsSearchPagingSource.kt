@@ -6,6 +6,7 @@ import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.network.ShowSearchResponse
 import com.google.wiltv.data.repositories.SearchRepository
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.domain.ApiResult
 import kotlinx.coroutines.flow.firstOrNull
 
 class TvShowsSearchPagingSource(
@@ -26,13 +27,19 @@ class TvShowsSearchPagingSource(
                 ?: return LoadResult.Error(Exception("No token"))
             val currentPage = params.key ?: 1
             val pageSize = params.loadSize
-            // Fetch all catalogs
-            val searchResults: ShowSearchResponse = searchRepository.searchTvShowsByQuery(
+            val searchResult = searchRepository.searchTvShowsByQuery(
                 token = token,
                 query = query,
                 page = currentPage,
                 itemsPerPage = pageSize
-            ).firstOrNull() ?: ShowSearchResponse(member = emptyList())
+            )
+            
+            val searchResults = when (searchResult) {
+                is ApiResult.Success -> searchResult.data
+                is ApiResult.Error -> return LoadResult.Error(
+                    Exception("Failed to search TV shows: ${searchResult.message ?: searchResult.error}")
+                )
+            }
 
             LoadResult.Page(
                 data = searchResults.member, // List<TvShow>

@@ -6,6 +6,7 @@ import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.network.MovieSearchResponse
 import com.google.wiltv.data.repositories.SearchRepository
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.domain.ApiResult
 import kotlinx.coroutines.flow.firstOrNull
 
 class MovieSearchPagingSource(
@@ -26,13 +27,19 @@ class MovieSearchPagingSource(
                 ?: return LoadResult.Error(Exception("No token"))
             val currentPage = params.key ?: 1
             val pageSize = params.loadSize
-            // Fetch all catalogs
-            val movies: MovieSearchResponse = searchRepository.searchMoviesByQuery(
+            val moviesResult = searchRepository.searchMoviesByQuery(
                 token = token,
                 query = query,
                 page = currentPage,
                 itemsPerPage = pageSize
-            ).firstOrNull() ?: MovieSearchResponse(member = emptyList())
+            )
+            
+            val movies = when (moviesResult) {
+                is ApiResult.Success -> moviesResult.data
+                is ApiResult.Error -> return LoadResult.Error(
+                    Exception("Failed to search movies: ${moviesResult.message ?: moviesResult.error}")
+                )
+            }
 
             LoadResult.Page(
                 data = movies.member, // List<MovieNew>

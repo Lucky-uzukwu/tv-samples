@@ -2,21 +2,23 @@ package com.google.wiltv.data.repositories
 
 import com.google.wiltv.data.network.MovieSearchResponse
 import com.google.wiltv.data.network.ShowSearchResponse
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.domain.DataError
 import kotlinx.coroutines.flow.Flow
 
 interface SearchRepository {
 
-    fun searchMoviesByQuery(
+    suspend fun searchMoviesByQuery(
         token: String,
         query: String,
         itemsPerPage: Int,
         page: Int
-    ): Flow<MovieSearchResponse>
+    ): ApiResult<MovieSearchResponse, DataError.Network>
 
-    fun searchTvShowsByQuery(
+    suspend fun searchTvShowsByQuery(
         token: String,
         query: String,
         itemsPerPage: Int,
         page: Int
-    ): Flow<ShowSearchResponse>
+    ): ApiResult<ShowSearchResponse, DataError.Network>
 }

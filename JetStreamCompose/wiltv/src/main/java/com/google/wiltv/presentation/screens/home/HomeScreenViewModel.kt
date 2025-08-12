@@ -32,8 +32,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-const val PAGE_SIZE = 20
-
 @HiltViewModel
 class HomeScreeViewModel @Inject constructor(
     private val movieRepository: MovieRepository,
