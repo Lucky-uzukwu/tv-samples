@@ -160,19 +160,28 @@ class HomeScreeViewModel @Inject constructor(
         genreRepository: GenreRepository,
         userRepository: UserRepository
     ): Map<Genre, StateFlow<PagingData<MovieNew>>> {
-        val genres = genreRepository.getMovieGenre().firstOrNull() ?: emptyList()
-        val genreToMovies = genres.associateWith { genre ->
-            MoviesPagingSources().getMoviesGenrePagingSource(
-                genreId = genre.id,
-                movieRepository = movieRepository,
-                userRepository = userRepository
-            ).cachedIn(viewModelScope).stateIn(
-                viewModelScope,
-                SharingStarted.WhileSubscribed(5_000),
-                PagingData.empty()
-            )
+        val genresResponse = genreRepository.getMovieGenre()
+        when (genresResponse) {
+            is ApiResult.Success -> {
+                val genreToMovies = genresResponse.data.member.associateWith { genre ->
+                    MoviesPagingSources().getMoviesGenrePagingSource(
+                        genreId = genre.id,
+                        movieRepository = movieRepository,
+                        userRepository = userRepository
+                    ).cachedIn(viewModelScope).stateIn(
+                        viewModelScope,
+                        SharingStarted.WhileSubscribed(5_000),
+                        PagingData.empty()
+                    )
+                }
+                return genreToMovies
+            }
+
+            is ApiResult.Error -> {
+                _uiState.value = HomeScreenUiState.Error(genresResponse.error.asUiText(genresResponse.message))
+            }
         }
-        return genreToMovies
+        return emptyMap()
     }
 
     fun retryOperation() {

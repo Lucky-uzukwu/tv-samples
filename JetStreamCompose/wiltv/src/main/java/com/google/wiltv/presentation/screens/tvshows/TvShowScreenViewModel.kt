@@ -138,19 +138,28 @@ class TvShowScreenViewModel @Inject constructor(
         genreRepository: GenreRepository,
         userRepository: UserRepository
     ): Map<Genre, StateFlow<PagingData<TvShow>>> {
-        val genres = genreRepository.getTvShowsGenre().firstOrNull() ?: emptyList()
-        val genreToTvShowPagingData = genres.associateWith { genre ->
-            TvShowPagingSources().getTvShowsGenrePagingSource(
-                genreId = genre.id,
-                tvShowRepository = tvShowRepository,
-                userRepository = userRepository
-            ).cachedIn(viewModelScope).stateIn(
-                viewModelScope,
-                SharingStarted.WhileSubscribed(5_000),
-                PagingData.empty()
-            )
+        val genresResponse = genreRepository.getTvShowsGenre()
+        when (genresResponse) {
+            is ApiResult.Success -> {
+                val genreToTvShowPagingData = genresResponse.data.member.associateWith { genre ->
+                    TvShowPagingSources().getTvShowsGenrePagingSource(
+                        genreId = genre.id,
+                        tvShowRepository = tvShowRepository,
+                        userRepository = userRepository
+                    ).cachedIn(viewModelScope).stateIn(
+                        viewModelScope,
+                        SharingStarted.WhileSubscribed(5_000),
+                        PagingData.empty()
+                    )
+                }
+                return genreToTvShowPagingData
+            }
+
+            is ApiResult.Error -> {
+                _uiState.value = TvShowScreenUiState.Error(genresResponse.error.asUiText(genresResponse.message))
+            }
         }
-        return genreToTvShowPagingData
+        return emptyMap()
     }
 
     fun retryOperation() {

@@ -1,9 +1,10 @@
 package com.google.wiltv.data.repositories
 
-import com.google.wiltv.data.models.Genre
-import kotlinx.coroutines.flow.Flow
+import com.google.wiltv.data.network.GenreResponse
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.domain.DataError
 
 interface GenreRepository {
-    fun getMovieGenre(): Flow<List<Genre>>
-    fun getTvShowsGenre(): Flow<List<Genre>>
+    suspend fun getMovieGenre(): ApiResult<GenreResponse, DataError.Network>
+    suspend fun getTvShowsGenre(): ApiResult<GenreResponse, DataError.Network>
 }

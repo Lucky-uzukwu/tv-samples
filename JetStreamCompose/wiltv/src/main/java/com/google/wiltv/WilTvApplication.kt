@@ -138,7 +138,6 @@ object GenreRepositoryModule {
     @Singleton
     fun provideMovieRepository(
         genreService: GenreService,
-        authRepository: AuthRepository,
         userRepository: UserRepository,
         @Named("isMock") isMock: Boolean
     ): GenreRepository {
@@ -147,7 +146,6 @@ object GenreRepositoryModule {
         } else {
             GenreRepositoryImpl(
                 genreService,
-                authRepository,
                 userRepository
             )
         }
