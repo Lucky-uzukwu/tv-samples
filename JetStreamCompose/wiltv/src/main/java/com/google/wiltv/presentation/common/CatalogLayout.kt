@@ -47,6 +47,9 @@ import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.StreamingProvider
 import com.google.wiltv.data.network.Catalog
 import com.google.wiltv.presentation.screens.BackgroundState
+import com.google.wiltv.presentation.UiText
+import com.google.wiltv.presentation.utils.getErrorState
+import com.google.wiltv.presentation.utils.hasError
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 
@@ -65,7 +68,8 @@ fun CatalogLayout(
     contentDescription: String = "Catalog Screen",
     streamingProviders: List<StreamingProvider>,
     onStreamingProviderClick: ((streamingProvider: StreamingProvider) -> Unit),
-    focusManagementConfig: FocusManagementConfig? = null
+    focusManagementConfig: FocusManagementConfig? = null,
+    onRowError: ((errorText: UiText) -> Unit)? = null
 ) {
     val tvLazyColumnState = rememberTvLazyListState()
     val rowStates = remember { mutableStateMapOf<String, TvLazyListState>() }
@@ -76,7 +80,6 @@ fun CatalogLayout(
     }
 
     val genreToLazyPagingItems = genreToMovies?.mapValues { (genre, flow) ->
-        Logger.d { "Collecting paging items for genre: ${genre.name}" }
         flow.collectAsLazyPagingItems()
     }
 
@@ -417,11 +420,35 @@ fun CatalogLayout(
                     genreToLazyPagingItems.keys.elementAtOrNull(genreIndex) ?: return@items
                 val movies = genreToLazyPagingItems[genreKey]
 
-                if (movies != null && movies.itemCount > 0) {
+                // Monitor for errors in this genre row
+                LaunchedEffect(movies?.hasError()) {
+                    val genreName = genreKey.name
+                    val hasError = movies?.hasError() == true
+                    Logger.d { "🎬 LaunchedEffect triggered for genre '$genreName' - hasError: $hasError, movies != null: ${movies != null}" }
+                    
+                    if (hasError) {
+                        movies?.getErrorState()?.let { errorText ->
+                            Logger.e { "🚨 Genre row error detected for '$genreName': $errorText" }
+                            Logger.e { "🚨 Calling onRowError callback for genre '$genreName'" }
+                            onRowError?.invoke(errorText)
+                        } ?: run {
+                            Logger.w { "🚨 hasError=true but getErrorState() returned null for genre '$genreName'" }
+                        }
+                    } else {
+                        Logger.v { "🎬 No error for genre '$genreName'" }
+                    }
+                }
+
+                val shouldRenderRow = movies != null && (movies.itemCount > 0 || movies.hasError())
+                Logger.d { "🎬 Genre '${genreKey.name}' render check - movies!=null: ${movies != null}, itemCount: ${movies?.itemCount ?: 0}, hasError: ${movies?.hasError() ?: false}, shouldRender: $shouldRenderRow" }
+                
+                if (shouldRenderRow) {
                     val adjustedIndex = catalogToLazyPagingItems.size + genreIndex
                     val genreRowIndex = 2 + adjustedIndex
                     val genreRowId = "genre_${genreKey.name}"
                     val genreRowState = rowStates.getOrPut(genreRowId) { TvLazyListState() }
+                    
+                    Logger.d { "🎬 Rendering genre row '${genreKey.name}' at index $genreRowIndex" }
 
                     val genreFocusRequesters = rememberRowFocusRequesters(
                         movies = movies,
@@ -451,6 +478,8 @@ fun CatalogLayout(
                         },
                         clearDetailsSignal = clearCatalogDetails
                     )
+                } else {
+                    Logger.w { "🎬 NOT rendering genre row '${genreKey.name}' - movies!=null: ${movies != null}, itemCount: ${movies?.itemCount ?: 0}, hasError: ${movies?.hasError() ?: false}" }
                 }
             }
         }
@@ -467,7 +496,26 @@ fun CatalogLayout(
                 catalogToLazyPagingItems.keys.elementAtOrNull(catalogIndex) ?: return@items
             val movies = catalogToLazyPagingItems[catalogKey]
 
-            if (movies != null && movies.itemCount > 0) {
+            // Monitor for errors in this catalog row
+            LaunchedEffect(movies?.hasError()) {
+                val catalogName = catalogKey.name
+                val hasError = movies?.hasError() == true
+                Logger.d { "📚 LaunchedEffect triggered for catalog '$catalogName' - hasError: $hasError, movies != null: ${movies != null}" }
+                
+                if (hasError) {
+                    movies?.getErrorState()?.let { errorText ->
+                        Logger.e { "🚨 Catalog row error detected for '$catalogName': $errorText" }
+                        Logger.e { "🚨 Calling onRowError callback for catalog '$catalogName'" }
+                        onRowError?.invoke(errorText)
+                    } ?: run {
+                        Logger.w { "🚨 hasError=true but getErrorState() returned null for catalog '$catalogName'" }
+                    }
+                } else {
+                    Logger.v { "📚 No error for catalog '$catalogName'" }
+                }
+            }
+
+            if (movies != null && (movies.itemCount > 0 || movies.hasError())) {
                 val catalogRowIndex = 2 + catalogIndex
                 val catalogRowId = "catalog_${catalogKey.name}"
                 val catalogRowState = rowStates.getOrPut(catalogRowId) { TvLazyListState() }

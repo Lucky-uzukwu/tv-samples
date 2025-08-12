@@ -165,6 +165,10 @@ class TvShowScreenViewModel @Inject constructor(
     fun retryOperation() {
         loadTvShowData()
     }
+    
+    fun handlePagingError(errorMessage: UiText) {
+        _uiState.value = TvShowScreenUiState.Error(errorMessage)
+    }
 
 }
 

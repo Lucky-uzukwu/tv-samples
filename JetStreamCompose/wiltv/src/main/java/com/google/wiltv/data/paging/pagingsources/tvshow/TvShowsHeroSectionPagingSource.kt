@@ -6,6 +6,8 @@ import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.network.TvShowsResponse
 import com.google.wiltv.data.repositories.TvShowsRepository
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.domain.ApiResult
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.flow.firstOrNull
 
 class TvShowsHeroSectionPagingSource(
@@ -20,29 +22,51 @@ class TvShowsHeroSectionPagingSource(
     }
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, TvShow> {
+        Logger.d { "🎬 TvShowsHeroSectionPagingSource.load() called with params: ${params.key}, loadSize: ${params.loadSize}" }
         return try {
-            val token = userRepository.userToken.firstOrNull() ?: return LoadResult.Error(
-                Exception(
-                    "No token"
-                )
-            )
+            val token = userRepository.userToken.firstOrNull()
+            if (token == null) {
+                Logger.e { "❌ TvShowsHeroSectionPagingSource: No token available" }
+                return LoadResult.Error<Int, TvShow>(Exception("No token"))
+            }
+            
             val currentPage = params.key ?: 1
+            Logger.d { "🔍 TvShowsHeroSectionPagingSource: Making API call with page=$currentPage, pageSize=${params.loadSize}" }
 
-            val movies =
-                tvShowRepository.getTvShowsToShowInHeroSection(
-                    token,
-                    currentPage,
-                    itemsPerPage = params.loadSize
-                )
-                    .firstOrNull() ?: TvShowsResponse(member = emptyList())
-
-            LoadResult.Page(
-                data = movies.member,
-                prevKey = if (currentPage == 1) null else currentPage - 1,
-                nextKey = if (movies.member.isEmpty()) null else currentPage + 1
+            val tvShowsResult = tvShowRepository.getTvShowsToShowInHeroSection(
+                token = token,
+                page = currentPage,
+                itemsPerPage = params.loadSize
             )
+            
+            Logger.d { "📡 TvShowsHeroSectionPagingSource: API call completed, result type: ${tvShowsResult::class.simpleName}" }
+
+            val tvShows = when (tvShowsResult) {
+                is ApiResult.Success -> {
+                    Logger.d { "✅ TvShowsHeroSectionPagingSource: Success - got ${tvShowsResult.data.member.size} tv shows" }
+                    tvShowsResult.data
+                }
+                is ApiResult.Error -> {
+                    val errorMessage = "Failed to fetch hero tv shows: ${tvShowsResult.message ?: tvShowsResult.error}"
+                    Logger.e { "❌ TvShowsHeroSectionPagingSource: Error - $errorMessage" }
+                    val errorResult = LoadResult.Error<Int, TvShow>(Exception(errorMessage))
+                    Logger.e { "🔥 TvShowsHeroSectionPagingSource: Returning LoadResult.Error: $errorResult" }
+                    return errorResult
+                }
+            }
+
+            val result = LoadResult.Page(
+                data = tvShows.member,
+                prevKey = if (currentPage == 1) null else currentPage - 1,
+                nextKey = if (tvShows.member.isEmpty()) null else currentPage + 1
+            )
+            Logger.d { "📄 TvShowsHeroSectionPagingSource: Returning LoadResult.Page with ${tvShows.member.size} tv shows" }
+            result
         } catch (e: Exception) {
-            LoadResult.Error(e)
+            Logger.e(e) { "💥 TvShowsHeroSectionPagingSource: Exception caught - ${e.message}" }
+            val errorResult = LoadResult.Error<Int, TvShow>(e)
+            Logger.e { "🔥 TvShowsHeroSectionPagingSource: Returning LoadResult.Error from exception: $errorResult" }
+            errorResult
         }
     }
 }

@@ -20,6 +20,7 @@ import com.google.wiltv.data.repositories.UserRepository
 import com.google.wiltv.domain.ApiResult
 import com.google.wiltv.presentation.UiText
 import com.google.wiltv.presentation.asUiText
+import co.touchlab.kermit.Logger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -141,7 +142,9 @@ class MoviesScreenViewModel @Inject constructor(
         val genresResponse = genreRepository.getMovieGenre()
         when (genresResponse) {
             is ApiResult.Success -> {
+                Logger.d { "🎬 Creating genre paging sources for ${genresResponse.data.member.size} genres" }
                 val genreToMovies = genresResponse.data.member.associateWith { genre ->
+                    Logger.d { "🎬 Creating paging source for genre: ${genre.name} (id: ${genre.id})" }
                     MoviesPagingSources().getMoviesGenrePagingSource(
                         genreId = genre.id,
                         movieRepository = movieRepository,
@@ -152,6 +155,7 @@ class MoviesScreenViewModel @Inject constructor(
                         PagingData.empty()
                     )
                 }
+                Logger.d { "🎬 Created ${genreToMovies.size} genre paging sources" }
                 return genreToMovies
             }
 
@@ -164,6 +168,13 @@ class MoviesScreenViewModel @Inject constructor(
 
     fun retryOperation() {
         fetchMovieScreenData()
+    }
+    
+    fun handlePagingError(errorMessage: UiText) {
+        Logger.e { "🚨 MoviesScreenViewModel.handlePagingError called with message: $errorMessage" }
+        Logger.e { "🚨 Setting UI state to Error" }
+        _uiState.value = MoviesScreenUiState.Error(errorMessage)
+        Logger.e { "🚨 UI state updated to: ${_uiState.value}" }
     }
 }
 

@@ -69,7 +69,6 @@ fun TvCatalogLayout(
     }
 
     val genreToLazyPagingItems = genreToTvShows?.mapValues { (genre, flow) ->
-        Logger.d { "Collecting paging items for genre: ${genre.name}" }
         flow.collectAsLazyPagingItems()
     }
 

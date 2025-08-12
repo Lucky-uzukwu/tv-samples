@@ -185,6 +185,10 @@ class HomeScreeViewModel @Inject constructor(
     fun retryOperation() {
         fetchHomeScreenData()
     }
+    
+    fun handlePagingError(errorMessage: UiText) {
+        _uiState.value = HomeScreenUiState.Error(errorMessage)
+    }
 }
 
 sealed interface HomeScreenUiState {

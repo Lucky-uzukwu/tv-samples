@@ -25,6 +25,8 @@ import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.paging.pagingsources.tvshow.TvShowPagingSources
 import com.google.wiltv.data.repositories.TvShowsRepository
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.domain.ApiResult
+import co.touchlab.kermit.Logger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -44,26 +46,42 @@ class TvShowDetailsScreenViewModel @Inject constructor(
             .getStateFlow<String?>(TvShowDetailsScreen.TvShowIdBundleKey, null),
         userRepository.userToken,
     ) { tvShowId, userToken ->
+        Logger.d { "📺 TvShowDetailsScreenViewModel: Processing tvShowId=$tvShowId, userToken=${userToken != null}" }
+        
         if (tvShowId == null || userToken == null) {
+            Logger.e { "❌ TvShowDetailsScreenViewModel: Missing tvShowId or userToken" }
             TvShowDetailsScreenUiState.Error
         } else {
-            val details = tvShowRepository.getTvShowsDetails(
+            Logger.d { "🔍 TvShowDetailsScreenViewModel: Fetching details for tvShowId=$tvShowId" }
+            
+            val detailsResult = tvShowRepository.getTvShowsDetails(
                 tvShowId = tvShowId,
                 token = userToken
-            ).firstOrNull() ?: return@combine TvShowDetailsScreenUiState.Error
-
-            val genreId =
-                if (details.genres?.isNotEmpty() == true) details.genres.first().id else 0
-
-            val similarTvShows = getTvShowsByGenre(
-                genreId = genreId,
-                tvShowRepository = tvShowRepository,
-                userRepository = userRepository
             )
-            TvShowDetailsScreenUiState.Done(
-                similarTvShows = similarTvShows,
-                tvShow = details
-            )
+            
+            when (detailsResult) {
+                is ApiResult.Success -> {
+                    val details = detailsResult.data
+                    Logger.d { "✅ TvShowDetailsScreenViewModel: Successfully fetched details for tvShow: ${details.title}" }
+                    
+                    val genreId =
+                        if (details.genres?.isNotEmpty() == true) details.genres.first().id else 0
+
+                    val similarTvShows = getTvShowsByGenre(
+                        genreId = genreId,
+                        tvShowRepository = tvShowRepository,
+                        userRepository = userRepository
+                    )
+                    TvShowDetailsScreenUiState.Done(
+                        similarTvShows = similarTvShows,
+                        tvShow = details
+                    )
+                }
+                is ApiResult.Error -> {
+                    Logger.e { "❌ TvShowDetailsScreenViewModel: Failed to fetch details - ${detailsResult.message ?: detailsResult.error}" }
+                    TvShowDetailsScreenUiState.Error
+                }
+            }
         }
     }.stateIn(
         scope = viewModelScope,

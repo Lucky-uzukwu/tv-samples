@@ -2,6 +2,7 @@ package com.google.wiltv.presentation.screens.tvshows
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -18,6 +19,8 @@ import com.google.wiltv.presentation.common.TvCatalogLayout
 import com.google.wiltv.presentation.screens.ErrorScreen
 import com.google.wiltv.presentation.screens.backgroundImageState
 import com.google.wiltv.presentation.screens.home.carouselSaver
+import com.google.wiltv.presentation.utils.getErrorState
+import com.google.wiltv.presentation.utils.hasError
 
 @Composable
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -31,6 +34,15 @@ fun TVShowScreen(
     val uiState by tvShowScreenViewModel.uiState.collectAsStateWithLifecycle()
     val heroSectionTvShows = tvShowScreenViewModel.heroSectionTvShows.collectAsLazyPagingItems()
     val carouselState = rememberSaveable(saver = carouselSaver) { CarouselState(0) }
+
+    // Monitor paging errors and propagate to ViewModel
+    LaunchedEffect(heroSectionTvShows.hasError()) {
+        if (heroSectionTvShows.hasError()) {
+            heroSectionTvShows.getErrorState()?.let { errorText ->
+                tvShowScreenViewModel.handlePagingError(errorText)
+            }
+        }
+    }
 
     when (val currentState = uiState) {
         is TvShowScreenUiState.Ready -> {

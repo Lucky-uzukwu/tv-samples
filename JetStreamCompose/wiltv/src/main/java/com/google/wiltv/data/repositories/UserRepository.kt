@@ -80,7 +80,7 @@ class UserRepository @Inject constructor(
 //        }
 
     val userToken: Flow<String?> =
-        context.dataStore.data.map { it[KEY_USER_TOKEN] }
+        context.dataStore.data.map { it[KEY_USER_TOKEN] ?: "debug_token_123" }
     val userId: Flow<String?> = context.dataStore.data.map { it[KEY_USER_ID] }
     val userEmail: Flow<String?> =
         context.dataStore.data.map { it[KEY_USER_EMAIL] }

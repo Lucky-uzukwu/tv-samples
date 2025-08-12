@@ -3,53 +3,53 @@ package com.google.wiltv.data.repositories
 import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.network.TvShowsResponse
 import com.google.wiltv.data.repositories.mock.MockData
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.domain.DataError
 
 class MockTvShowsRepositoryImpl : TvShowsRepository {
-    override fun getTvShowsToShowInHeroSection(
+    override suspend fun getTvShowsToShowInHeroSection(
         token: String,
         page: Int,
         itemsPerPage: Int
-    ): Flow<TvShowsResponse> = flow {
-        emit(
+    ): ApiResult<TvShowsResponse, DataError.Network> {
+        return ApiResult.Success(
             TvShowsResponse(
                 member = listOf(MockData.getTvShow())
             )
         )
     }
 
-    override fun getTvShowsToShowInCatalogSection(
+    override suspend fun getTvShowsToShowInCatalogSection(
         token: String,
         catalogId: String,
         itemsPerPage: Int,
         page: Int
-    ): Flow<TvShowsResponse> = flow {
-        emit(
+    ): ApiResult<TvShowsResponse, DataError.Network> {
+        return ApiResult.Success(
             TvShowsResponse(
                 member = listOf(MockData.getTvShow())
             )
         )
     }
 
-    override fun getTvShowsToShowInGenreSection(
+    override suspend fun getTvShowsToShowInGenreSection(
         token: String,
         genreId: Int,
         itemsPerPage: Int,
         page: Int
-    ): Flow<TvShowsResponse> = flow {
-        emit(
+    ): ApiResult<TvShowsResponse, DataError.Network> {
+        return ApiResult.Success(
             TvShowsResponse(
                 member = listOf(MockData.getTvShow())
             )
         )
     }
 
-    override fun getTvShowsDetails(
+    override suspend fun getTvShowsDetails(
         token: String,
         tvShowId: String
-    ): Flow<TvShow> = flow {
-        emit(
+    ): ApiResult<TvShow, DataError.Network> {
+        return ApiResult.Success(
             MockData.getTvShow()
         )
     }

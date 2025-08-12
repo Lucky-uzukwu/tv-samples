@@ -18,31 +18,32 @@ package com.google.wiltv.data.repositories
 
 import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.network.TvShowsResponse
-import kotlinx.coroutines.flow.Flow
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.domain.DataError
 
 interface TvShowsRepository {
-    fun getTvShowsToShowInHeroSection(
+    suspend fun getTvShowsToShowInHeroSection(
         token: String,
         page: Int,
         itemsPerPage: Int,
-    ): Flow<TvShowsResponse>
+    ): ApiResult<TvShowsResponse, DataError.Network>
 
-    fun getTvShowsToShowInCatalogSection(
+    suspend fun getTvShowsToShowInCatalogSection(
         token: String,
         catalogId: String,
         itemsPerPage: Int,
         page: Int
-    ): Flow<TvShowsResponse>
+    ): ApiResult<TvShowsResponse, DataError.Network>
 
-    fun getTvShowsToShowInGenreSection(
+    suspend fun getTvShowsToShowInGenreSection(
         token: String,
         genreId: Int,
         itemsPerPage: Int,
         page: Int
-    ): Flow<TvShowsResponse>
+    ): ApiResult<TvShowsResponse, DataError.Network>
 
-    fun getTvShowsDetails(
+    suspend fun getTvShowsDetails(
         token: String,
         tvShowId: String
-    ): Flow<TvShow>
+    ): ApiResult<TvShow, DataError.Network>
 }

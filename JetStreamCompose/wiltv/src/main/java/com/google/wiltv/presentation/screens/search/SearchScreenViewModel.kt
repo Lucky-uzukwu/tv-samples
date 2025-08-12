@@ -25,6 +25,7 @@ import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.paging.pagingsources.search.SearchPagingSources
 import com.google.wiltv.data.repositories.SearchRepository
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.presentation.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -86,10 +87,17 @@ class SearchScreenViewModel @Inject constructor(
             null
         )
     )
+    
+    fun handlePagingError(errorMessage: UiText) {
+        viewModelScope.launch {
+            internalSearchState.emit(SearchState.Error(errorMessage))
+        }
+    }
 }
 
 sealed interface SearchState {
     data object Searching : SearchState
+    data class Error(val uiText: UiText) : SearchState
     data class Done(
         val shows: StateFlow<PagingData<TvShow>>?,
         val movies: StateFlow<PagingData<MovieNew>>?

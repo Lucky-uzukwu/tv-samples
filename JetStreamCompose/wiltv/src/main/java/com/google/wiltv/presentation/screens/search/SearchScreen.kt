@@ -1,14 +1,12 @@
 package com.google.wiltv.presentation.screens.search
 
 import android.view.KeyEvent
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,12 +22,10 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -59,6 +55,7 @@ import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.presentation.common.MovieCard
 import com.google.wiltv.presentation.common.PosterImage
+import com.google.wiltv.presentation.screens.ErrorScreen
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
 import com.google.wiltv.presentation.theme.WilTvBottomListPadding
 import com.google.wiltv.presentation.theme.WilTvCardShape
@@ -82,6 +79,14 @@ fun SearchScreen(
     when (val s = searchState) {
         is SearchState.Searching -> {
             Text(text = "Searching...")
+        }
+
+        is SearchState.Error -> {
+            ErrorScreen(
+                uiText = s.uiText,
+                onRetry = { /* Could retry search */ },
+                modifier = Modifier.fillMaxSize()
+            )
         }
 
         is SearchState.Done -> {

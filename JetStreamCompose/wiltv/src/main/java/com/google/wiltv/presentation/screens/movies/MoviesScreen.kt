@@ -2,6 +2,7 @@ package com.google.wiltv.presentation.screens.movies
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -19,6 +20,8 @@ import com.google.wiltv.presentation.common.Loading
 import com.google.wiltv.presentation.screens.ErrorScreen
 import com.google.wiltv.presentation.screens.backgroundImageState
 import com.google.wiltv.presentation.screens.home.carouselSaver
+import com.google.wiltv.presentation.utils.getErrorState
+import com.google.wiltv.presentation.utils.hasError
 
 @Composable
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -33,6 +36,15 @@ fun MoviesScreen(
     val uiState by moviesScreenViewModel.uiState.collectAsStateWithLifecycle()
     val featuredMovies = moviesScreenViewModel.heroSectionMovies.collectAsLazyPagingItems()
     val carouselState = rememberSaveable(saver = carouselSaver) { CarouselState(0) }
+
+    // Monitor paging errors and propagate to ViewModel
+    LaunchedEffect(featuredMovies.hasError()) {
+        if (featuredMovies.hasError()) {
+            featuredMovies.getErrorState()?.let { errorText ->
+                moviesScreenViewModel.handlePagingError(errorText)
+            }
+        }
+    }
 
     when (val currentState = uiState) {
         is MoviesScreenUiState.Ready -> {
@@ -53,7 +65,10 @@ fun MoviesScreen(
                 focusManagementConfig = FocusManagementConfig(
                     enableFocusRestoration = true,
                     enableFocusLogging = true
-                )
+                ),
+                onRowError = { errorText ->
+                    moviesScreenViewModel.handlePagingError(errorText)
+                }
             )
         }
 
