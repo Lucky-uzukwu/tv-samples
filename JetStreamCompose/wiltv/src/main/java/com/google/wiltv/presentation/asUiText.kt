@@ -68,6 +68,12 @@ fun DataError.asUiText(message: String? = null): UiText {
         } else {
             DynamicString(message!!)
         }
+
+        DataError.Network.UNAUTHORIZED -> if (message == "") {
+            StringResource(R.string.unauthorized)
+        } else {
+            DynamicString(message!!)
+        }
     }
 }
 

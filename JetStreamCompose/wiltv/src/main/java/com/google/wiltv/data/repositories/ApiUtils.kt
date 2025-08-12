@@ -22,6 +22,12 @@ fun <T> mapErrorResponse(response: Response<T>): ApiResult.Error<T, DataError.Ne
             ApiResult.Error(DataError.Network.BAD_REQUEST, response.message())
         }
 
+        401 -> {
+            val errorBody = response.errorBody()?.string()
+            val error = gson.fromJson(errorBody, Error::class.java)
+            ApiResult.Error(DataError.Network.UNAUTHORIZED, error.detail)
+        }
+
         403 -> {
             val errorBody = response.errorBody()?.string()
             val error = gson.fromJson(errorBody, Error::class.java)

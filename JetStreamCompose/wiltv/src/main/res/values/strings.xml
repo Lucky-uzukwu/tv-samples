@@ -61,6 +61,7 @@ https://www.apache.org/licenses/LICENSE-2.0
     <string name="bad_request">Bad request</string>
     <string name="local_user_not_found">There seems to be an issue please restart your application</string>
     <string name="forbidden">User not allowed</string>
+    <string name="unauthorized">User not authorized</string>
     <string name="validation_error">Invalid Input</string>
     <string name="not_found">User account not found</string>
     <string name="error_serialization">Oops, couldn\'t parse data.</string>

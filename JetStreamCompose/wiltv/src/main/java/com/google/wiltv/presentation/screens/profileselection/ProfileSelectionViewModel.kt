@@ -5,7 +5,11 @@ package com.google.wiltv.presentation.screens.profileselection
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.wiltv.data.entities.Profile
+import com.google.wiltv.data.repositories.CatalogRepository
 import com.google.wiltv.data.repositories.ProfileRepository
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.presentation.UiText
+import com.google.wiltv.presentation.asUiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,19 +20,22 @@ import javax.inject.Inject
 
 sealed class ProfileSelectionUiState {
     object Loading : ProfileSelectionUiState()
-    object Error : ProfileSelectionUiState()
+    data class Error(val uiText: UiText) : ProfileSelectionUiState()
     data class Ready(
         val profiles: List<Profile>,
-        val selectedProfile: Profile? = null
+        val selectedProfile: Profile? = null,
+        val catalogValidationPassed: Boolean = false
     ) : ProfileSelectionUiState()
 }
 
 @HiltViewModel
 class ProfileSelectionViewModel @Inject constructor(
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val catalogRepository: CatalogRepository,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<ProfileSelectionUiState>(ProfileSelectionUiState.Loading)
+    private val _uiState =
+        MutableStateFlow<ProfileSelectionUiState>(ProfileSelectionUiState.Loading)
     val uiState: StateFlow<ProfileSelectionUiState> = _uiState.asStateFlow()
 
     init {
@@ -44,13 +51,16 @@ class ProfileSelectionViewModel @Inject constructor(
                 ) { profiles, selectedProfile ->
                     ProfileSelectionUiState.Ready(
                         profiles = profiles,
-                        selectedProfile = selectedProfile
+                        selectedProfile = selectedProfile,
+                        catalogValidationPassed = false
                     )
                 }.collect { state ->
                     _uiState.value = state
                 }
             } catch (e: Exception) {
-                _uiState.value = ProfileSelectionUiState.Error
+                _uiState.value = ProfileSelectionUiState.Error(
+                    UiText.DynamicString("Failed to load profiles")
+                )
             }
         }
     }
@@ -59,9 +69,44 @@ class ProfileSelectionViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 profileRepository.selectProfile(profile.id)
+                validateCatalogAccess()
             } catch (e: Exception) {
-                _uiState.value = ProfileSelectionUiState.Error
+                _uiState.value = ProfileSelectionUiState.Error(
+                    UiText.DynamicString("Failed to select profile")
+                )
             }
         }
+    }
+
+    fun validateCatalogAccess() {
+        viewModelScope.launch {
+            val currentState = _uiState.value
+            if (currentState !is ProfileSelectionUiState.Ready) return@launch
+
+            try {
+
+                val catalogResult = catalogRepository.getMovieCatalog()
+
+                when (catalogResult) {
+                    is ApiResult.Success -> {
+                        _uiState.value = currentState.copy(catalogValidationPassed = true)
+                    }
+
+                    // TODO : continue from here
+                    is ApiResult.Error -> {
+                        _uiState.value =
+                            ProfileSelectionUiState.Error(catalogResult.error.asUiText(catalogResult.message))
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.value = ProfileSelectionUiState.Error(
+                    UiText.DynamicString("Failed to validate catalog access")
+                )
+            }
+        }
+    }
+
+    fun retryOperation() {
+        loadProfiles()
     }
 }

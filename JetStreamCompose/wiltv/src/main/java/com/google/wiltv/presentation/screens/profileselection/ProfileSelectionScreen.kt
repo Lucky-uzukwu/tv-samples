@@ -53,6 +53,7 @@ import com.google.wiltv.data.entities.Profile
 import com.google.wiltv.data.entities.ProfileType
 import com.google.wiltv.presentation.common.Error
 import com.google.wiltv.presentation.common.Loading
+import com.google.wiltv.presentation.screens.ErrorScreen
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalLayoutApi::class)
 @Composable
@@ -69,16 +70,23 @@ fun ProfileSelectionScreen(
         }
 
         is ProfileSelectionUiState.Error -> {
-            Error(modifier = Modifier.fillMaxSize())
+            ErrorScreen(
+                uiText = state.uiText,
+                onRetry = { viewModel.retryOperation() },
+                modifier = Modifier.fillMaxSize()
+            )
         }
 
         is ProfileSelectionUiState.Ready -> {
             ProfileSelectionContent(
                 profiles = state.profiles,
                 selectedProfile = state.selectedProfile,
+                catalogValidationPassed = state.catalogValidationPassed,
                 onProfileSelected = { profile ->
                     viewModel.selectProfile(profile)
-                    onProfileSelected(profile)
+                    if (state.catalogValidationPassed) {
+                        onProfileSelected(profile)
+                    }
                 },
                 onManageProfiles = onManageProfiles
             )
@@ -91,6 +99,7 @@ private fun ProfileSelectionContent(
     profiles: List<Profile>,
     selectedProfile: Profile?,
     onProfileSelected: (Profile) -> Unit,
+    catalogValidationPassed: Boolean,
     onManageProfiles: () -> Unit
 ) {
     Column(
