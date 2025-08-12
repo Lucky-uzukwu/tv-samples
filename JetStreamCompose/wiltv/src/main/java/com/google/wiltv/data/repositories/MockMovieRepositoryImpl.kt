@@ -5,6 +5,8 @@ import com.google.wiltv.data.entities.MovieCategoryList
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.network.MovieResponse
 import com.google.wiltv.data.repositories.mock.MockData
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.domain.DataError
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -33,49 +35,49 @@ class MockMovieRepositoryImpl @Inject constructor(
         )
     }
 
-    override fun getMoviesToShowInHeroSection(
+    override suspend fun getMoviesToShowInHeroSection(
         token: String,
         page: Int,
         itemsPerPage: Int
-    ): Flow<MovieResponse> = flow {
-        emit(
+    ): ApiResult<MovieResponse, DataError.Network> {
+        return ApiResult.Success(
             MovieResponse(
                 member = listOf(MockData.getMovie())
             )
         )
     }
 
-    override fun getMoviesToShowInCatalogSection(
+    override suspend fun getMoviesToShowInCatalogSection(
         token: String,
         catalogId: String,
         itemsPerPage: Int,
         page: Int
-    ): Flow<MovieResponse> = flow {
-        emit(
+    ): ApiResult<MovieResponse, DataError.Network> {
+        return ApiResult.Success(
             MovieResponse(
                 member = listOf(MockData.getMovie())
             )
         )
     }
 
-    override fun getMoviesToShowInGenreSection(
+    override suspend fun getMoviesToShowInGenreSection(
         token: String,
         genreId: Int,
         itemsPerPage: Int,
         page: Int
-    ): Flow<MovieResponse> = flow {
-        emit(
+    ): ApiResult<MovieResponse, DataError.Network> {
+        return ApiResult.Success(
             MovieResponse(
                 member = listOf(MockData.getMovie())
             )
         )
     }
 
-    override fun getMovieDetailsNew(
+    override suspend fun getMovieDetailsNew(
         token: String,
         movieId: String
-    ): Flow<MovieNew> = flow {
-        emit(
+    ): ApiResult<MovieNew, DataError.Network> {
+        return ApiResult.Success(
             MockData.getMovie()
         )
     }

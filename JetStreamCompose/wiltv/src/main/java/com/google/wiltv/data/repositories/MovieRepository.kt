@@ -22,34 +22,36 @@ import com.google.wiltv.data.entities.MovieDetails
 import com.google.wiltv.data.entities.MovieList
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.network.MovieResponse
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.domain.DataError
 import kotlinx.coroutines.flow.Flow
 
 interface MovieRepository {
     fun getMovieCategories(): Flow<MovieCategoryList>
     suspend fun getMovieCategoryDetails(categoryId: String): MovieCategoryDetails
-    fun getMoviesToShowInHeroSection(
+    suspend fun getMoviesToShowInHeroSection(
         token: String,
         page: Int,
         itemsPerPage: Int,
-    ): Flow<MovieResponse>
+    ): ApiResult<MovieResponse, DataError.Network>
 
-    fun getMoviesToShowInCatalogSection(
+    suspend fun getMoviesToShowInCatalogSection(
         token: String,
         catalogId: String,
         itemsPerPage: Int,
         page: Int
-    ): Flow<MovieResponse>
+    ): ApiResult<MovieResponse, DataError.Network>
 
-    fun getMoviesToShowInGenreSection(
+    suspend fun getMoviesToShowInGenreSection(
         token: String,
         genreId: Int,
         itemsPerPage: Int,
         page: Int
-    ): Flow<MovieResponse>
+    ): ApiResult<MovieResponse, DataError.Network>
 
-    fun getMovieDetailsNew(
+    suspend fun getMovieDetailsNew(
         token: String,
         movieId: String
-    ): Flow<MovieNew>
+    ): ApiResult<MovieNew, DataError.Network>
 
 }

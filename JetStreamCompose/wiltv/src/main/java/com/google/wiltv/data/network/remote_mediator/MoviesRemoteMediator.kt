@@ -13,6 +13,7 @@ import com.google.wiltv.data.models.toMovieEntity
 import com.google.wiltv.data.network.MovieResponse
 import com.google.wiltv.data.repositories.MovieRepository
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.domain.ApiResult
 import kotlinx.coroutines.flow.firstOrNull
 import retrofit2.HttpException
 import java.io.IOException
@@ -68,12 +69,18 @@ class MoviesRemoteMediator(
                 Exception("No token")
             )
 
-            val movies =
-                movieRepository.getMoviesToShowInHeroSection(
-                    token,
-                    page,
-                    itemsPerPage = 10
-                ).firstOrNull() ?: MovieResponse(member = emptyList<MovieNew>())
+            val moviesResult = movieRepository.getMoviesToShowInHeroSection(
+                token,
+                page,
+                itemsPerPage = 10
+            )
+            
+            val movies = when (moviesResult) {
+                is ApiResult.Success -> moviesResult.data
+                is ApiResult.Error -> return MediatorResult.Error(
+                    Exception("Failed to fetch movies: ${moviesResult.message ?: moviesResult.error}")
+                )
+            }
 
             val endOfPaginationReached = movies.member.isEmpty()
 

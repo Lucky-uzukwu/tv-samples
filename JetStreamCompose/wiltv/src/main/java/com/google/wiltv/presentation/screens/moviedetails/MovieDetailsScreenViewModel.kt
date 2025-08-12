@@ -9,6 +9,9 @@ import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.paging.pagingsources.movie.MoviesPagingSources
 import com.google.wiltv.data.repositories.MovieRepository
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.presentation.UiText
+import com.google.wiltv.presentation.asUiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,12 +33,19 @@ class MovieDetailsScreenViewModel @Inject constructor(
         userRepository.userToken,
     ) { movieId, userToken ->
         if (movieId == null || userToken == null) {
-            MovieDetailsScreenUiState.Error
+            MovieDetailsScreenUiState.Error(UiText.DynamicString("Missing movie ID or token"))
         } else {
-            val details = movieRepository.getMovieDetailsNew(
+            val detailsResult = movieRepository.getMovieDetailsNew(
                 movieId = movieId,
                 token = userToken
-            ).firstOrNull() ?: return@combine MovieDetailsScreenUiState.Error
+            )
+            
+            val details = when (detailsResult) {
+                is ApiResult.Success -> detailsResult.data
+                is ApiResult.Error -> return@combine MovieDetailsScreenUiState.Error(
+                    detailsResult.error.asUiText(detailsResult.message)
+                )
+            }
 
 
             val similarMovies = if (details.genres.isNotEmpty()) {
@@ -79,7 +89,7 @@ class MovieDetailsScreenViewModel @Inject constructor(
 
 sealed class MovieDetailsScreenUiState {
     data object Loading : MovieDetailsScreenUiState()
-    data object Error : MovieDetailsScreenUiState()
+    data class Error(val uiText: UiText) : MovieDetailsScreenUiState()
     data class Done(
         val movie: MovieNew,
         val similarMovies: StateFlow<PagingData<MovieNew>>

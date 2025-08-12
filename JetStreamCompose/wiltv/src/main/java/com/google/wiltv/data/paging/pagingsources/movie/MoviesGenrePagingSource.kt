@@ -6,6 +6,7 @@ import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.network.MovieResponse
 import com.google.wiltv.data.repositories.MovieRepository
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.domain.ApiResult
 import kotlinx.coroutines.flow.firstOrNull
 
 class MoviesGenrePagingSource(
@@ -28,13 +29,19 @@ class MoviesGenrePagingSource(
                 ?: return LoadResult.Error(Exception("No token"))
             val currentPage = params.key ?: 1
             val pageSize = params.loadSize
-            // Fetch all catalogs
-            val movies: MovieResponse = movieRepository.getMoviesToShowInGenreSection(
+            val moviesResult = movieRepository.getMoviesToShowInGenreSection(
                 token = token,
                 genreId = genreId,
                 page = currentPage,
                 itemsPerPage = pageSize
-            ).firstOrNull() ?: MovieResponse(member = emptyList())
+            )
+            
+            val movies = when (moviesResult) {
+                is ApiResult.Success -> moviesResult.data
+                is ApiResult.Error -> return LoadResult.Error(
+                    Exception("Failed to fetch genre movies: ${moviesResult.message ?: moviesResult.error}")
+                )
+            }
 
             LoadResult.Page(
                 data = movies.member, // List<MovieNew>

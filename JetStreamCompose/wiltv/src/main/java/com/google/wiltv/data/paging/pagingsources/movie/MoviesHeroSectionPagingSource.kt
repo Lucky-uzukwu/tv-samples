@@ -6,6 +6,7 @@ import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.network.MovieResponse
 import com.google.wiltv.data.repositories.MovieRepository
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.domain.ApiResult
 import kotlinx.coroutines.flow.firstOrNull
 
 class MoviesHeroSectionPagingSource(
@@ -28,13 +29,18 @@ class MoviesHeroSectionPagingSource(
             )
             val currentPage = params.key ?: 1
 
-            val movies =
-                movieRepository.getMoviesToShowInHeroSection(
-                    token,
-                    currentPage,
-                    itemsPerPage = params.loadSize
+            val moviesResult = movieRepository.getMoviesToShowInHeroSection(
+                token,
+                currentPage,
+                itemsPerPage = params.loadSize
+            )
+            
+            val movies = when (moviesResult) {
+                is ApiResult.Success -> moviesResult.data
+                is ApiResult.Error -> return LoadResult.Error(
+                    Exception("Failed to fetch movies: ${moviesResult.message ?: moviesResult.error}")
                 )
-                    .firstOrNull() ?: MovieResponse(member = emptyList<MovieNew>())
+            }
 
             LoadResult.Page(
                 data = movies.member,

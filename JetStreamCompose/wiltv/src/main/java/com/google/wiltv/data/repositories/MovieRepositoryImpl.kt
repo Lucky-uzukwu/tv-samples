@@ -21,6 +21,8 @@ import com.google.wiltv.data.entities.MovieCategoryDetails
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.network.MovieResponse
 import com.google.wiltv.data.network.MovieService
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.domain.DataError
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
@@ -53,104 +55,71 @@ class MovieRepositoryImpl @Inject constructor(
         )
     }
 
-    override fun getMoviesToShowInHeroSection(
+    override suspend fun getMoviesToShowInHeroSection(
         token: String,
         page: Int,
         itemsPerPage: Int
-    ): Flow<MovieResponse> = flow {
+    ): ApiResult<MovieResponse, DataError.Network> {
         Logger.i { "Fetching movies for hero section with token: $token" }
-        val user = userRepository.getUser() ?: return@flow
+        val user = userRepository.getUser()
+            ?: return ApiResult.Error(DataError.Network.LOCAL_USER_NOT_FOUND)
         val response = movieService.getMovies(
             authToken = "Bearer $token",
             showInHeroSection = 1,
             page = page,
             itemsPerPage = itemsPerPage
         )
-
-        if (response.isSuccessful) {
-             val movies = response.body()
-            Logger.i { "API Response: $movies" }
-            Logger.i { "Successfully fetched ${movies?.member?.size} movies for hero section." }
-            if (movies != null) {
-                emit(movies)
-            }
-        } else {
-            // TODO Handle HTTP error codes
-        }
+        return mapToResult(response)
     }
 
-    override fun getMoviesToShowInCatalogSection(
+    override suspend fun getMoviesToShowInCatalogSection(
         token: String,
         catalogId: String,
         itemsPerPage: Int,
         page: Int
-    ): Flow<MovieResponse> =
-        flow {
-            Logger.i { "Fetching movies for catalog section with token: $token" }
-            val user = userRepository.getUser() ?: return@flow
-            val response = movieService.getMovies(
-                authToken = "Bearer $token",
-                catalogId = catalogId,
-                itemsPerPage = itemsPerPage,
-                page = page
-            )
+    ): ApiResult<MovieResponse, DataError.Network> {
+        Logger.i { "Fetching movies for catalog section with token: $token" }
+        val user = userRepository.getUser()
+            ?: return ApiResult.Error(DataError.Network.LOCAL_USER_NOT_FOUND)
+        val response = movieService.getMovies(
+            authToken = "Bearer $token",
+            catalogId = catalogId,
+            itemsPerPage = itemsPerPage,
+            page = page
+        )
+        return mapToResult(response)
+    }
 
-            if (response.isSuccessful) {
-                val moviesResponse = response.body()
-                Logger.i { "Successfully fetched ${moviesResponse?.member?.size} movies for catalog section out of ${moviesResponse?.totalItems}." }
-                if (moviesResponse != null) {
-                    emit(moviesResponse)
-                }
-            } else {
-                // TODO Handle HTTP error codes
-            }
-        }
-
-    override fun getMoviesToShowInGenreSection(
+    override suspend fun getMoviesToShowInGenreSection(
         token: String,
         genreId: Int,
         itemsPerPage: Int,
         page: Int
-    ): Flow<MovieResponse> = flow {
-        val user = userRepository.getUser() ?: return@flow
+    ): ApiResult<MovieResponse, DataError.Network> {
+        Logger.i { "Fetching movies for genre section" }
+        val user = userRepository.getUser()
+            ?: return ApiResult.Error(DataError.Network.LOCAL_USER_NOT_FOUND)
         val response = movieService.getMovies(
             authToken = "Bearer $token",
             genreId = genreId,
             itemsPerPage = itemsPerPage,
             page = page
         )
-
-        if (response.isSuccessful) {
-            val moviesResponse = response.body()
-            Logger.i { "Successfully fetched ${moviesResponse?.member?.size} movies for genre section out of ${moviesResponse?.totalItems}." }
-            if (moviesResponse != null) {
-                emit(moviesResponse)
-            }
-        } else {
-            // TODO Handle HTTP error codes
-        }
+        return mapToResult(response)
     }
 
-    override fun getMovieDetailsNew(
+    override suspend fun getMovieDetailsNew(
         token: String,
         movieId: String
-    ): Flow<MovieNew> = flow {
-        Logger.i { "Fetching movie details for genre section with token: $token" }
-        val user = userRepository.getUser() ?: return@flow
+    ): ApiResult<MovieNew, DataError.Network> {
+        Logger.i { "Fetching movie details with token: $token" }
+        val user = userRepository.getUser()
+            ?: return ApiResult.Error(DataError.Network.LOCAL_USER_NOT_FOUND)
         val response = movieService.getMovieById(
             authToken = "Bearer $token",
             movieId = movieId
         )
-
-        if (response.isSuccessful) {
-            val movieData = response.body()
-            Logger.i { "Successfully fetched ${movieData?.id}." }
-            if (movieData != null) {
-                emit(movieData)
-            }
-        } else {
-            // TODO Handle HTTP error codes
-        }
+        return mapToResult(response)
     }
 
 
