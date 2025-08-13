@@ -14,9 +14,11 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -33,8 +35,10 @@ import com.google.wiltv.presentation.common.Loading
 import com.google.wiltv.presentation.common.TvChannelCard
 import com.google.wiltv.presentation.screens.ErrorScreen
 import com.google.wiltv.presentation.UiText
+import com.google.wiltv.presentation.utils.createInitialFocusRestorerModifiers
+import com.google.wiltv.presentation.utils.focusOnInitialVisibility
 
-@OptIn(ExperimentalTvMaterial3Api::class)
+@OptIn(ExperimentalTvMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun AllChannelsGridScreen(
     allChannels: LazyPagingItems<TvChannel>,
@@ -42,6 +46,8 @@ fun AllChannelsGridScreen(
     modifier: Modifier = Modifier
 ) {
     val gridState = rememberLazyGridState()
+    val focusRestorerModifiers = createInitialFocusRestorerModifiers()
+    val isFirstItemVisible = remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier.fillMaxSize()
@@ -98,7 +104,9 @@ fun AllChannelsGridScreen(
                         ),
                         verticalArrangement = Arrangement.spacedBy(20.dp),
                         horizontalArrangement = Arrangement.spacedBy(20.dp),
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .then(focusRestorerModifiers.parentModifier)
                     ) {
                         items(
                             count = allChannels.itemCount,
@@ -111,6 +119,11 @@ fun AllChannelsGridScreen(
                                     modifier = Modifier
                                         .aspectRatio(1f)
                                         .padding(4.dp)
+                                        .then(
+                                            if (index == 0)
+                                                focusRestorerModifiers.childModifier.focusOnInitialVisibility(isFirstItemVisible)
+                                            else Modifier
+                                        )
                                 ) {
                                     val imageUrl = channel.logoUrl
                                     // Display image if available, otherwise fallback to text
