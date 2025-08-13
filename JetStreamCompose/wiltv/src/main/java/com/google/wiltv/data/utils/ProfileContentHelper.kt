@@ -25,7 +25,7 @@ object ProfileContentHelper {
         return when (selectedProfile?.type) {
             ProfileType.KIDS -> ContentFilterParams(
                 isAdultContent = null,
-                isKidsContent = null
+                isKidsContent = 1
             )
 
             ProfileType.ADULT -> ContentFilterParams(
