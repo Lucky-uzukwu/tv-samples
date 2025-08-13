@@ -30,6 +30,7 @@ import com.google.wiltv.presentation.utils.hasError
 fun TvChannelScreen(
     goToVideoPlayer: (channel: TvChannel) -> Unit,
     onGenreClick: (genre: Genre) -> Unit,
+    onViewAllChannelsClick: () -> Unit,
     tvChannelScreenViewModel: TvChannelScreenViewModel = hiltViewModel(),
 ) {
     val uiState by tvChannelScreenViewModel.uiState.collectAsStateWithLifecycle()
@@ -58,6 +59,7 @@ fun TvChannelScreen(
                 contentDescription = "TV Channels Screen",
                 genres = currentState.genres,
                 onGenreClick = onGenreClick,
+                onViewAllChannelsClick = onViewAllChannelsClick,
                 focusManagementConfig = FocusManagementConfig(
                     enableFocusRestoration = true,
                     enableFocusLogging = true

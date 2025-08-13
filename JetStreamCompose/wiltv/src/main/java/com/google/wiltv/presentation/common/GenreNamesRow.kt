@@ -93,9 +93,9 @@ fun GenreNamesRow(
                         },
                     shape = ClickableSurfaceDefaults.shape(shape = WilTvCardShape),
                     colors = ClickableSurfaceDefaults.colors(
-                        containerColor = if (isFocused) 
+                        containerColor = if (isFocused)
                             MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
-                        else 
+                        else
                             MaterialTheme.colorScheme.surface.copy(alpha = 0.1f),
                         contentColor = Color.White,
                         focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
@@ -105,10 +105,11 @@ fun GenreNamesRow(
                         focusedBorder = Border(
                             border = BorderStroke(
                                 width = WilTvBorderWidth,
-                                color = Color.White
-                            )
+                                color = Color(0xFFA855F7)
+                            ),
+                            shape = WilTvCardShape
                         )
-                    )
+                    ),
                 ) {
                     Text(
                         text = genre.name,

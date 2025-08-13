@@ -50,6 +50,7 @@ fun rememberChildPadding(direction: LayoutDirection = LocalLayoutDirection.curre
 fun DashboardScreen(
     openCategoryMovieList: (categoryId: String) -> Unit = {},
     openGenreTvChannelsList: (genre: Genre) -> Unit = {},
+    openAllChannels: () -> Unit = {},
     openMovieDetailsScreen: (movieId: String) -> Unit = {},
     openTvShowDetailsScreen: (tvShowId: String) -> Unit = {},
     openVideoPlayer: (contentId: String, title: String?) -> Unit = { _, _ -> },
@@ -68,6 +69,7 @@ fun DashboardScreen(
             Body(
                 openCategoryMovieList = openCategoryMovieList,
                 openGenreTvChannelsList = openGenreTvChannelsList,
+                openAllChannels = openAllChannels,
                 openMovieDetailsScreen = openMovieDetailsScreen,
                 openVideoPlayer = openVideoPlayer,
                 navController = navController,
@@ -92,6 +94,7 @@ private fun Body(
     modifier: Modifier = Modifier,
     openCategoryMovieList: (categoryId: String) -> Unit,
     openGenreTvChannelsList: (genre: Genre) -> Unit,
+    openAllChannels: () -> Unit,
     openStreamingProviderMovieList: (streamingProvider: StreamingProvider) -> Unit,
     openStreamingProvideShowList: (streamingProvider: StreamingProvider) -> Unit,
     openMovieDetailsScreen: (movieId: String) -> Unit,
@@ -166,7 +169,8 @@ private fun Body(
                     goToVideoPlayer = { channel ->
                         openVideoPlayer(channel.playLink, channel.name)
                     },
-                    onGenreClick = openGenreTvChannelsList
+                    onGenreClick = openGenreTvChannelsList,
+                    onViewAllChannelsClick = openAllChannels
                 )
             }
 

@@ -35,6 +35,25 @@ class TvChannelsRepositoryImpl @Inject constructor(
         )
     }
 
+    override suspend fun getTvChannels(
+        token: String,
+        itemsPerPage: Int,
+        page: Int
+    ): ApiResult<TvChannelsResponse, DataError.Network> {
+        val selectedProfile = profileRepository.getSelectedProfile().firstOrNull()
+        val contentParams = ProfileContentHelper.getContentFilterParams(selectedProfile)
+
+        return mapToResult(
+            tvChannelService.getTvChannels(
+                authToken = "Bearer $token",
+                page = page,
+                itemsPerPage = itemsPerPage,
+                isAdultContent = contentParams.isAdultContent,
+                isKidsContent = contentParams.isKidsContent
+            )
+        )
+    }
+
 
     override suspend fun getTvChannelsToShowInGenreSection(
         token: String,

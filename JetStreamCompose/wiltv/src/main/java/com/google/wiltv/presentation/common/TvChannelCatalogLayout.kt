@@ -3,13 +3,11 @@
 
 package com.google.wiltv.presentation.common
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -41,18 +39,19 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.tv.foundation.lazy.list.TvLazyColumn
 import androidx.tv.foundation.lazy.list.TvLazyListState
-import androidx.tv.foundation.lazy.list.TvLazyRow
 import androidx.tv.foundation.lazy.list.rememberTvLazyListState
 import androidx.tv.material3.CarouselState
+import androidx.tv.material3.Border
+import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
+import androidx.compose.foundation.BorderStroke
 import co.touchlab.kermit.Logger
 import com.google.wiltv.data.models.Genre
 import com.google.wiltv.data.network.TvChannel
 import com.google.wiltv.presentation.screens.BackgroundState
-import com.google.wiltv.presentation.theme.WilTvBorderWidth
-import com.google.wiltv.presentation.theme.WilTvCardShape
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 
@@ -68,6 +67,7 @@ fun TvChannelCatalogLayout(
     contentDescription: String = "TV Channels Catalog Screen",
     genres: List<Genre>,
     onGenreClick: ((genre: Genre) -> Unit),
+    onViewAllChannelsClick: () -> Unit,
     focusManagementConfig: FocusManagementConfig? = null
 ) {
     val tvLazyColumnState = rememberTvLazyListState()
@@ -93,7 +93,6 @@ fun TvChannelCatalogLayout(
         }
     var lastFocusedItem by rememberSaveable { mutableStateOf(Pair(0, 0)) }
     var shouldRestoreFocus by remember { mutableStateOf(true) }
-    var clearChannelDetails by remember { mutableStateOf(false) }
     var carouselTargetGenre by rememberSaveable { mutableIntStateOf(0) }
 
     // Combined focus restoration and carousel sync (if focus management enabled)
@@ -162,71 +161,6 @@ fun TvChannelCatalogLayout(
                     } catch (e: Exception) {
                         Logger.w(e) { "Failed to restore genre focus at index ${lastFocusedItem.second}" }
                         shouldRestoreFocus = false
-                    }
-                }
-            } else if (lastFocusedItem.first >= 2) {
-                // Determine if this is a catalog or genre row
-                val streamingRowOffset = 1
-                val adjustedRowIndex = lastFocusedItem.first - 1 - streamingRowOffset
-                val genreKeys = genreToLazyPagingItems?.keys?.toList() ?: emptyList()
-
-                if (adjustedRowIndex < genreKeys.size) {
-                    // It's a genre row
-                    val genreIndex = adjustedRowIndex
-                    val genreKey = genreKeys[genreIndex]
-                    val genreRowId = "genre_${genreKey.name}"  // Fixed: use 'genre_' prefix
-                    val genreRowState = rowStates[genreRowId]
-                    val genreTvShows = genreToLazyPagingItems?.get(genreKey)
-
-                    if (genreRowState != null && genreTvShows != null) {
-                        try {
-                            val maxFocusItems =
-                                focusManagementConfig?.maxFocusRequestersPerRow ?: 50
-                            val maxScrollIndex =
-                                minOf(genreTvShows.itemCount - 1, maxFocusItems - 1)
-                            val safeScrollIndex = minOf(lastFocusedItem.second, maxScrollIndex)
-
-                            if (safeScrollIndex >= 0 && safeScrollIndex < genreTvShows.itemCount) {
-                                genreRowState.scrollToItem(safeScrollIndex)
-                                delay(100) // Quick delay for scroll
-
-                                val focusRequester =
-                                    if (lastFocusedItem.second < maxFocusItems) {
-                                        focusRequesters[lastFocusedItem]
-                                    } else {
-                                        null
-                                    }
-
-                                if (focusRequester != null) {
-                                    // Try to request focus with retry logic
-                                    var focusSuccess = false
-                                    repeat(3) { attempt ->
-                                        if (!focusSuccess) {
-                                            try {
-                                                focusRequester.requestFocus()
-                                                focusSuccess = true
-                                                shouldRestoreFocus = false
-                                                Logger.i { "Genre focus restoration successful on attempt ${attempt + 1}" }
-                                            } catch (e: Exception) {
-                                                if (attempt < 2) {
-                                                    delay(50)
-                                                    Logger.d { "Genre focus attempt ${attempt + 1} failed, retrying..." }
-                                                } else {
-                                                    Logger.w(e) { "Failed to restore genre focus after 3 attempts" }
-                                                    shouldRestoreFocus = false
-                                                }
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    Logger.d { "No focus requester available for genre item at $lastFocusedItem" }
-                                    shouldRestoreFocus = false
-                                }
-                            }
-                        } catch (e: Exception) {
-                            Logger.w(e) { "Failed to restore genre focus at genre row $genreIndex, item ${lastFocusedItem.second}" }
-                            shouldRestoreFocus = false
-                        }
                     }
                 }
             }
@@ -328,186 +262,40 @@ fun TvChannelCatalogLayout(
             )
         }
 
-        // Genre rows
-//        items(
-//            count = genreToLazyPagingItems.size,
-//            key = { genre ->
-//                genreToLazyPagingItems.keys.elementAtOrNull(genre)?.hashCode() ?: genre
-//            },
-//            contentType = { "TvChannelsRow" }
-//        ) { genreIndex ->
-//            val genreKey =
-//                genreToLazyPagingItems.keys.elementAtOrNull(genreIndex) ?: return@items
-//            val tvChannels = genreToLazyPagingItems[genreKey]
-//
-//            if (tvChannels != null && tvChannels.itemCount > 0) {
-//                val genreRowIndex = 2 + genreIndex
-//                val genreRowId = "genre_${genreKey.name}"
-//                val genreRowState = rowStates.getOrPut(genreRowId) { TvLazyListState() }
-//
-//                val genreFocusRequesters = rememberChannelRowFocusRequesters(
-//                    tvChannels = tvChannels,
-//                    rowIndex = genreRowIndex,
-//                    focusRequesters = focusRequesters,
-//                    focusManagementConfig = focusManagementConfig
-//                )
-//
-//                ImmersiveTvChannelsList(
-//                    tvChannels = tvChannels,
-//                    sectionTitle = genreKey.name,
-//                    onChannelClick = onChannelClick,
-//                    keyPrefix = "genre_${genreKey.id}",
-//                    setSelectedTvChannel = { channel ->
-//                        carouselScrollEnabled = false
-//                        val imageUrl = channel.logoUrl
-//                        // Channel background loading could be done here if needed
-//                        imageUrl?.let {
-//                            backgroundState.load(url = it)
-//                        }
-//                    },
-//                    lazyRowState = genreRowState,
-//                    focusRequesters = genreFocusRequesters,
-//                    onItemFocused = { channel, index ->
-//                        lastFocusedItem = Pair(genreRowIndex, index)
-//                        shouldRestoreFocus = false
-//                        clearChannelDetails = false
-//                    },
-//                    clearDetailsSignal = clearChannelDetails
-//                )
-//            }
-//        }
-
-        // Invisible bottom row
+        // View All Channels button
         item(
-            contentType = "InvisibleBottomRow",
-            key = "invisible_bottom_row"
+            contentType = "ViewAllChannelsButton",
+            key = "view_all_channels_button"
         ) {
-            InvisibleBottomRow(
-                onFocused = {
-                    lastFocusedItem = Pair(-1, -1)
-                    clearChannelDetails = true
-                }
-            )
-        }
-    }
-}
-
-@Composable
-fun ImmersiveTvChannelsList(
-    tvChannels: LazyPagingItems<TvChannel>,
-    sectionTitle: String? = null,
-    modifier: Modifier = Modifier,
-    keyPrefix: String = "channel",
-    setSelectedTvChannel: (TvChannel) -> Unit,
-    onChannelClick: (channel: TvChannel) -> Unit,
-    lazyRowState: TvLazyListState? = null,
-    focusRequesters: Map<Int, FocusRequester> = emptyMap(),
-    onItemFocused: (TvChannel, Int) -> Unit = { _, _ -> },
-    clearDetailsSignal: Boolean = false
-) {
-    SimpleTvChannelsRow(
-        tvChannels = tvChannels,
-        title = sectionTitle,
-        onChannelSelected = { channel ->
-            setSelectedTvChannel(channel)
-            onChannelClick(channel)
-        },
-        focusRequesters = focusRequesters,
-        onItemFocused = onItemFocused,
-        modifier = modifier,
-        keyPrefix = keyPrefix
-    )
-}
-
-@Composable
-fun SimpleTvChannelsRow(
-    tvChannels: LazyPagingItems<TvChannel>,
-    title: String?,
-    onChannelSelected: (TvChannel) -> Unit,
-    focusRequesters: Map<Int, FocusRequester>,
-    onItemFocused: (TvChannel, Int) -> Unit,
-    modifier: Modifier = Modifier,
-    keyPrefix: String = "channel"
-) {
-    Column(
-        modifier = modifier.focusGroup()
-    ) {
-        if (title != null) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 30.sp
-                ),
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White.copy(alpha = 0.9f),
+            Surface(
+                onClick = { onViewAllChannelsClick() },
                 modifier = Modifier
-                    .alpha(1f)
-                    .padding(start = 8.dp, top = 16.dp, bottom = 16.dp)
-            )
-        }
-
-        TvLazyRow(
-            contentPadding = PaddingValues(start = 8.dp, end = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            items(
-                count = tvChannels.itemCount,
-                key = { index -> "${keyPrefix}_${tvChannels[index]?.id ?: "index_$index"}" }) { index ->
-                val channel = tvChannels[index] ?: return@items
-                val focusRequester = focusRequesters[index]
-
-                var isFocused by remember { mutableStateOf(false) }
-
-                MovieCard(
-                    onClick = { onChannelSelected(channel) },
-                    modifier = Modifier
-                        .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
-                        .border(
-                            width = WilTvBorderWidth,
-                            color = if (isFocused) Color.White else Color.Transparent,
-                            shape = WilTvCardShape
+                    .padding(start = 40.dp, top = 16.dp, bottom = 16.dp),
+                colors = ClickableSurfaceDefaults.colors(
+                    containerColor = Color.Transparent,
+                    focusedContainerColor = Color(0xFFA855F7).copy(alpha = 0.2f)
+                ),
+                border = ClickableSurfaceDefaults.border(
+                    focusedBorder = Border(
+                        border = BorderStroke(
+                            width = 2.dp,
+                            color = Color(0xFFA855F7)
                         )
-                        .onFocusChanged { focusState ->
-                            isFocused = focusState.isFocused
-                            if (focusState.isFocused) {
-                                onItemFocused(channel, index)
-                            }
-                        }
-                ) {
-                    AuthenticatedAsyncImage(
-                        model = channel.logoUrl,
-                        contentDescription = channel.name,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .aspectRatio(16F / 9F)
                     )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun rememberChannelRowFocusRequesters(
-    tvChannels: LazyPagingItems<TvChannel>?,
-    rowIndex: Int,
-    focusRequesters: MutableMap<Pair<Int, Int>, FocusRequester>,
-    focusManagementConfig: FocusManagementConfig?
-): Map<Int, FocusRequester> {
-    return remember(tvChannels?.itemCount, rowIndex) {
-        if (tvChannels == null || tvChannels.itemCount == 0) {
-            emptyMap()
-        } else {
-            val itemCount = tvChannels.itemCount
-            val snapshotSize = tvChannels.itemSnapshotList.items.size
-            val actualItemCount = minOf(itemCount, snapshotSize)
-            val maxFocusItems = focusManagementConfig?.maxFocusRequestersPerRow ?: 50
-            val limitedItemCount = minOf(actualItemCount, maxFocusItems)
-
-            // Create focus requesters for this row
-            (0 until limitedItemCount).associateWith { itemIndex ->
-                focusRequesters.getOrPut(Pair(rowIndex, itemIndex)) { FocusRequester() }
+                )
+            ) {
+                Text(
+                    text = "View All Channels",
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 24.sp
+                    ),
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White.copy(alpha = 0.9f),
+                    modifier = Modifier
+                        .alpha(1f)
+                        .padding(horizontal = 24.dp, vertical = 12.dp)
+                )
             }
         }
     }

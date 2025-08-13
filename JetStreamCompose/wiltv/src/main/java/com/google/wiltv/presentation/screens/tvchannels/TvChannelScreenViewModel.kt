@@ -48,6 +48,15 @@ class TvChannelScreenViewModel @Inject constructor(
         PagingData.empty()
     )
 
+    val allChannels: StateFlow<PagingData<TvChannel>> = TvChannelPagingSources().getAllChannelsPagingSource(
+        tvChannelsRepository = tvChannelsRepository,
+        userRepository = userRepository
+    ).cachedIn(viewModelScope).stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        PagingData.empty()
+    )
+
     private val _uiState = MutableStateFlow<TvChannelScreenUiState>(TvChannelScreenUiState.Loading)
     val uiState: StateFlow<TvChannelScreenUiState> = _uiState.asStateFlow()
 

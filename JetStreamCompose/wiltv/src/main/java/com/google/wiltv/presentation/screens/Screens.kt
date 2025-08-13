@@ -53,6 +53,7 @@ enum class Screens(
     //    Favourites(isTabItem = true),
     CategoryMovieList(listOf(CategoryMovieListScreen.CategoryIdBundleKey)),
     GenreTvChannelsList(listOf(GenreTvChannelsListScreen.GenreIdBundleKey)),
+    AllChannels,
     StreamingProviderMoviesList(listOf(StreamingProviderMoviesListScreen.StreamingProviderIdBundleKey)),
     StreamingProviderShowsList(listOf(StreamingProviderShowsListScreen.StreamingProviderIdBundleKey)),
     MovieDetails(listOf(MovieDetailsScreen.MovieIdBundleKey)),

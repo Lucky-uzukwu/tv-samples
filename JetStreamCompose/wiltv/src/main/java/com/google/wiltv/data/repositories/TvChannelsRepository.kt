@@ -18,4 +18,10 @@ interface TvChannelsRepository {
         itemsPerPage: Int,
         page: Int
     ): ApiResult<TvChannelsResponse, DataError.Network>
+
+    suspend fun getTvChannels(
+        token: String,
+        itemsPerPage: Int,
+        page: Int
+    ): ApiResult<TvChannelsResponse, DataError.Network>
 }

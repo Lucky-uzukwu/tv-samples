@@ -53,7 +53,7 @@ fun TvChannelCard(
                     focusedBorder = Border(
                         border = BorderStroke(
                             width = WilTvBorderWidth,
-                            color = Color.White.copy(alpha = 0.9f)
+                            color = Color(0xFFA855F7)
                         ),
                         shape = WilTvCardShape
                     )

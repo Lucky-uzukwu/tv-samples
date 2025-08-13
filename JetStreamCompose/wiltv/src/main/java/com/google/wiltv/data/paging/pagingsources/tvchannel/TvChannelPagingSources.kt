@@ -34,4 +34,23 @@ class TvChannelPagingSources {
             )
         }.flow
     }
+
+    fun getAllChannelsPagingSource(
+        tvChannelsRepository: TvChannelsRepository,
+        userRepository: UserRepository
+    ): Flow<PagingData<TvChannel>> {
+
+        return Pager(
+            PagingConfig(
+                pageSize = NETWORK_PAGE_SIZE,
+                initialLoadSize = 20,
+                enablePlaceholders = false
+            )
+        ) {
+            TvChannelsAllPagingSource(
+                tvChannelsRepository,
+                userRepository
+            )
+        }.flow
+    }
 }
