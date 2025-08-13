@@ -43,4 +43,32 @@ class MockGenreRepositoryImpl : GenreRepository {
             )
         )
     }
+
+    override suspend fun getTvChannelGenre(): ApiResult<GenreResponse, DataError.Network> {
+        return ApiResult.Success(
+            GenreResponse(
+                member = listOf(
+                    Genre(
+                        id = 1,
+                        name = "News",
+                        isMovieGenre = false,
+                        isTvShowGenre = false,
+                        isAdultGenre = false,
+                        isTvChannelGenre = true,
+                        active = true
+                    ),
+                    Genre(
+                        id = 2,
+                        name = "Sports",
+                        isMovieGenre = false,
+                        isTvShowGenre = false,
+                        isAdultGenre = false,
+                        isTvChannelGenre = true,
+                        active = true
+                    )
+                ),
+                totalItems = 2
+            )
+        )
+    }
 }

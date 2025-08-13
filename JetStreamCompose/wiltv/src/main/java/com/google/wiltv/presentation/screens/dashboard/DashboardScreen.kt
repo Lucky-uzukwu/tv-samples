@@ -19,6 +19,7 @@ import androidx.navigation.createGraph
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.StreamingProvider
 import com.google.wiltv.data.models.TvShow
+import com.google.wiltv.data.network.TvChannel
 import com.google.wiltv.presentation.screens.Screens
 import com.google.wiltv.presentation.screens.categories.CategoriesScreen
 import com.google.wiltv.presentation.screens.dashboard.navigation.drawer.HomeDrawer
@@ -26,6 +27,7 @@ import com.google.wiltv.presentation.screens.home.HomeScreen
 import com.google.wiltv.presentation.screens.movies.MoviesScreen
 import com.google.wiltv.presentation.screens.profile.ProfileScreen
 import com.google.wiltv.presentation.screens.search.SearchScreen
+import com.google.wiltv.presentation.screens.tvchannels.TvChannelScreen
 import com.google.wiltv.presentation.screens.tvshows.TVShowScreen
 import com.google.wiltv.presentation.utils.Padding
 
@@ -48,7 +50,7 @@ fun DashboardScreen(
     openCategoryMovieList: (categoryId: String) -> Unit = {},
     openMovieDetailsScreen: (movieId: String) -> Unit = {},
     openTvShowDetailsScreen: (tvShowId: String) -> Unit = {},
-    openVideoPlayer: (movieId: String) -> Unit = {},
+    openVideoPlayer: (contentId: String, title: String?) -> Unit = { _, _ -> },
     openStreamingProviderMovieList: (streamingProvider: StreamingProvider) -> Unit = {},
     openStreamingProvideShowList: (streamingProvider: StreamingProvider) -> Unit = {},
     setSelectedMovie: (movie: MovieNew) -> Unit,
@@ -90,7 +92,7 @@ private fun Body(
     openStreamingProvideShowList: (streamingProvider: StreamingProvider) -> Unit,
     openMovieDetailsScreen: (movieId: String) -> Unit,
     openTvShowDetailsScreen: (tvShowId: String) -> Unit,
-    openVideoPlayer: (movieId: String) -> Unit,
+    openVideoPlayer: (contentId: String, title: String?) -> Unit,
     setSelectedMovie: (movie: MovieNew) -> Unit,
     setSelectedTvShow: (tvShow: TvShow) -> Unit,
     navController: NavHostController = rememberNavController(),
@@ -121,7 +123,7 @@ private fun Body(
                         openMovieDetailsScreen(selectedMovie.id.toString())
                     },
                     goToVideoPlayer = { selectedMovie ->
-                        openVideoPlayer(selectedMovie.id.toString())
+                        openVideoPlayer(selectedMovie.id.toString(), selectedMovie.title)
                     },
                     setSelectedMovie = setSelectedMovie,
                     onStreamingProviderClick = openStreamingProviderMovieList,
@@ -135,7 +137,7 @@ private fun Body(
                         openMovieDetailsScreen(selectedMovie.id.toString())
                     },
                     goToVideoPlayer = { selectedMovie ->
-                        openVideoPlayer(selectedMovie.id.toString())
+                        openVideoPlayer(selectedMovie.id.toString(), selectedMovie.title)
                     },
                     setSelectedMovie = setSelectedMovie,
                     onStreamingProviderClick = openStreamingProviderMovieList,
@@ -147,9 +149,18 @@ private fun Body(
                 TVShowScreen(
                     onTVShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) },
                     goToVideoPlayer = { selectedMovie ->
-                        openVideoPlayer(selectedMovie.id.toString())
+                        openVideoPlayer(selectedMovie.id.toString(), selectedMovie.title)
                     },
                     setSelectedTvShow = setSelectedTvShow,
+                    onStreamingProviderClick = openStreamingProvideShowList
+                )
+            }
+
+            composable(Screens.TvChannels()) {
+                TvChannelScreen(
+                    goToVideoPlayer = { channel ->
+                        openVideoPlayer(channel.playLink, channel.name)
+                    },
                     onStreamingProviderClick = openStreamingProvideShowList
                 )
             }
@@ -178,7 +189,7 @@ fun DashboardScreenNewPreview() {
         openCategoryMovieList = { },
         openMovieDetailsScreen = { },
         openTvShowDetailsScreen = { },
-        openVideoPlayer = { },
+        openVideoPlayer = { _, _ -> },
         setSelectedMovie = { },
         setSelectedTvShow = { },
         onLogOutClick = { },

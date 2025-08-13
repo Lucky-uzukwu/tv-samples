@@ -14,6 +14,9 @@ interface GenreService {
         @Header("Accept") accept: String = "application/ld+json",
         @Query("isMovieGenre") isMovieGenre: Int? = null,
         @Query("isTvShowGenre") isTvShowGenre: Int? = null,
+        @Query("isTvChannelGenre") isTvChannelGenre: Int? = null,
+        @Query("isAdultGenre") isAdultGenre: Int? = null,
+        @Query("isKidsGenre") isKidsGenre: Int? = null,
     ): Response<GenreResponse>
 }
 

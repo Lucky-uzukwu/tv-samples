@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
+import java.net.URLDecoder
 
 @HiltViewModel
 class VideoPlayerScreenViewModel @Inject constructor(
@@ -47,31 +48,48 @@ class VideoPlayerScreenViewModel @Inject constructor(
         savedStateHandle
             .getStateFlow<String?>(VideoPlayerScreen.MovieIdBundleKey, null),
         userRepository.userToken,
-    ) { movieId, userToken ->
-        if (movieId == null || userToken == null) {
-            VideoPlayerScreenUiState.Error(UiText.DynamicString("Missing movie ID or token"))
+    ) { contentId, userToken ->
+        if (contentId == null) {
+            VideoPlayerScreenUiState.Error(UiText.DynamicString("Missing content ID"))
         } else {
-            val detailsResult = movieRepository.getMovieDetailsNew(
-                movieId = movieId,
-                token = userToken
-            )
-            
-            val details = when (detailsResult) {
-                is ApiResult.Success -> detailsResult.data
-                is ApiResult.Error -> return@combine VideoPlayerScreenUiState.Error(
-                    detailsResult.error.asUiText(detailsResult.message)
-                )
-            }
+            try {
+                // Check if this is a TV channel URL (URL-encoded)
+                val decodedContent = URLDecoder.decode(contentId, "UTF-8")
+                
+                if (decodedContent.startsWith("http")) {
+                    // This is a TV channel URL - create a simple state for direct playback
+                    VideoPlayerScreenUiState.TvChannelDirect(directUrl = decodedContent)
+                } else {
+                    // This is a movie/TV show ID - fetch movie details
+                    if (userToken == null) {
+                        VideoPlayerScreenUiState.Error(UiText.DynamicString("Missing user token"))
+                    } else {
+                        val detailsResult = movieRepository.getMovieDetailsNew(
+                            movieId = decodedContent,
+                            token = userToken
+                        )
+                        
+                        val details = when (detailsResult) {
+                            is ApiResult.Success -> detailsResult.data
+                            is ApiResult.Error -> return@combine VideoPlayerScreenUiState.Error(
+                                detailsResult.error.asUiText(detailsResult.message)
+                            )
+                        }
 
-            val similarMovies = fetchMoviesByGenre(
-                genreId = details.genres.first().id,
-                movieRepository = movieRepository,
-                userRepository = userRepository
-            )
-            VideoPlayerScreenUiState.Done(
-                similarMovies = similarMovies,
-                movie = details
-            )
+                        val similarMovies = fetchMoviesByGenre(
+                            genreId = details.genres.first().id,
+                            movieRepository = movieRepository,
+                            userRepository = userRepository
+                        )
+                        VideoPlayerScreenUiState.Done(
+                            similarMovies = similarMovies,
+                            movie = details
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                VideoPlayerScreenUiState.Error(UiText.DynamicString("Failed to process content ID: ${e.message}"))
+            }
         }
     }.stateIn(
         scope = viewModelScope,
@@ -104,5 +122,9 @@ sealed class VideoPlayerScreenUiState {
     data class Done(
         val movie: MovieNew,
         val similarMovies: StateFlow<PagingData<MovieNew>>
+    ) : VideoPlayerScreenUiState()
+    data class TvChannelDirect(
+        val directUrl: String,
+        val title: String? = "TV Channel"
     ) : VideoPlayerScreenUiState()
 }

@@ -160,6 +160,7 @@ object GenreRepositoryModule {
     fun provideMovieRepository(
         genreService: GenreService,
         userRepository: UserRepository,
+        profileRepository: ProfileRepository,
         @Named("isMock") isMock: Boolean
     ): GenreRepository {
         return if (isMock) {
@@ -167,7 +168,8 @@ object GenreRepositoryModule {
         } else {
             GenreRepositoryImpl(
                 genreService,
-                userRepository
+                userRepository,
+                profileRepository
             )
         }
     }

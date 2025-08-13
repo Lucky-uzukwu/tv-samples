@@ -1,6 +1,7 @@
 package com.google.wiltv.presentation
 
 import androidx.compose.runtime.Stable
+import java.net.URLEncoder
 import com.google.wiltv.presentation.screens.auth.AuthScreen
 import com.google.wiltv.presentation.screens.profileselection.ProfileSelectionScreen
 import androidx.compose.runtime.Composable
@@ -17,6 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.TvShow
+import com.google.wiltv.data.network.TvChannel
 import com.google.wiltv.presentation.screens.Screens
 import com.google.wiltv.presentation.screens.categories.CategoryMovieListScreen
 import com.google.wiltv.presentation.screens.dashboard.DashboardScreen
@@ -34,7 +36,7 @@ private data class DashboardCallbacks(
     val openStreamingProvideShowList: (com.google.wiltv.data.models.StreamingProvider) -> Unit,
     val openTvShowDetailsScreen: (String) -> Unit,
     val openMovieDetailsScreen: (String) -> Unit,
-    val openVideoPlayer: (String) -> Unit,
+    val openVideoPlayer: (String, String?) -> Unit,
     val setSelectedMovie: (MovieNew) -> Unit,
     val setSelectedTvShow: (TvShow) -> Unit,
     val onLogOutClick: () -> Unit,
@@ -228,8 +230,16 @@ fun App(
                                 Screens.MovieDetails.withArgs(movieId)
                             )
                         },
-                        openVideoPlayer = { movieId ->
-                            navController.navigate(Screens.VideoPlayer.withArgs(movieId))
+                        openVideoPlayer = { contentId, title ->
+                            // Check if this is a TV channel URL or a movie/show ID
+                            if (contentId.startsWith("http")) {
+                                // This is a TV channel URL, encode it
+                                val encodedUrl = URLEncoder.encode(contentId, "UTF-8")
+                                navController.navigate(Screens.VideoPlayer.withArgs(encodedUrl))
+                            } else {
+                                // This is a movie/show ID, use as-is
+                                navController.navigate(Screens.VideoPlayer.withArgs(contentId))
+                            }
                         },
                         setSelectedMovie = {
                             selectedMovie.value = it

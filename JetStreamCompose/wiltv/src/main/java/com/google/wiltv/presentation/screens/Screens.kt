@@ -19,6 +19,7 @@ package com.google.wiltv.presentation.screens
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -44,10 +45,10 @@ enum class Screens(
     Home(isTabItem = true, tabIcon = Icons.Default.Home),
     Movies(isTabItem = true, tabIcon = Icons.Default.Movie),
     Shows(isTabItem = true, tabIcon = Icons.Default.Tv),
+    TvChannels(isTabItem = true, tabIcon = Icons.Default.LiveTv),
     Categories(isTabItem = true, tabIcon = Icons.Default.Category),
     Profile(isTabItem = true, tabIcon = Icons.Default.Person),
 
-    //    Icons.Default.LiveTv
     //    Favourites(isTabItem = true),
     CategoryMovieList(listOf(CategoryMovieListScreen.CategoryIdBundleKey)),
     StreamingProviderMoviesList(listOf(StreamingProviderMoviesListScreen.StreamingProviderIdBundleKey)),
