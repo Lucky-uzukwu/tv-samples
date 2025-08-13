@@ -9,6 +9,7 @@ import com.google.wiltv.data.network.MovieService
 import com.google.wiltv.data.network.SearchService
 import com.google.wiltv.data.network.StreamingProviderService
 import com.google.wiltv.data.network.TokenService
+import com.google.wiltv.data.network.TvChannelService
 import com.google.wiltv.data.network.TvShowsService
 import com.google.wiltv.data.network.UserService
 import com.google.wiltv.data.repositories.AuthRepository
@@ -36,6 +37,8 @@ import com.google.wiltv.data.repositories.TvShowsRepository
 import com.google.wiltv.data.repositories.TvShowsRepositoryImpl
 import com.google.wiltv.data.repositories.UserRepository
 import com.google.wiltv.data.repositories.ProfileRepository
+import com.google.wiltv.data.repositories.TvChannelsRepository
+import com.google.wiltv.data.repositories.TvChannelsRepositoryImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -95,8 +98,6 @@ object TvShowsRepositoryModule {
     @Singleton
     fun provideMovieRepository(
         tvShowService: TvShowsService,
-        authRepository: AuthRepository,
-        userRepository: UserRepository,
         profileRepository: ProfileRepository,
         @Named("isMock") isMock: Boolean
     ): TvShowsRepository {
@@ -105,11 +106,26 @@ object TvShowsRepositoryModule {
         } else {
             TvShowsRepositoryImpl(
                 tvShowService,
-                authRepository,
-                userRepository,
                 profileRepository
             )
         }
+    }
+}
+
+@InstallIn(SingletonComponent::class)
+@Module
+object TvChannelsRepositoryModule {
+    @Provides
+    @Singleton
+    fun provideTvChannelsRepository(
+        tvChannelService: TvChannelService,
+        profileRepository: ProfileRepository,
+        @Named("isMock") isMock: Boolean
+    ): TvChannelsRepository {
+        return TvChannelsRepositoryImpl(
+            tvChannelService,
+            profileRepository
+        )
     }
 }
 

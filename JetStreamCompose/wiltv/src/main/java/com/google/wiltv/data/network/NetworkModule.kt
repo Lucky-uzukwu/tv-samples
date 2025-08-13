@@ -91,6 +91,12 @@ class NetworkModule {
         return retrofit.create(TvShowsService::class.java)
     }
 
+    @Provides
+    @Singleton
+    fun TvChannelsService(retrofit: Retrofit): TvChannelService {
+        return retrofit.create(TvChannelService::class.java)
+    }
+
 
     @Provides
     @Singleton

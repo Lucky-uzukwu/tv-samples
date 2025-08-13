@@ -1,21 +1,18 @@
 package com.google.wiltv.data.repositories
 
-import co.touchlab.kermit.Logger
 import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.network.TvShowsResponse
 import com.google.wiltv.data.network.TvShowsService
 import com.google.wiltv.data.utils.ProfileContentHelper
 import com.google.wiltv.domain.ApiResult
 import com.google.wiltv.domain.DataError
+import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.flow.firstOrNull
 
 @Singleton
 class TvShowsRepositoryImpl @Inject constructor(
     private val tvShowService: TvShowsService,
-    private val authRepository: AuthRepository,
-    private val userRepository: UserRepository,
     private val profileRepository: ProfileRepository
 ) : TvShowsRepository {
     override suspend fun getTvShowsToShowInHeroSection(
@@ -23,10 +20,6 @@ class TvShowsRepositoryImpl @Inject constructor(
         page: Int,
         itemsPerPage: Int
     ): ApiResult<TvShowsResponse, DataError.Network> {
-        val user = userRepository.getUser() ?: return ApiResult.Error(
-            error = DataError.Network.UNAUTHORIZED,
-            message = "User not found"
-        )
         val selectedProfile = profileRepository.getSelectedProfile().firstOrNull()
         val contentParams = ProfileContentHelper.getContentFilterParams(selectedProfile)
         
@@ -46,10 +39,6 @@ class TvShowsRepositoryImpl @Inject constructor(
         itemsPerPage: Int,
         page: Int
     ): ApiResult<TvShowsResponse, DataError.Network> {
-        val user = userRepository.getUser() ?: return ApiResult.Error(
-            error = DataError.Network.UNAUTHORIZED,
-            message = "User not found"
-        )
         val selectedProfile = profileRepository.getSelectedProfile().firstOrNull()
         val contentParams = ProfileContentHelper.getContentFilterParams(selectedProfile)
         
@@ -69,10 +58,6 @@ class TvShowsRepositoryImpl @Inject constructor(
         itemsPerPage: Int,
         page: Int
     ): ApiResult<TvShowsResponse, DataError.Network> {
-        val user = userRepository.getUser() ?: return ApiResult.Error(
-            error = DataError.Network.UNAUTHORIZED,
-            message = "User not found"
-        )
         val selectedProfile = profileRepository.getSelectedProfile().firstOrNull()
         val contentParams = ProfileContentHelper.getContentFilterParams(selectedProfile)
         
@@ -90,11 +75,6 @@ class TvShowsRepositoryImpl @Inject constructor(
         token: String,
         tvShowId: String
     ): ApiResult<TvShow, DataError.Network> {
-        val user = userRepository.getUser() ?: return ApiResult.Error(
-            error = DataError.Network.UNAUTHORIZED,
-            message = "User not found"
-        )
-        
         return mapToResult(tvShowService.getTvShowById(
             authToken = "Bearer $token",
             tvShowId = tvShowId
