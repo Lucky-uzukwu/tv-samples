@@ -78,10 +78,16 @@ class MoviesScreenViewModel @Inject constructor(
                                 genreRepository = genreRepository,
                                 userRepository
                             )
-                            val streamingProviders =
-                                streamingProvidersRepository.getStreamingProviders(
-                                    type = "App\\Models\\TvShow"
-                                ).firstOrNull() ?: emptyList()
+                            val streamingProvidersResult = streamingProvidersRepository.getStreamingProviders(
+                                type = "App\\Models\\TvShow"
+                            )
+                            val streamingProviders = when (streamingProvidersResult) {
+                                is ApiResult.Success -> streamingProvidersResult.data
+                                is ApiResult.Error -> {
+                                    Logger.e { "❌ Failed to fetch streaming providers: ${streamingProvidersResult.message ?: streamingProvidersResult.error}" }
+                                    emptyList()
+                                }
+                            }
 
                             if (catalogToMovies.isEmpty() && genreToMovies.isEmpty() && streamingProviders.isEmpty()) {
                                 return@combine MoviesScreenUiState.Error(UiText.DynamicString("No data found"))

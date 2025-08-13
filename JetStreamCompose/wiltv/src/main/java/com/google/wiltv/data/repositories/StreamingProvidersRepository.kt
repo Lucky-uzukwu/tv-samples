@@ -1,8 +1,9 @@
 package com.google.wiltv.data.repositories
 
 import com.google.wiltv.data.models.StreamingProvider
-import kotlinx.coroutines.flow.Flow
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.domain.DataError
 
 interface StreamingProvidersRepository {
-    fun getStreamingProviders(type: String): Flow<List<StreamingProvider>>
+    suspend fun getStreamingProviders(type: String): ApiResult<List<StreamingProvider>, DataError.Network>
 }

@@ -1,13 +1,12 @@
 package com.google.wiltv.data.repositories
 
 import com.google.wiltv.data.models.StreamingProvider
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import com.google.wiltv.domain.ApiResult
+import com.google.wiltv.domain.DataError
 
 class MockStreamingProvidersRepositoryImpl : StreamingProvidersRepository {
-    override fun getStreamingProviders(type: String): Flow<List<StreamingProvider>> = flow {
-
-        emit(
+    override suspend fun getStreamingProviders(type: String): ApiResult<List<StreamingProvider>, DataError.Network> {
+        return ApiResult.Success(
             listOf(
                 StreamingProvider(
                     id = 1,
@@ -16,13 +15,12 @@ class MockStreamingProvidersRepositoryImpl : StreamingProvidersRepository {
                     logoUrl = "TODO()"
                 ),
                 StreamingProvider(
-                    id = 1,
-                    name = "Apple TV Plus Amazon Channel",
+                    id = 2,
+                    name = "Apple TV Plus Amazon Channel", 
                     logoPath = "images/streaming/provider/3fc35932-2d8c-4491-bab9-82a79e449f1d.jpg",
                     logoUrl = "TODO()"
                 )
             )
         )
-
     }
 }

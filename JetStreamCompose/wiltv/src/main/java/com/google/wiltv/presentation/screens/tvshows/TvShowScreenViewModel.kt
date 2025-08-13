@@ -20,6 +20,7 @@ import com.google.wiltv.data.repositories.UserRepository
 import com.google.wiltv.domain.ApiResult
 import com.google.wiltv.presentation.UiText
 import com.google.wiltv.presentation.asUiText
+import co.touchlab.kermit.Logger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -76,10 +77,16 @@ class TvShowScreenViewModel @Inject constructor(
                                 genreRepository = genreRepository,
                                 userRepository
                             )
-                            val streamingProviders =
-                                streamingProvidersRepository.getStreamingProviders(
-                                    type = "App\\Models\\TvShow"
-                                ).firstOrNull() ?: emptyList()
+                            val streamingProvidersResult = streamingProvidersRepository.getStreamingProviders(
+                                type = "App\\Models\\TvShow"
+                            )
+                            val streamingProviders = when (streamingProvidersResult) {
+                                is ApiResult.Success -> streamingProvidersResult.data
+                                is ApiResult.Error -> {
+                                    Logger.e { "❌ Failed to fetch streaming providers: ${streamingProvidersResult.message ?: streamingProvidersResult.error}" }
+                                    emptyList()
+                                }
+                            }
 
                             if (catalogToMovies.isEmpty() && genreToMovies.isEmpty() && streamingProviders.isEmpty()) {
                                 return@combine TvShowScreenUiState.Error(UiText.DynamicString("No data found"))
