@@ -52,8 +52,8 @@ fun TvShowCarouselItemForeground(
             modifier = Modifier.padding(bottom = 5.dp),
         ) {
             DisplayFilmExtraInfo(
-                getYear = getYear,
-                combinedGenre = combinedGenre,
+                getYear = getYear ?: "",
+                combinedGenre = combinedGenre ?: "",
                 duration = tvShow.duration
             )
         }

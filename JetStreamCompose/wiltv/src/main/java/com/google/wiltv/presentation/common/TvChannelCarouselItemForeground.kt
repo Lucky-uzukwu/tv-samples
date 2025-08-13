@@ -8,6 +8,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.relocation.BringIntoViewRequester
@@ -17,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
@@ -48,13 +49,11 @@ fun TvChannelCarouselItemForeground(
         Row(
             modifier = Modifier.padding(bottom = 5.dp),
         ) {
-            DisplayFilmExtraInfo(
-                getYear = null, // Channels don't have release years
+            DisplayFilmExtraInfoWithoutDurationAndYear(
                 combinedGenre = combinedGenre,
-                duration = null // Channels don't have duration
             )
         }
-        
+
         DisplayFilmTitle(
             title = tvChannel.name,
             style = MaterialTheme.typography.displaySmall.copy(
@@ -62,7 +61,7 @@ fun TvChannelCarouselItemForeground(
             ),
             maxLines = 2
         )
-        
+
         tvChannel.language?.let { language ->
             DisplayFilmGenericText(
                 modifier = Modifier.padding(top = 4.dp),
@@ -73,6 +72,8 @@ fun TvChannelCarouselItemForeground(
                 maxLines = 1
             )
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         AnimatedVisibility(visible = isCarouselFocused) {
             CustomFillButton(

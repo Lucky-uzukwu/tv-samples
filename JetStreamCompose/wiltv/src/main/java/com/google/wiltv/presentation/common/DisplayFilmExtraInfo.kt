@@ -16,13 +16,13 @@ import com.google.wiltv.presentation.utils.formatDuration
 @Composable
 fun DisplayFilmExtraInfo(
     modifier: Modifier = Modifier,
-    getYear: String?,
-    combinedGenre: String?,
+    getYear: String,
+    combinedGenre: String,
     duration: Int?,
     style: TextStyle? = null,
 ) {
-    val year = getYear ?: return
-    val genre = combinedGenre ?: return
+    val year = getYear
+    val genre = combinedGenre
 
     val text = buildString {
         append(year)
@@ -64,21 +64,20 @@ fun DisplayFilmExtraInfo(
 }
 
 @Composable
-fun DisplayFilmExtraInfoWithoutDuration(
-    getYear: String?,
+fun DisplayFilmExtraInfoWithoutDurationAndYear(
     combinedGenre: String?,
     style: TextStyle? = null,
 ) {
     if (style != null) {
         Text(
-            text = "$getYear - $combinedGenre",
+            text = "$combinedGenre",
             style = style,
             color = Color.White,
             maxLines = 1,
         )
     } else {
         Text(
-            text = "$getYear - $combinedGenre",
+            text = "$combinedGenre",
             color = Color.White,
             style = MaterialTheme.typography.titleMedium.copy(
                 color = MaterialTheme.colorScheme.onSurface.copy(

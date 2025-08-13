@@ -76,6 +76,7 @@ fun VideoPlayerScreen(
         is VideoPlayerScreenUiState.TvChannelDirect -> {
             TvChannelVideoPlayerScreenContent(
                 directUrl = s.directUrl.replace("live-tv", "livetv"),
+//                directUrl = s.directUrl,
                 title = s.title,
                 onBackPressed = onBackPressed
             )

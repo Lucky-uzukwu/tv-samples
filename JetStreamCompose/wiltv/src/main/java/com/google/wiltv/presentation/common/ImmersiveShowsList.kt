@@ -202,8 +202,8 @@ private fun TvShowDescription(
             modifier = Modifier.padding(bottom = 5.dp),
         ) {
             DisplayFilmExtraInfo(
-                getYear = getYear,
-                combinedGenre = combinedGenre,
+                getYear = getYear ?: "",
+                combinedGenre = combinedGenre ?: "",
                 duration = tvShow.duration
             )
         }
@@ -329,7 +329,7 @@ fun ImmersiveListShowsRow(
         ) {
             items(
                 count = tvShows.itemCount,
-                key = { index -> 
+                key = { index ->
                     tvShows.peek(index)?.id ?: "tvshow_$index"
                 },
                 contentType = { "TvShowItem" }
