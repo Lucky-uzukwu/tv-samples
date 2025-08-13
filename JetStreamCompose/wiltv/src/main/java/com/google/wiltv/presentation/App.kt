@@ -22,6 +22,7 @@ import com.google.wiltv.data.network.TvChannel
 import com.google.wiltv.presentation.screens.Screens
 import com.google.wiltv.presentation.screens.categories.CategoryMovieListScreen
 import com.google.wiltv.presentation.screens.dashboard.DashboardScreen
+import com.google.wiltv.presentation.screens.genre.tvchannels.GenreTvChannelsListScreen
 import com.google.wiltv.presentation.screens.moviedetails.MovieDetailsScreen
 import com.google.wiltv.presentation.screens.streamingprovider.movie.StreamingProviderMoviesListScreen
 import com.google.wiltv.presentation.screens.streamingprovider.show.StreamingProviderShowsListScreen
@@ -32,6 +33,7 @@ import com.google.wiltv.state.UserStateHolder
 @Stable
 private data class DashboardCallbacks(
     val openCategoryMovieList: (String) -> Unit,
+    val openGenreTvChannelsList: (com.google.wiltv.data.models.Genre) -> Unit,
     val openStreamingProviderMovieList: (com.google.wiltv.data.models.StreamingProvider) -> Unit,
     val openStreamingProvideShowList: (com.google.wiltv.data.models.StreamingProvider) -> Unit,
     val openTvShowDetailsScreen: (String) -> Unit,
@@ -126,6 +128,25 @@ fun App(
                 )
             }
             composable(
+                route = Screens.GenreTvChannelsList(),
+                arguments = listOf(
+                    navArgument(GenreTvChannelsListScreen.GenreIdBundleKey) {
+                        type = NavType.StringType
+                    }
+                )
+            ) {
+                GenreTvChannelsListScreen(
+                    onBackPressed = {
+                        navController.popBackStack()
+                    },
+                    onChannelSelected = { channel ->
+                        // Check if this is a TV channel URL, encode it
+                        val encodedUrl = URLEncoder.encode(channel.playLink, "UTF-8")
+                        navController.navigate(Screens.VideoPlayer.withArgs(encodedUrl))
+                    }
+                )
+            }
+            composable(
                 route = Screens.StreamingProviderShowsList(),
                 arguments = listOf(
                     navArgument(StreamingProviderShowsListScreen.StreamingProviderIdBundleKey) {
@@ -210,6 +231,11 @@ fun App(
                                 Screens.CategoryMovieList.withArgs(categoryId)
                             )
                         },
+                        openGenreTvChannelsList = { genre ->
+                            navController.navigate(
+                                Screens.GenreTvChannelsList.withArgs("${genre.id}-${genre.name}")
+                            )
+                        },
                         openStreamingProviderMovieList = { streamingProvider ->
                             navController.navigate(
                                 Screens.StreamingProviderMoviesList.withArgs("${streamingProvider.id}-${streamingProvider.name}")
@@ -261,6 +287,7 @@ fun App(
                 
                 DashboardScreen(
                     openCategoryMovieList = dashboardCallbacks.openCategoryMovieList,
+                    openGenreTvChannelsList = dashboardCallbacks.openGenreTvChannelsList,
                     openStreamingProviderMovieList = dashboardCallbacks.openStreamingProviderMovieList,
                     openStreamingProvideShowList = dashboardCallbacks.openStreamingProvideShowList,
                     openTvShowDetailsScreen = dashboardCallbacks.openTvShowDetailsScreen,

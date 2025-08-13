@@ -49,7 +49,6 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import co.touchlab.kermit.Logger
 import com.google.wiltv.data.models.Genre
-import com.google.wiltv.data.models.StreamingProvider
 import com.google.wiltv.data.network.TvChannel
 import com.google.wiltv.presentation.screens.BackgroundState
 import com.google.wiltv.presentation.theme.WilTvBorderWidth
@@ -67,8 +66,8 @@ fun TvChannelCatalogLayout(
     carouselState: CarouselState,
     backgroundState: BackgroundState,
     contentDescription: String = "TV Channels Catalog Screen",
-    streamingProviders: List<StreamingProvider>,
-    onStreamingProviderClick: ((streamingProvider: StreamingProvider) -> Unit),
+    genres: List<Genre>,
+    onGenreClick: ((genre: Genre) -> Unit),
     focusManagementConfig: FocusManagementConfig? = null
 ) {
     val tvLazyColumnState = rememberTvLazyListState()
@@ -84,10 +83,10 @@ fun TvChannelCatalogLayout(
 
     // Focus management state - memoized for performance
     val focusRequesters =
-        remember(streamingProviders.size, genreToTvChannels.size) {
+        remember(genres.size, genreToTvChannels.size) {
             mutableMapOf<Pair<Int, Int>, FocusRequester>().apply {
-                // Pre-create focus requesters for streaming providers
-                for (i in 0 until streamingProviders.size) {
+                // Pre-create focus requesters for genres
+                for (i in 0 until genres.size) {
                     put(Pair(1, i), FocusRequester())
                 }
             }
@@ -95,19 +94,19 @@ fun TvChannelCatalogLayout(
     var lastFocusedItem by rememberSaveable { mutableStateOf(Pair(0, 0)) }
     var shouldRestoreFocus by remember { mutableStateOf(true) }
     var clearChannelDetails by remember { mutableStateOf(false) }
-    var carouselTargetStreamingProvider by rememberSaveable { mutableIntStateOf(0) }
+    var carouselTargetGenre by rememberSaveable { mutableIntStateOf(0) }
 
     // Combined focus restoration and carousel sync (if focus management enabled)
     LaunchedEffect(
-        lastFocusedItem, streamingProviders.size, shouldRestoreFocus,
+        lastFocusedItem, genres.size, shouldRestoreFocus,
         genreToLazyPagingItems.size
     ) {
         // Initialize carousel target from focus restoration state
         if (lastFocusedItem.first == 1 &&
             lastFocusedItem.second >= 0 &&
-            lastFocusedItem.second < streamingProviders.size
+            lastFocusedItem.second < genres.size
         ) {
-            carouselTargetStreamingProvider = lastFocusedItem.second
+            carouselTargetGenre = lastFocusedItem.second
         }
 
         // Focus restoration with viewport safety - single coroutine prevents races
@@ -120,19 +119,19 @@ fun TvChannelCatalogLayout(
             delay(50)
             Logger.d { "Starting focus restoration for position: $lastFocusedItem" }
 
-            val streamingProviderCount = streamingProviders.size
+            val genreCount = genres.size
 
             if (lastFocusedItem.first == 1 &&
                 lastFocusedItem.second >= 0 &&
-                lastFocusedItem.second < streamingProviderCount
+                lastFocusedItem.second < genreCount
             ) {
-                // Restore streaming provider focus with bounds checking
-                val streamingRowState = rowStates["row_streaming_providers"]
-                if (streamingRowState != null) {
+                // Restore genre focus with bounds checking
+                val genreRowState = rowStates["row_genres"]
+                if (genreRowState != null) {
                     try {
                         // Ensure index is within bounds before scrolling
-                        if (lastFocusedItem.second < streamingProviderCount) {
-                            streamingRowState.scrollToItem(lastFocusedItem.second)
+                        if (lastFocusedItem.second < genreCount) {
+                            genreRowState.scrollToItem(lastFocusedItem.second)
                             delay(100) // Quick delay for scroll to complete
 
                             val focusRequester = focusRequesters[lastFocusedItem]
@@ -157,11 +156,11 @@ fun TvChannelCatalogLayout(
                                     }
                                 }
                             } else {
-                                Logger.w { "FocusRequester not found for streaming provider at $lastFocusedItem" }
+                                Logger.w { "FocusRequester not found for genre at $lastFocusedItem" }
                             }
                         }
                     } catch (e: Exception) {
-                        Logger.w(e) { "Failed to restore streaming provider focus at index ${lastFocusedItem.second}" }
+                        Logger.w(e) { "Failed to restore genre focus at index ${lastFocusedItem.second}" }
                         shouldRestoreFocus = false
                     }
                 }
@@ -252,12 +251,12 @@ fun TvChannelCatalogLayout(
     ) {
 
         item(contentType = "TvChannelHeroSectionCarousel") {
-            val targetStreamingProviderFocusRequester =
-                if (streamingProviders.isNotEmpty()) {
-                    val targetIndex = if (carouselTargetStreamingProvider >= 0 &&
-                        carouselTargetStreamingProvider < streamingProviders.size
+            val targetGenreFocusRequester =
+                if (genres.isNotEmpty()) {
+                    val targetIndex = if (carouselTargetGenre >= 0 &&
+                        carouselTargetGenre < genres.size
                     ) {
-                        carouselTargetStreamingProvider
+                        carouselTargetGenre
                     } else {
                         0
                     }
@@ -274,7 +273,7 @@ fun TvChannelCatalogLayout(
                 modifier = Modifier
                     .height(340.dp)
                     .fillMaxWidth(),
-                firstLazyRowItemUnderCarouselRequester = targetStreamingProviderFocusRequester,
+                firstLazyRowItemUnderCarouselRequester = targetGenreFocusRequester,
                 carouselFocusRequester = carouselFocusRequester,
                 setSelectedTvChannel = { channel ->
                     val imageUrl = channel.logoUrl
@@ -287,47 +286,47 @@ fun TvChannelCatalogLayout(
             )
         }
 
-        // Streaming providers row (if provided)
-//        item(
-//            contentType = "StreamingProvidersRow",
-//            key = "streamingProvidersRow"
-//        ) {
-//            val rowId = "row_streaming_providers"
-//            val rowState = rowStates.getOrPut(rowId) { TvLazyListState() }
-//            val streamingRowIndex = 1
-//
-//            val streamingFocusRequesters =
-//                remember(streamingProviders.size) {
-//                    streamingProviders.mapIndexed { index, _ ->
-//                        index to (focusRequesters.getOrPut(
-//                            Pair(
-//                                streamingRowIndex,
-//                                index
-//                            )
-//                        ) { FocusRequester() })
-//                    }.toMap()
-//                }
-//
-//            StreamingProvidersRow(
-//                streamingProviders = streamingProviders,
-//                onClick = { streamingProvider, itemIndex ->
-//                    onStreamingProviderClick(streamingProvider)
-//                },
-//                modifier = Modifier,
-//                aboveFocusRequester = carouselFocusRequester,
-//                lazyRowState = rowState,
-//                focusRequesters = streamingFocusRequesters,
-//                downFocusRequester = null,
-//                onItemFocused = { itemIndex ->
-//                    lastFocusedItem = Pair(streamingRowIndex, itemIndex)
-//                    shouldRestoreFocus = false
-//
-//                    if (itemIndex >= 0 && itemIndex < (streamingProviders.size)) {
-//                        carouselTargetStreamingProvider = itemIndex
-//                    }
-//                }
-//            )
-//        }
+        // Genre names row
+        item(
+            contentType = "GenreNamesRow",
+            key = "genreNamesRow"
+        ) {
+            val rowId = "row_genres"
+            val rowState = rowStates.getOrPut(rowId) { TvLazyListState() }
+            val genreRowIndex = 1
+
+            val genreFocusRequesters =
+                remember(genres.size) {
+                    genres.mapIndexed { index, _ ->
+                        index to (focusRequesters.getOrPut(
+                            Pair(
+                                genreRowIndex,
+                                index
+                            )
+                        ) { FocusRequester() })
+                    }.toMap()
+                }
+
+            GenreNamesRow(
+                genres = genres,
+                onClick = { genre, itemIndex ->
+                    onGenreClick(genre)
+                },
+                modifier = Modifier,
+                aboveFocusRequester = carouselFocusRequester,
+                lazyRowState = rowState,
+                focusRequesters = genreFocusRequesters,
+                downFocusRequester = null,
+                onItemFocused = { itemIndex ->
+                    lastFocusedItem = Pair(genreRowIndex, itemIndex)
+                    shouldRestoreFocus = false
+
+                    if (itemIndex >= 0 && itemIndex < (genres.size)) {
+                        carouselTargetGenre = itemIndex
+                    }
+                }
+            )
+        }
 
         // Genre rows
 //        items(

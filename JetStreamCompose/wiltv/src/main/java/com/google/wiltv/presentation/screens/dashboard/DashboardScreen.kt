@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.createGraph
+import com.google.wiltv.data.models.Genre
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.StreamingProvider
 import com.google.wiltv.data.models.TvShow
@@ -48,6 +49,7 @@ fun rememberChildPadding(direction: LayoutDirection = LocalLayoutDirection.curre
 @Composable
 fun DashboardScreen(
     openCategoryMovieList: (categoryId: String) -> Unit = {},
+    openGenreTvChannelsList: (genre: Genre) -> Unit = {},
     openMovieDetailsScreen: (movieId: String) -> Unit = {},
     openTvShowDetailsScreen: (tvShowId: String) -> Unit = {},
     openVideoPlayer: (contentId: String, title: String?) -> Unit = { _, _ -> },
@@ -65,6 +67,7 @@ fun DashboardScreen(
         content = {
             Body(
                 openCategoryMovieList = openCategoryMovieList,
+                openGenreTvChannelsList = openGenreTvChannelsList,
                 openMovieDetailsScreen = openMovieDetailsScreen,
                 openVideoPlayer = openVideoPlayer,
                 navController = navController,
@@ -88,6 +91,7 @@ fun DashboardScreen(
 private fun Body(
     modifier: Modifier = Modifier,
     openCategoryMovieList: (categoryId: String) -> Unit,
+    openGenreTvChannelsList: (genre: Genre) -> Unit,
     openStreamingProviderMovieList: (streamingProvider: StreamingProvider) -> Unit,
     openStreamingProvideShowList: (streamingProvider: StreamingProvider) -> Unit,
     openMovieDetailsScreen: (movieId: String) -> Unit,
@@ -104,6 +108,7 @@ private fun Body(
         openVideoPlayer,
         openTvShowDetailsScreen,
         openCategoryMovieList,
+        openGenreTvChannelsList,
         setSelectedMovie,
         setSelectedTvShow,
         openStreamingProviderMovieList,
@@ -161,7 +166,7 @@ private fun Body(
                     goToVideoPlayer = { channel ->
                         openVideoPlayer(channel.playLink, channel.name)
                     },
-                    onStreamingProviderClick = openStreamingProvideShowList
+                    onGenreClick = openGenreTvChannelsList
                 )
             }
 

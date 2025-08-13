@@ -10,12 +10,10 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.google.wiltv.data.models.Genre
-import com.google.wiltv.data.models.StreamingProvider
 import com.google.wiltv.data.network.TvChannel
 import com.google.wiltv.data.paging.pagingsources.tvchannel.TvChannelPagingSources
 import com.google.wiltv.data.paging.pagingsources.tvchannel.TvChannelsHeroSectionPagingSource
 import com.google.wiltv.data.repositories.GenreRepository
-import com.google.wiltv.data.repositories.StreamingProvidersRepository
 import com.google.wiltv.data.repositories.TvChannelsRepository
 import com.google.wiltv.data.repositories.UserRepository
 import com.google.wiltv.domain.ApiResult
@@ -38,7 +36,6 @@ class TvChannelScreenViewModel @Inject constructor(
     private val tvChannelsRepository: TvChannelsRepository,
     private val userRepository: UserRepository,
     private val genreRepository: GenreRepository,
-    private val streamingProvidersRepository: StreamingProvidersRepository
 ) : ViewModel() {
 
     val heroSectionTvChannels: StateFlow<PagingData<TvChannel>> = Pager(
@@ -69,27 +66,17 @@ class TvChannelScreenViewModel @Inject constructor(
                     when {
                         token.isEmpty() -> TvChannelScreenUiState.Error(UiText.DynamicString("Unauthorized"))
                         else -> {
-                            val genreToTvChannels = fetchTvChannelsByGenre(
+                            val (genreToTvChannels, genres) = fetchTvChannelsByGenre(
                                 genreRepository = genreRepository,
                                 userRepository
                             )
-                            val streamingProvidersResult = streamingProvidersRepository.getStreamingProviders(
-                                type = "App\\Models\\TvChannel"
-                            )
-                            val streamingProviders = when (streamingProvidersResult) {
-                                is ApiResult.Success -> streamingProvidersResult.data
-                                is ApiResult.Error -> {
-                                    Logger.e { "❌ Failed to fetch streaming providers: ${streamingProvidersResult.message ?: streamingProvidersResult.error}" }
-                                    emptyList()
-                                }
-                            }
 
-                            if (genreToTvChannels.isEmpty() && streamingProviders.isEmpty()) {
+                            if (genreToTvChannels.isEmpty()) {
                                 return@combine TvChannelScreenUiState.Error(UiText.DynamicString("No data found"))
                             } else {
                                 return@combine TvChannelScreenUiState.Ready(
                                     genreToTvChannels = genreToTvChannels,
-                                    streamingProviders = streamingProviders
+                                    genres = genres
                                 )
                             }
                         }
@@ -110,11 +97,12 @@ class TvChannelScreenViewModel @Inject constructor(
     private suspend fun fetchTvChannelsByGenre(
         genreRepository: GenreRepository,
         userRepository: UserRepository
-    ): Map<Genre, StateFlow<PagingData<TvChannel>>> {
+    ): Pair<Map<Genre, StateFlow<PagingData<TvChannel>>>, List<Genre>> {
         val genresResponse = genreRepository.getTvChannelGenre()
         when (genresResponse) {
             is ApiResult.Success -> {
-                val genreToTvChannelPagingData = genresResponse.data.member.associateWith { genre ->
+                val genres = genresResponse.data.member
+                val genreToTvChannelPagingData = genres.associateWith { genre ->
                     TvChannelPagingSources().getTvChannelsGenrePagingSource(
                         genreId = genre.id,
                         tvChannelsRepository = tvChannelsRepository,
@@ -125,14 +113,14 @@ class TvChannelScreenViewModel @Inject constructor(
                         PagingData.empty()
                     )
                 }
-                return genreToTvChannelPagingData
+                return Pair(genreToTvChannelPagingData, genres)
             }
 
             is ApiResult.Error -> {
                 _uiState.value = TvChannelScreenUiState.Error(genresResponse.error.asUiText(genresResponse.message))
             }
         }
-        return emptyMap()
+        return Pair(emptyMap(), emptyList())
     }
 
     fun retryOperation() {
@@ -150,6 +138,6 @@ sealed interface TvChannelScreenUiState {
     data class Error(val message: UiText) : TvChannelScreenUiState
     data class Ready(
         val genreToTvChannels: Map<Genre, StateFlow<PagingData<TvChannel>>>,
-        val streamingProviders: List<StreamingProvider>
+        val genres: List<Genre>
     ) : TvChannelScreenUiState
 }

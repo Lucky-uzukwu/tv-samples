@@ -14,7 +14,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.tv.material3.CarouselState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
-import com.google.wiltv.data.models.StreamingProvider
+import com.google.wiltv.data.models.Genre
 import com.google.wiltv.data.network.TvChannel
 import com.google.wiltv.presentation.common.FocusManagementConfig
 import com.google.wiltv.presentation.common.Loading
@@ -29,7 +29,7 @@ import com.google.wiltv.presentation.utils.hasError
 @OptIn(ExperimentalTvMaterial3Api::class)
 fun TvChannelScreen(
     goToVideoPlayer: (channel: TvChannel) -> Unit,
-    onStreamingProviderClick: (streamingProvider: StreamingProvider) -> Unit,
+    onGenreClick: (genre: Genre) -> Unit,
     tvChannelScreenViewModel: TvChannelScreenViewModel = hiltViewModel(),
 ) {
     val uiState by tvChannelScreenViewModel.uiState.collectAsStateWithLifecycle()
@@ -56,8 +56,8 @@ fun TvChannelScreen(
                 backgroundState = backgroundState,
                 modifier = Modifier.fillMaxSize(),
                 contentDescription = "TV Channels Screen",
-                streamingProviders = currentState.streamingProviders,
-                onStreamingProviderClick = onStreamingProviderClick,
+                genres = currentState.genres,
+                onGenreClick = onGenreClick,
                 focusManagementConfig = FocusManagementConfig(
                     enableFocusRestoration = true,
                     enableFocusLogging = true

@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.google.wiltv.presentation.screens.categories.CategoryMovieListScreen
+import com.google.wiltv.presentation.screens.genre.tvchannels.GenreTvChannelsListScreen
 import com.google.wiltv.presentation.screens.moviedetails.MovieDetailsScreen
 import com.google.wiltv.presentation.screens.streamingprovider.movie.StreamingProviderMoviesListScreen
 import com.google.wiltv.presentation.screens.streamingprovider.show.StreamingProviderShowsListScreen
@@ -51,6 +52,7 @@ enum class Screens(
 
     //    Favourites(isTabItem = true),
     CategoryMovieList(listOf(CategoryMovieListScreen.CategoryIdBundleKey)),
+    GenreTvChannelsList(listOf(GenreTvChannelsListScreen.GenreIdBundleKey)),
     StreamingProviderMoviesList(listOf(StreamingProviderMoviesListScreen.StreamingProviderIdBundleKey)),
     StreamingProviderShowsList(listOf(StreamingProviderShowsListScreen.StreamingProviderIdBundleKey)),
     MovieDetails(listOf(MovieDetailsScreen.MovieIdBundleKey)),
