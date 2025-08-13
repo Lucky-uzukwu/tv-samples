@@ -35,6 +35,7 @@ import com.google.wiltv.data.repositories.StreamingProvidersRepositoryImpl
 import com.google.wiltv.data.repositories.TvShowsRepository
 import com.google.wiltv.data.repositories.TvShowsRepositoryImpl
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.data.repositories.ProfileRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -59,6 +60,7 @@ object MovieRepositoryModule {
         movieService: MovieService,
         authRepository: AuthRepository,
         userRepository: UserRepository,
+        profileRepository: ProfileRepository,
         @Named("isMock") isMock: Boolean
     ): MovieRepository {
         return if (isMock) {
@@ -72,7 +74,8 @@ object MovieRepositoryModule {
                 movieCategoryDataSource,
                 movieService,
                 authRepository,
-                userRepository
+                userRepository,
+                profileRepository
             )
         }
     }
@@ -94,6 +97,7 @@ object TvShowsRepositoryModule {
         tvShowService: TvShowsService,
         authRepository: AuthRepository,
         userRepository: UserRepository,
+        profileRepository: ProfileRepository,
         @Named("isMock") isMock: Boolean
     ): TvShowsRepository {
         return if (isMock) {
@@ -102,7 +106,8 @@ object TvShowsRepositoryModule {
             TvShowsRepositoryImpl(
                 tvShowService,
                 authRepository,
-                userRepository
+                userRepository,
+                profileRepository
             )
         }
     }
@@ -206,6 +211,7 @@ object SearchRepositoryModule {
         authRepository: AuthRepository,
         userRepository: UserRepository,
         searchService: SearchService,
+        profileRepository: ProfileRepository,
         @Named("isMock") isMock: Boolean
     ): SearchRepository {
         return if (isMock) {
@@ -214,7 +220,8 @@ object SearchRepositoryModule {
             SearchRepositoryImpl(
                 authRepository,
                 userRepository,
-                searchService
+                searchService,
+                profileRepository
             )
         }
     }

@@ -21,11 +21,13 @@ import com.google.wiltv.data.entities.MovieCategoryDetails
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.network.MovieResponse
 import com.google.wiltv.data.network.MovieService
+import com.google.wiltv.data.utils.ProfileContentHelper
 import com.google.wiltv.domain.ApiResult
 import com.google.wiltv.domain.DataError
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 
 @Singleton
@@ -34,7 +36,8 @@ class MovieRepositoryImpl @Inject constructor(
     private val movieCategoryDataSource: MovieCategoryDataSource,
     private val movieService: MovieService,
     private val authRepository: AuthRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val profileRepository: ProfileRepository
 ) : MovieRepository {
 
     override fun getMovieCategories() = flow {
@@ -63,11 +66,15 @@ class MovieRepositoryImpl @Inject constructor(
         Logger.i { "Fetching movies for hero section with token: $token" }
         val user = userRepository.getUser()
             ?: return ApiResult.Error(DataError.Network.LOCAL_USER_NOT_FOUND)
+        val selectedProfile = profileRepository.getSelectedProfile().firstOrNull()
+        val contentParams = ProfileContentHelper.getContentFilterParams(selectedProfile)
         val response = movieService.getMovies(
             authToken = "Bearer $token",
             showInHeroSection = 1,
             page = page,
-            itemsPerPage = itemsPerPage
+            itemsPerPage = itemsPerPage,
+            isAdultContent = contentParams.isAdultContent,
+            isKidsContent = contentParams.isKidsContent
         )
         return mapToResult(response)
     }
@@ -81,11 +88,15 @@ class MovieRepositoryImpl @Inject constructor(
         Logger.i { "Fetching movies for catalog section with token: $token" }
         val user = userRepository.getUser()
             ?: return ApiResult.Error(DataError.Network.LOCAL_USER_NOT_FOUND)
+        val selectedProfile = profileRepository.getSelectedProfile().firstOrNull()
+        val contentParams = ProfileContentHelper.getContentFilterParams(selectedProfile)
         val response = movieService.getMovies(
             authToken = "Bearer $token",
             catalogId = catalogId,
             itemsPerPage = itemsPerPage,
-            page = page
+            page = page,
+            isAdultContent = contentParams.isAdultContent,
+            isKidsContent = contentParams.isKidsContent
         )
         return mapToResult(response)
     }
@@ -99,11 +110,15 @@ class MovieRepositoryImpl @Inject constructor(
         Logger.i { "Fetching movies for genre section" }
         val user = userRepository.getUser()
             ?: return ApiResult.Error(DataError.Network.LOCAL_USER_NOT_FOUND)
+        val selectedProfile = profileRepository.getSelectedProfile().firstOrNull()
+        val contentParams = ProfileContentHelper.getContentFilterParams(selectedProfile)
         val response = movieService.getMovies(
             authToken = "Bearer $token",
             genreId = genreId,
             itemsPerPage = itemsPerPage,
-            page = page
+            page = page,
+            isAdultContent = contentParams.isAdultContent,
+            isKidsContent = contentParams.isKidsContent
         )
         return mapToResult(response)
     }

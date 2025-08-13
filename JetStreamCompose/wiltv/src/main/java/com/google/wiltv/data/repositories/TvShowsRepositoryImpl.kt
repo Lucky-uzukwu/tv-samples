@@ -4,16 +4,19 @@ import co.touchlab.kermit.Logger
 import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.network.TvShowsResponse
 import com.google.wiltv.data.network.TvShowsService
+import com.google.wiltv.data.utils.ProfileContentHelper
 import com.google.wiltv.domain.ApiResult
 import com.google.wiltv.domain.DataError
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.firstOrNull
 
 @Singleton
 class TvShowsRepositoryImpl @Inject constructor(
     private val tvShowService: TvShowsService,
     private val authRepository: AuthRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val profileRepository: ProfileRepository
 ) : TvShowsRepository {
     override suspend fun getTvShowsToShowInHeroSection(
         token: String,
@@ -24,12 +27,16 @@ class TvShowsRepositoryImpl @Inject constructor(
             error = DataError.Network.UNAUTHORIZED,
             message = "User not found"
         )
+        val selectedProfile = profileRepository.getSelectedProfile().firstOrNull()
+        val contentParams = ProfileContentHelper.getContentFilterParams(selectedProfile)
         
         return mapToResult(tvShowService.getTvShows(
             authToken = "Bearer $token",
             showInHeroSection = 1,
             page = page,
-            itemsPerPage = itemsPerPage
+            itemsPerPage = itemsPerPage,
+            isAdultContent = contentParams.isAdultContent,
+            isKidsContent = contentParams.isKidsContent
         ))
     }
 
@@ -43,12 +50,16 @@ class TvShowsRepositoryImpl @Inject constructor(
             error = DataError.Network.UNAUTHORIZED,
             message = "User not found"
         )
+        val selectedProfile = profileRepository.getSelectedProfile().firstOrNull()
+        val contentParams = ProfileContentHelper.getContentFilterParams(selectedProfile)
         
         return mapToResult(tvShowService.getTvShows(
             authToken = "Bearer $token",
             catalogId = catalogId,
             itemsPerPage = itemsPerPage,
-            page = page
+            page = page,
+            isAdultContent = contentParams.isAdultContent,
+            isKidsContent = contentParams.isKidsContent
         ))
     }
 
@@ -62,12 +73,16 @@ class TvShowsRepositoryImpl @Inject constructor(
             error = DataError.Network.UNAUTHORIZED,
             message = "User not found"
         )
+        val selectedProfile = profileRepository.getSelectedProfile().firstOrNull()
+        val contentParams = ProfileContentHelper.getContentFilterParams(selectedProfile)
         
         return mapToResult(tvShowService.getTvShows(
             authToken = "Bearer $token",
             genreId = genreId,
             itemsPerPage = itemsPerPage,
-            page = page
+            page = page,
+            isAdultContent = contentParams.isAdultContent,
+            isKidsContent = contentParams.isKidsContent
         ))
     }
 
