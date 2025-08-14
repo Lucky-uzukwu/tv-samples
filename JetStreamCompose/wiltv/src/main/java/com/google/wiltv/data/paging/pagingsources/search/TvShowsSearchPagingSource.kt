@@ -1,5 +1,6 @@
 package com.google.wiltv.data.paging.pagingsources.search
 
+import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.google.wiltv.data.models.TvShow
@@ -23,10 +24,21 @@ class TvShowsSearchPagingSource(
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, TvShow> {
         return try {
+            Log.d("TvShowSearchPaging", "=== TV Show Search Load Start ===")
+            Log.d("TvShowSearchPaging", "Query: '$query'")
+            Log.d("TvShowSearchPaging", "Load params - key: ${params.key}, loadSize: ${params.loadSize}")
+            
             val token = userRepository.userToken.firstOrNull()
-                ?: return LoadResult.Error(Exception("No token"))
+            if (token == null) {
+                Log.e("TvShowSearchPaging", "No authentication token available")
+                return LoadResult.Error(Exception("No token"))
+            }
+            Log.d("TvShowSearchPaging", "Token available: ${token.take(20)}...")
+            
             val currentPage = params.key ?: 1
             val pageSize = params.loadSize
+            
+            Log.d("TvShowSearchPaging", "Calling API - page: $currentPage, pageSize: $pageSize")
             val searchResult = searchRepository.searchTvShowsByQuery(
                 token = token,
                 query = query,
@@ -35,18 +47,28 @@ class TvShowsSearchPagingSource(
             )
             
             val searchResults = when (searchResult) {
-                is ApiResult.Success -> searchResult.data
-                is ApiResult.Error -> return LoadResult.Error(
-                    Exception("Failed to search TV shows: ${searchResult.message ?: searchResult.error}")
-                )
+                is ApiResult.Success -> {
+                    Log.d("TvShowSearchPaging", "API Success - Got ${searchResult.data.member.size} TV shows")
+                    searchResult.data
+                }
+                is ApiResult.Error -> {
+                    val errorMsg = "Failed to search TV shows: ${searchResult.message ?: searchResult.error}"
+                    Log.e("TvShowSearchPaging", errorMsg)
+                    return LoadResult.Error(Exception(errorMsg))
+                }
             }
 
-            LoadResult.Page(
+            val result = LoadResult.Page(
                 data = searchResults.member, // List<TvShow>
                 prevKey = if (currentPage == 1) null else currentPage - 1,
                 nextKey = if (searchResults.member.isEmpty()) null else currentPage + 1
             )
+            
+            Log.d("TvShowSearchPaging", "Returning Page with ${searchResults.member.size} items")
+            Log.d("TvShowSearchPaging", "PrevKey: ${result.prevKey}, NextKey: ${result.nextKey}")
+            result
         } catch (e: Exception) {
+            Log.e("TvShowSearchPaging", "Exception in load(): ${e.message}", e)
             LoadResult.Error(e)
         }
     }

@@ -189,7 +189,7 @@ data class PersonNew(
     val imdbId: String?,
     val biography: String?,
     val popularity: String?,
-    val isAdult: Boolean,
+    val isAdult: Int,
     val profileUrl: String?,
     val character: String?,
     val knownForDepartment: String?,

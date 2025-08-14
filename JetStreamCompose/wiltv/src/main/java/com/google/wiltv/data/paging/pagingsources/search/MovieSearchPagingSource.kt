@@ -1,5 +1,6 @@
 package com.google.wiltv.data.paging.pagingsources.search
 
+import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.google.wiltv.data.models.MovieNew
@@ -23,10 +24,21 @@ class MovieSearchPagingSource(
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MovieNew> {
         return try {
+            Log.d("MovieSearchPaging", "=== Movie Search Load Start ===")
+            Log.d("MovieSearchPaging", "Query: '$query'")
+            Log.d("MovieSearchPaging", "Load params - key: ${params.key}, loadSize: ${params.loadSize}")
+            
             val token = userRepository.userToken.firstOrNull()
-                ?: return LoadResult.Error(Exception("No token"))
+            if (token == null) {
+                Log.e("MovieSearchPaging", "No authentication token available")
+                return LoadResult.Error(Exception("No token"))
+            }
+            Log.d("MovieSearchPaging", "Token available: ${token.take(20)}...")
+            
             val currentPage = params.key ?: 1
             val pageSize = params.loadSize
+            
+            Log.d("MovieSearchPaging", "Calling API - page: $currentPage, pageSize: $pageSize")
             val moviesResult = searchRepository.searchMoviesByQuery(
                 token = token,
                 query = query,
@@ -35,18 +47,28 @@ class MovieSearchPagingSource(
             )
             
             val movies = when (moviesResult) {
-                is ApiResult.Success -> moviesResult.data
-                is ApiResult.Error -> return LoadResult.Error(
-                    Exception("Failed to search movies: ${moviesResult.message ?: moviesResult.error}")
-                )
+                is ApiResult.Success -> {
+                    Log.d("MovieSearchPaging", "API Success - Got ${moviesResult.data.member.size} movies")
+                    moviesResult.data
+                }
+                is ApiResult.Error -> {
+                    val errorMsg = "Failed to search movies: ${moviesResult.message ?: moviesResult.error}"
+                    Log.e("MovieSearchPaging", errorMsg)
+                    return LoadResult.Error(Exception(errorMsg))
+                }
             }
 
-            LoadResult.Page(
+            val result = LoadResult.Page(
                 data = movies.member, // List<MovieNew>
                 prevKey = if (currentPage == 1) null else currentPage - 1,
                 nextKey = if (movies.member.isEmpty()) null else currentPage + 1
             )
+            
+            Log.d("MovieSearchPaging", "Returning Page with ${movies.member.size} items")
+            Log.d("MovieSearchPaging", "PrevKey: ${result.prevKey}, NextKey: ${result.nextKey}")
+            result
         } catch (e: Exception) {
+            Log.e("MovieSearchPaging", "Exception in load(): ${e.message}", e)
             LoadResult.Error(e)
         }
     }

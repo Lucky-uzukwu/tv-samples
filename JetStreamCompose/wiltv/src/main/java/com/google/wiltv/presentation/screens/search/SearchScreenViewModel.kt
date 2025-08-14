@@ -16,6 +16,7 @@
 
 package com.google.wiltv.presentation.screens.search
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -43,11 +44,14 @@ class SearchScreenViewModel @Inject constructor(
     private val internalSearchState = MutableSharedFlow<SearchState>()
 
     fun query(queryString: String) {
+        Log.d("SearchViewModel", "Query requested: '$queryString'")
         viewModelScope.launch { postQuery(queryString) }
     }
 
     private suspend fun postQuery(queryString: String) {
-        internalSearchState.emit(SearchState.Searching)
+        try {
+            Log.d("SearchViewModel", "Starting search for: '$queryString'")
+            internalSearchState.emit(SearchState.Searching)
 
 //        val tvShowResults = searchRepository.searchTvShowsByQuery(
 //            token = token,
@@ -56,27 +60,34 @@ class SearchScreenViewModel @Inject constructor(
 //            page = 1
 //        ).firstOrNull()?.member
 
-        val tvShows: StateFlow<PagingData<TvShow>> = SearchPagingSources().searchTvShows(
-            query = queryString,
-            searchRepository = searchRepository,
-            userRepository = userRepository
-        ).cachedIn(viewModelScope).stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5_000),
-            PagingData.empty()
-        )
+            Log.d("SearchViewModel", "Creating TV Shows paging source")
+            val tvShows: StateFlow<PagingData<TvShow>> = SearchPagingSources().searchTvShows(
+                query = queryString,
+                searchRepository = searchRepository,
+                userRepository = userRepository
+            ).cachedIn(viewModelScope).stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5_000),
+                PagingData.empty()
+            )
 
-        val movies: StateFlow<PagingData<MovieNew>> = SearchPagingSources().searchMovies(
-            query = queryString,
-            searchRepository = searchRepository,
-            userRepository = userRepository
-        ).cachedIn(viewModelScope).stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5_000),
-            PagingData.empty()
-        )
+            Log.d("SearchViewModel", "Creating Movies paging source")
+            val movies: StateFlow<PagingData<MovieNew>> = SearchPagingSources().searchMovies(
+                query = queryString,
+                searchRepository = searchRepository,
+                userRepository = userRepository
+            ).cachedIn(viewModelScope).stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5_000),
+                PagingData.empty()
+            )
 
-        internalSearchState.emit(SearchState.Done(shows = tvShows, movies = movies))
+            Log.d("SearchViewModel", "Emitting Done state with paging sources")
+            internalSearchState.emit(SearchState.Done(shows = tvShows, movies = movies))
+        } catch (e: Exception) {
+            Log.e("SearchViewModel", "Error in postQuery: ${e.message}", e)
+            internalSearchState.emit(SearchState.Error(UiText.DynamicString("Search failed: ${e.message}")))
+        }
     }
 
     val searchState = internalSearchState.stateIn(

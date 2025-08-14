@@ -6,18 +6,17 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -42,6 +41,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import android.util.Log
+import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.tv.material3.Border
@@ -109,8 +110,7 @@ fun SearchResult(
     searchMovies: (queryString: String) -> Unit,
     onMovieClick: (movie: MovieNew) -> Unit,
     onShowClick: (show: TvShow) -> Unit,
-    modifier: Modifier = Modifier,
-    lazyColumnState: LazyListState = rememberLazyListState(),
+    modifier: Modifier = Modifier
 ) {
     val childPadding = rememberChildPadding()
     var searchQuery by remember { mutableStateOf("") }
@@ -125,209 +125,318 @@ fun SearchResult(
     val movieItems = movies?.collectAsLazyPagingItems()
     val showItems = shows?.collectAsLazyPagingItems()
     
-    val isMoviesEmpty = movieItems?.itemSnapshotList?.items?.isEmpty() == true
-    val isShowsEmpty = showItems?.itemSnapshotList?.items?.isEmpty() == true
+    val isMoviesEmpty = movieItems?.itemCount == 0
+    val isShowsEmpty = showItems?.itemCount == 0
 
-    Box(
+    Column(
         modifier = modifier
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        LazyColumn(
-            modifier = modifier,
-            state = lazyColumnState
+        // Search field at the top
+        Surface(
+            shape = ClickableSurfaceDefaults.shape(shape = WilTvCardShape),
+            scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
+            colors = ClickableSurfaceDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.inverseOnSurface,
+                focusedContainerColor = MaterialTheme.colorScheme.inverseOnSurface,
+                pressedContainerColor = MaterialTheme.colorScheme.inverseOnSurface,
+                focusedContentColor = MaterialTheme.colorScheme.onSurface,
+                pressedContentColor = MaterialTheme.colorScheme.onSurface
+            ),
+            border = ClickableSurfaceDefaults.border(
+                focusedBorder = Border(
+                    border = BorderStroke(
+                        width = if (isTfFocused) 2.dp else 1.dp,
+                        color = animateColorAsState(
+                            targetValue = if (isTfFocused) MaterialTheme.colorScheme.onSurface.copy(
+                                alpha = 1f
+                            )
+                            else MaterialTheme.colorScheme.border,
+                            label = ""
+                        ).value
+                    ),
+                    shape = WilTvCardShape
+                )
+            ),
+            tonalElevation = 2.dp,
+            modifier = Modifier
+                .padding(horizontal = childPadding.start)
+                .padding(start = 28.dp)
+                .padding(top = 18.dp),
+            onClick = { tfFocusRequester.requestFocus() }
         ) {
-            item {
-                Surface(
-                    shape = ClickableSurfaceDefaults.shape(shape = WilTvCardShape),
-                    scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
-                    colors = ClickableSurfaceDefaults.colors(
-                        containerColor = MaterialTheme.colorScheme.inverseOnSurface,
-                        focusedContainerColor = MaterialTheme.colorScheme.inverseOnSurface,
-                        pressedContainerColor = MaterialTheme.colorScheme.inverseOnSurface,
-                        focusedContentColor = MaterialTheme.colorScheme.onSurface,
-                        pressedContentColor = MaterialTheme.colorScheme.onSurface
-                    ),
-                    border = ClickableSurfaceDefaults.border(
-                        focusedBorder = Border(
-                            border = BorderStroke(
-                                width = if (isTfFocused) 2.dp else 1.dp,
-                                color = animateColorAsState(
-                                    targetValue = if (isTfFocused) MaterialTheme.colorScheme.onSurface.copy(
-                                        alpha = 1f
-                                    )
-                                    else MaterialTheme.colorScheme.border,
-                                    label = ""
-                                ).value
-                            ),
-                            shape = WilTvCardShape
-                        )
-                    ),
-                    tonalElevation = 2.dp,
-                    modifier = Modifier
-                        .padding(horizontal = childPadding.start)
-                        .padding(start = 28.dp)
-                        .padding(top = 18.dp),
-                    onClick = { tfFocusRequester.requestFocus() }
-                ) {
-                    BasicTextField(
-                        value = searchQuery,
-                        onValueChange = { updatedQuery -> searchQuery = updatedQuery },
-                        decorationBox = {
-                            Box(
-                                modifier = Modifier
-                                    .padding(vertical = 16.dp)
-                                    .padding(start = 20.dp),
-                            ) {
-                                it()
-                                if (searchQuery.isEmpty()) {
-                                    Text(
-                                        modifier = Modifier.graphicsLayer { alpha = 0.6f },
-                                        text = stringResource(R.string.search_screen_et_placeholder),
-                                        style = MaterialTheme.typography.titleSmall
-                                    )
+            BasicTextField(
+                value = searchQuery,
+                onValueChange = { updatedQuery -> searchQuery = updatedQuery },
+                decorationBox = {
+                    Box(
+                        modifier = Modifier
+                            .padding(vertical = 16.dp)
+                            .padding(start = 20.dp),
+                    ) {
+                        it()
+                        if (searchQuery.isEmpty()) {
+                            Text(
+                                modifier = Modifier.graphicsLayer { alpha = 0.6f },
+                                text = stringResource(R.string.search_screen_et_placeholder),
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        vertical = 4.dp,
+                        horizontal = 8.dp
+                    )
+                    .focusRequester(tfFocusRequester)
+                    .onKeyEvent {
+                        if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP) {
+                            when (it.nativeKeyEvent.keyCode) {
+                                KeyEvent.KEYCODE_DPAD_DOWN -> {
+                                    focusManager.moveFocus(FocusDirection.Down)
+                                }
+
+                                KeyEvent.KEYCODE_DPAD_UP -> {
+                                    focusManager.moveFocus(FocusDirection.Up)
+                                }
+
+                                KeyEvent.KEYCODE_BACK -> {
+                                    focusManager.moveFocus(FocusDirection.Exit)
                                 }
                             }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                vertical = 4.dp,
-                                horizontal = 8.dp
+                        }
+                        true
+                    },
+                cursorBrush = Brush.verticalGradient(
+                    colors = listOf(
+                        LocalContentColor.current,
+                        LocalContentColor.current,
+                    )
+                ),
+                keyboardOptions = KeyboardOptions(
+                    autoCorrectEnabled = false,
+                    imeAction = ImeAction.Search
+                ),
+                keyboardActions = KeyboardActions(
+                    onSearch = {
+                        if (searchQuery.isNotEmpty()) {
+                            Log.d("SearchScreen", "Initiating search for query: '$searchQuery'")
+                            lastSearchedQuery = searchQuery
+                            hasSearched = true
+                            searchMovies(searchQuery)
+                        }
+                    }
+                ),
+                maxLines = 1,
+                interactionSource = tfInteractionSource,
+                textStyle = MaterialTheme.typography.titleSmall.copy(
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        }
+
+        // Search results display - using GenreTvChannelsListScreen pattern
+        if (!hasSearched) {
+            // Show empty state or instructions
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Enter a search term and press Enter to find movies and shows",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        } else {
+            // Handle loading states properly
+            val moviesLoadState = movieItems?.loadState?.refresh
+            val showsLoadState = showItems?.loadState?.refresh
+            
+            // Log detailed state information
+            Log.d("SearchScreen", "=== Search State Debug ===")
+            Log.d("SearchScreen", "Query: '$lastSearchedQuery'")
+            Log.d("SearchScreen", "Movies LoadState: $moviesLoadState")
+            Log.d("SearchScreen", "Shows LoadState: $showsLoadState")
+            Log.d("SearchScreen", "Movies ItemCount: ${movieItems?.itemCount}")
+            Log.d("SearchScreen", "Shows ItemCount: ${showItems?.itemCount}")
+            Log.d("SearchScreen", "Movies Empty: $isMoviesEmpty, Shows Empty: $isShowsEmpty")
+            
+            when {
+                moviesLoadState is LoadState.Loading || 
+                showsLoadState is LoadState.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Searching...",
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+                
+                moviesLoadState is LoadState.Error && 
+                showsLoadState is LoadState.Error -> {
+                    // Only show error when BOTH fail
+                    val movieError = moviesLoadState.error.message
+                    val showError = showsLoadState.error.message
+                    Log.e("SearchScreen", "Both searches failed - Movies: $movieError, Shows: $showError")
+                    
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Error loading search results:\nMovies: ${movieError ?: "Unknown error"}\nShows: ${showError ?: "Unknown error"}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+                
+                else -> {
+                    // Handle success and partial success cases
+                    val moviesReady = moviesLoadState is LoadState.NotLoading
+                    val showsReady = showsLoadState is LoadState.NotLoading
+                    val moviesSuccess = moviesReady && !isMoviesEmpty
+                    val showsSuccess = showsReady && !isShowsEmpty
+                    
+                    Log.d("SearchScreen", "=== CONDITION DEBUG ===")
+                    Log.d("SearchScreen", "Movies Ready: $moviesReady, Success: $moviesSuccess")
+                    Log.d("SearchScreen", "Shows Ready: $showsReady, Success: $showsSuccess")
+                    Log.d("SearchScreen", "Both ready condition: ${(moviesReady && showsReady)}")
+                    Log.d("SearchScreen", "Both empty condition: ${(isMoviesEmpty && isShowsEmpty)}")
+                    Log.d("SearchScreen", "No results condition: ${(moviesReady && showsReady) && (isMoviesEmpty && isShowsEmpty)}")
+                    Log.d("SearchScreen", "Success condition: ${moviesSuccess || showsSuccess}")
+                    
+                    if ((moviesReady && showsReady) && (isMoviesEmpty && isShowsEmpty)) {
+                        // Show no results found only when both are loaded and both empty
+                        Log.d("SearchScreen", ">>> SHOWING NO RESULTS FOUND")
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No result found for \"$lastSearchedQuery\"",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(16.dp)
                             )
-                            .focusRequester(tfFocusRequester)
-                            .onKeyEvent {
-                                if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP) {
-                                    when (it.nativeKeyEvent.keyCode) {
-                                        KeyEvent.KEYCODE_DPAD_DOWN -> {
-                                            focusManager.moveFocus(FocusDirection.Down)
-                                        }
-
-                                        KeyEvent.KEYCODE_DPAD_UP -> {
-                                            focusManager.moveFocus(FocusDirection.Up)
-                                        }
-
-                                        KeyEvent.KEYCODE_BACK -> {
-                                            focusManager.moveFocus(FocusDirection.Exit)
+                        }
+                    } else if (moviesSuccess || showsSuccess) {
+                        // Show results grid using GenreTvChannelsListScreen pattern
+                        Log.d("SearchScreen", ">>> SHOWING RESULTS GRID - Movies: ${movieItems?.itemCount}, Shows: ${showItems?.itemCount}")
+                        LazyVerticalGrid(
+                            modifier = Modifier.fillMaxSize(), // KEY FIX: Add fillMaxSize()
+                            columns = GridCells.Fixed(5),
+                            contentPadding = PaddingValues(
+                                start = 16.dp,
+                                end = 16.dp,
+                                bottom = WilTvBottomListPadding
+                            ),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // Movies using proper paging pattern
+                            movieItems?.let { movies ->
+                                Log.d("SearchScreen", "Adding ${movies.itemCount} movie items to grid")
+                                items(
+                                    count = movies.itemCount,
+                                    key = { index -> movies[index]?.id?.let { "movie_$it" } ?: "movie_loading_$index" }
+                                ) { index ->
+                                    val movie = movies[index]
+                                    Log.d("SearchScreen", "Rendering movie $index: ${movie?.title}")
+                                    if (movie != null) {
+                                        MovieCard(
+                                            onClick = { onMovieClick(movie) },
+                                            modifier = Modifier
+                                                .aspectRatio(1 / 1.5f)
+                                                .padding(6.dp),
+                                        ) {
+                                            val imageUrl = movie.posterImageUrl
+                                            Log.d("SearchScreen", "Movie ${movie.title} imageUrl: '$imageUrl'")
+                                            imageUrl?.let {
+                                                Log.d("SearchScreen", "Loading PosterImage for ${movie.title}")
+                                                PosterImage(
+                                                    title = movie.title,
+                                                    posterUrl = it,
+                                                    modifier = Modifier.fillMaxSize()
+                                                )
+                                            } ?: run {
+                                                Log.w("SearchScreen", "No imageUrl for movie ${movie.title} - showing fallback")
+                                                // Fallback when no image URL
+                                                Box(
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = movie.title,
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        color = Color.White
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                                true
-                            },
-                        cursorBrush = Brush.verticalGradient(
-                            colors = listOf(
-                                LocalContentColor.current,
-                                LocalContentColor.current,
-                            )
-                        ),
-                        keyboardOptions = KeyboardOptions(
-                            autoCorrectEnabled = false,
-                            imeAction = ImeAction.Search
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onSearch = {
-                                if (searchQuery.isNotEmpty()) {
-                                    lastSearchedQuery = searchQuery
-                                    hasSearched = true
-                                    searchMovies(searchQuery)
-                                }
                             }
-                        ),
-                        maxLines = 1,
-                        interactionSource = tfInteractionSource,
-                        textStyle = MaterialTheme.typography.titleSmall.copy(
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    )
-                }
-            }
-        }
-
-        // Search results display
-        when {
-            !hasSearched -> {
-                // Show empty state or instructions
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Enter a search term and press Enter to find movies and shows",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-            }
-            hasSearched && lastSearchedQuery.isNotEmpty() && isMoviesEmpty && isShowsEmpty -> {
-                // Show no results found - persists until new search
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No result found for \"$lastSearchedQuery\"",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-            }
-            hasSearched -> {
-                // Show search results
-                LazyVerticalGrid(
-                    modifier = Modifier.padding(top = 80.dp, start = 40.dp),
-                    columns = GridCells.Fixed(6),
-                    contentPadding = PaddingValues(bottom = WilTvBottomListPadding)
-                ) {
-                    movieItems?.let { movies ->
-                        itemsIndexed(
-                            movies.itemSnapshotList.items,
-                            contentType = { _, _ -> "movie" },
-                            key = { _, movie -> "movie_${movie.id}" }) { index, movie ->
-                            MovieCard(
-                                onClick = { onMovieClick(movie) },
-                                modifier = Modifier
-                                    .aspectRatio(1 / 1.5f)
-                                    .padding(8.dp),
-                            ) {
-                                val imageUrl = movie.posterImageUrl
-                                imageUrl?.let {
-                                    PosterImage(
-                                        title = movie.title,
-                                        posterUrl = it,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
+                            
+                            // TV Shows using proper paging pattern
+                            showItems?.let { shows ->
+                                Log.d("SearchScreen", "Adding ${shows.itemCount} show items to grid")
+                                items(
+                                    count = shows.itemCount,
+                                    key = { index -> shows[index]?.id?.let { "show_$it" } ?: "show_loading_$index" }
+                                ) { index ->
+                                    val show = shows[index]
+                                    Log.d("SearchScreen", "Rendering show $index: ${show?.title}")
+                                    if (show != null) {
+                                        MovieCard(
+                                            onClick = { onShowClick(show) },
+                                            modifier = Modifier
+                                                .aspectRatio(1 / 1.5f)
+                                                .padding(6.dp),
+                                        ) {
+                                            val imageUrl = show.posterImageUrl
+                                            Log.d("SearchScreen", "Show ${show.title} imageUrl: '$imageUrl'")
+                                            imageUrl?.let {
+                                                Log.d("SearchScreen", "Loading PosterImage for ${show.title}")
+                                                PosterImage(
+                                                    title = show.title ?: "",
+                                                    posterUrl = it,
+                                                    modifier = Modifier.fillMaxSize()
+                                                )
+                                            } ?: run {
+                                                Log.w("SearchScreen", "No imageUrl for show ${show.title} - showing fallback")
+                                                // Fallback when no image URL
+                                                Box(
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = show.title ?: "Unknown Show",
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        color = Color.White
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }
-                    
-                    // Add TV Shows if needed - currently commented out in the original
-                    showItems?.let { shows ->
-                        itemsIndexed(
-                            shows.itemSnapshotList.items,
-                            contentType = { _, _ -> "show" },
-                            key = { _, show -> "show_${show.id}" }) { index, show ->
-                            MovieCard(
-                                onClick = { onShowClick(show) },
-                                modifier = Modifier
-                                    .aspectRatio(1 / 1.5f)
-                                    .padding(8.dp),
-                            ) {
-                                val imageUrl = show.posterImageUrl
-                                imageUrl?.let {
-                                    PosterImage(
-                                        title = show.title ?: "",
-                                        posterUrl = it,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                }
-                            }
-                        }
+                    } else {
+                        Log.d("SearchScreen", ">>> NO CONDITION MATCHED - THIS IS THE ISSUE!")
+                        Log.d("SearchScreen", "MoviesReady: $moviesReady, ShowsReady: $showsReady")  
+                        Log.d("SearchScreen", "MoviesSuccess: $moviesSuccess, ShowsSuccess: $showsSuccess")
+                        Log.d("SearchScreen", "IsMoviesEmpty: $isMoviesEmpty, IsShowsEmpty: $isShowsEmpty")
                     }
                 }
             }
         }
-
-
     }
 }
