@@ -88,6 +88,10 @@ fun App(
                     },
                     onManageProfiles = {
                         // TODO: Navigate to profile management
+                    },
+                    onLogout = {
+                        userStateHolder.clearUser()
+                        navController.navigate(Screens.AuthScreen())
                     }
                 )
             }

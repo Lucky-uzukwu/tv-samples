@@ -60,6 +60,7 @@ import com.google.wiltv.presentation.screens.ErrorScreen
 fun ProfileSelectionScreen(
     onProfileSelected: (Profile) -> Unit,
     onManageProfiles: () -> Unit = {},
+    onLogout: () -> Unit = {},
     viewModel: ProfileSelectionViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -88,7 +89,8 @@ fun ProfileSelectionScreen(
                         onProfileSelected(profile)
                     }
                 },
-                onManageProfiles = onManageProfiles
+                onManageProfiles = onManageProfiles,
+                onLogout = onLogout
             )
         }
     }
@@ -100,7 +102,8 @@ private fun ProfileSelectionContent(
     selectedProfile: Profile?,
     onProfileSelected: (Profile) -> Unit,
     catalogValidationPassed: Boolean,
-    onManageProfiles: () -> Unit
+    onManageProfiles: () -> Unit,
+    onLogout: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -143,6 +146,38 @@ private fun ProfileSelectionContent(
                     profile = profile,
                     isSelected = profile.id == selectedProfile?.id,
                     onClick = { onProfileSelected(profile) }
+                )
+            }
+        }
+
+        // Logout Button
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            Button(
+                onClick = onLogout,
+                modifier = Modifier.padding(bottom = 32.dp),
+                colors = ButtonDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    focusedContentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                border = ButtonDefaults.border(
+                    focusedBorder = Border(
+                        border = BorderStroke(2.dp, MaterialTheme.colorScheme.onSurface),
+                        shape = MaterialTheme.shapes.medium
+                    )
+                ),
+                scale = ButtonDefaults.scale(
+                    focusedScale = 1.1f
+                )
+            ) {
+                Text(
+                    text = "Log Out",
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
         }
