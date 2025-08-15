@@ -38,6 +38,8 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -54,8 +56,10 @@ import androidx.tv.material3.Text
 import com.google.wiltv.R
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.TvShow
+import com.google.wiltv.data.network.TvChannel
 import com.google.wiltv.presentation.common.MovieCard
 import com.google.wiltv.presentation.common.PosterImage
+import com.google.wiltv.presentation.common.TvChannelCard
 import com.google.wiltv.presentation.screens.ErrorScreen
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
 import com.google.wiltv.presentation.theme.WilTvBottomListPadding
@@ -65,13 +69,15 @@ import kotlinx.coroutines.flow.StateFlow
 
 data class TargetState(
     val movies: StateFlow<PagingData<MovieNew>>? = null,
-    val shows: StateFlow<PagingData<TvShow>>? = null
+    val shows: StateFlow<PagingData<TvShow>>? = null,
+    val channels: StateFlow<PagingData<TvChannel>>? = null
 )
 
 @Composable
 fun SearchScreen(
     onMovieClick: (movie: MovieNew) -> Unit,
     onShowClick: (show: TvShow) -> Unit,
+    onChannelClick: (channel: TvChannel) -> Unit,
     onScroll: (isTopBarVisible: Boolean) -> Unit,
     searchScreenViewModel: SearchScreenViewModel = hiltViewModel(),
 ) {
@@ -94,9 +100,11 @@ fun SearchScreen(
             SearchResult(
                 movies = s.movies,
                 shows = s.shows,
+                channels = s.channels,
                 searchMovies = searchScreenViewModel::query,
                 onMovieClick = onMovieClick,
-                onShowClick = onShowClick
+                onShowClick = onShowClick,
+                onChannelClick = onChannelClick
             )
         }
     }
@@ -107,9 +115,11 @@ fun SearchScreen(
 fun SearchResult(
     movies: StateFlow<PagingData<MovieNew>>?,
     shows: StateFlow<PagingData<TvShow>>?,
+    channels: StateFlow<PagingData<TvChannel>>?,
     searchMovies: (queryString: String) -> Unit,
     onMovieClick: (movie: MovieNew) -> Unit,
     onShowClick: (show: TvShow) -> Unit,
+    onChannelClick: (channel: TvChannel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val childPadding = rememberChildPadding()
@@ -124,9 +134,11 @@ fun SearchResult(
 
     val movieItems = movies?.collectAsLazyPagingItems()
     val showItems = shows?.collectAsLazyPagingItems()
+    val channelItems = channels?.collectAsLazyPagingItems()
 
     val isMoviesEmpty = movieItems?.itemCount == 0
     val isShowsEmpty = showItems?.itemCount == 0
+    val isChannelsEmpty = channelItems?.itemCount == 0
 
     Column(
         modifier = modifier
@@ -223,7 +235,6 @@ fun SearchResult(
                 keyboardActions = KeyboardActions(
                     onSearch = {
                         if (searchQuery.isNotEmpty()) {
-                            Log.d("SearchScreen", "Initiating search for query: '$searchQuery'")
                             lastSearchedQuery = searchQuery
                             hasSearched = true
                             searchMovies(searchQuery)
@@ -255,19 +266,11 @@ fun SearchResult(
             // Handle loading states properly
             val moviesLoadState = movieItems?.loadState?.refresh
             val showsLoadState = showItems?.loadState?.refresh
-
-            // Log detailed state information
-            Log.d("SearchScreen", "=== Search State Debug ===")
-            Log.d("SearchScreen", "Query: '$lastSearchedQuery'")
-            Log.d("SearchScreen", "Movies LoadState: $moviesLoadState")
-            Log.d("SearchScreen", "Shows LoadState: $showsLoadState")
-            Log.d("SearchScreen", "Movies ItemCount: ${movieItems?.itemCount}")
-            Log.d("SearchScreen", "Shows ItemCount: ${showItems?.itemCount}")
-            Log.d("SearchScreen", "Movies Empty: $isMoviesEmpty, Shows Empty: $isShowsEmpty")
-
+            val channelsLoadState = channelItems?.loadState?.refresh
             when {
                 moviesLoadState is LoadState.Loading ||
-                        showsLoadState is LoadState.Loading -> {
+                        showsLoadState is LoadState.Loading ||
+                        channelsLoadState is LoadState.Loading -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -281,13 +284,15 @@ fun SearchResult(
                 }
 
                 moviesLoadState is LoadState.Error &&
-                        showsLoadState is LoadState.Error -> {
-                    // Only show error when BOTH fail
+                        showsLoadState is LoadState.Error &&
+                        channelsLoadState is LoadState.Error -> {
+                    // Only show error when ALL fail
                     val movieError = moviesLoadState.error.message
                     val showError = showsLoadState.error.message
+                    val channelError = channelsLoadState.error.message
                     Log.e(
                         "SearchScreen",
-                        "Both searches failed - Movies: $movieError, Shows: $showError"
+                        "All searches failed - Movies: $movieError, Shows: $showError, Channels: $channelError"
                     )
 
                     Box(
@@ -295,7 +300,7 @@ fun SearchResult(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Error loading search results:\nMovies: ${movieError ?: "Unknown error"}\nShows: ${showError ?: "Unknown error"}",
+                            text = "Error loading search results:\nMovies: ${movieError ?: "Unknown error"}\nShows: ${showError ?: "Unknown error"}\nChannels: ${channelError ?: "Unknown error"}",
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.padding(16.dp)
                         )
@@ -306,10 +311,12 @@ fun SearchResult(
                     // Handle success and partial success cases
                     val moviesReady = moviesLoadState is LoadState.NotLoading
                     val showsReady = showsLoadState is LoadState.NotLoading
+                    val channelsReady = channelsLoadState is LoadState.NotLoading
                     val moviesSuccess = moviesReady && !isMoviesEmpty
                     val showsSuccess = showsReady && !isShowsEmpty
+                    val channelsSuccess = channelsReady && !isChannelsEmpty
 
-                    if ((moviesReady && showsReady) && (isMoviesEmpty && isShowsEmpty)) {
+                    if ((moviesReady && showsReady && channelsReady) && (isMoviesEmpty && isShowsEmpty && isChannelsEmpty)) {
                         // Show no results found only when both are loaded and both empty
                         Box(
                             modifier = Modifier.fillMaxSize(),
@@ -321,7 +328,7 @@ fun SearchResult(
                                 modifier = Modifier.padding(16.dp)
                             )
                         }
-                    } else if (moviesSuccess || showsSuccess) {
+                    } else if (moviesSuccess || showsSuccess || channelsSuccess) {
                         // Show results grid using GenreTvChannelsListScreen pattern
                         LazyVerticalGrid(
                             modifier = Modifier.fillMaxSize(),
@@ -366,17 +373,16 @@ fun SearchResult(
                                                         Text(
                                                             text = movie.title,
                                                             style = MaterialTheme.typography.bodyMedium,
-                                                            color = Color.White
+                                                            color = Color.White,
+                                                            textAlign = TextAlign.Center,
+                                                            maxLines = 3,
+                                                            overflow = TextOverflow.Ellipsis
                                                         )
                                                     }
                                                 }
                                             } else {
                                                 val imageUrl = movie.posterImageUrl
                                                 imageUrl.let {
-                                                    Log.d(
-                                                        "SearchScreen",
-                                                        "Loading PosterImage for ${movie.title}"
-                                                    )
                                                     PosterImage(
                                                         title = movie.title,
                                                         posterUrl = it,
@@ -391,10 +397,6 @@ fun SearchResult(
 
                             // TV Shows using proper paging pattern
                             showItems?.let { shows ->
-                                Log.d(
-                                    "SearchScreen",
-                                    "Adding ${shows.itemCount} show items to grid"
-                                )
                                 items(
                                     count = shows.itemCount,
                                     key = { index ->
@@ -403,7 +405,6 @@ fun SearchResult(
                                     }
                                 ) { index ->
                                     val show = shows[index]
-                                    Log.d("SearchScreen", "Rendering show $index: ${show?.title}")
                                     if (show != null) {
                                         MovieCard(
                                             onClick = { onShowClick(show) },
@@ -426,17 +427,16 @@ fun SearchResult(
                                                         Text(
                                                             text = show.title ?: "-",
                                                             style = MaterialTheme.typography.bodyMedium,
-                                                            color = Color.White
+                                                            color = Color.White,
+                                                            textAlign = TextAlign.Center,
+                                                            maxLines = 3,
+                                                            overflow = TextOverflow.Ellipsis
                                                         )
                                                     }
                                                 }
                                             } else {
                                                 val imageUrl = show.posterImageUrl
                                                 imageUrl.let {
-                                                    Log.d(
-                                                        "SearchScreen",
-                                                        "Loading PosterImage for ${show.title}"
-                                                    )
                                                     PosterImage(
                                                         title = show.title ?: "-",
                                                         posterUrl = it,
@@ -448,18 +448,55 @@ fun SearchResult(
                                     }
                                 }
                             }
+
+                            // TV Channels using proper paging pattern
+                            channelItems?.let { channels ->
+                                items(
+                                    count = channels.itemCount,
+                                    key = { index ->
+                                        channels[index]?.id?.let { "channel_$it" }
+                                            ?: "channel_loading_$index"
+                                    }
+                                ) { index ->
+                                    val channel = channels[index]
+
+                                    if (channel != null) {
+                                        TvChannelCard(
+                                            onClick = { onChannelClick(channel) },
+                                            modifier = Modifier
+                                                .aspectRatio(1 / 1.5f)
+                                                .padding(6.dp),
+                                        ) {
+                                            if (channel.logoUrl.isNullOrEmpty()) {
+                                                // Fallback when no logo URL
+                                                Box(
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = channel.name,
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        color = Color.White,
+                                                        textAlign = TextAlign.Center,
+                                                        maxLines = 3,
+                                                        overflow = TextOverflow.Ellipsis
+                                                    )
+                                                }
+                                            } else {
+
+                                                PosterImage(
+                                                    title = channel.name,
+                                                    posterUrl = channel.logoUrl,
+                                                    modifier = Modifier.fillMaxSize()
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     } else {
                         Log.d("SearchScreen", ">>> NO CONDITION MATCHED - THIS IS THE ISSUE!")
-                        Log.d("SearchScreen", "MoviesReady: $moviesReady, ShowsReady: $showsReady")
-                        Log.d(
-                            "SearchScreen",
-                            "MoviesSuccess: $moviesSuccess, ShowsSuccess: $showsSuccess"
-                        )
-                        Log.d(
-                            "SearchScreen",
-                            "IsMoviesEmpty: $isMoviesEmpty, IsShowsEmpty: $isShowsEmpty"
-                        )
                     }
                 }
             }

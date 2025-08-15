@@ -16,7 +16,7 @@ interface TvChannelService {
         @Header("Accept") accept: String = "application/ld+json",
         @Query("page") page: Int? = 1,
         @Query("itemsPerPage") itemsPerPage: Int? = 15,
-//        @Query("search") search: String? = null,
+        @Query("search") search: String? = null,
         @Query("isAdultContent") isAdultContent: Int? = null,
         @Query("isKidsContent") isKidsContent: Int? = null,
         @Query("genres[]") genreId: Int? = null,

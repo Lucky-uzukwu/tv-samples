@@ -6,6 +6,7 @@ import androidx.paging.PagingData
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.network.Catalog
+import com.google.wiltv.data.network.TvChannel
 import com.google.wiltv.data.repositories.SearchRepository
 import com.google.wiltv.data.repositories.UserRepository
 import kotlinx.coroutines.flow.Flow
@@ -49,6 +50,27 @@ class SearchPagingSources {
             )
         ) {
             TvShowsSearchPagingSource(
+                searchRepository,
+                userRepository,
+                query
+            )
+        }.flow
+    }
+
+    fun searchTvChannels(
+        query: String,
+        searchRepository: SearchRepository,
+        userRepository: UserRepository
+    ): Flow<PagingData<TvChannel>> {
+
+        return Pager(
+            PagingConfig(
+                pageSize = NETWORK_PAGE_SIZE,
+                initialLoadSize = 40,
+                enablePlaceholders = false
+            )
+        ) {
+            TvChannelSearchPagingSource(
                 searchRepository,
                 userRepository,
                 query

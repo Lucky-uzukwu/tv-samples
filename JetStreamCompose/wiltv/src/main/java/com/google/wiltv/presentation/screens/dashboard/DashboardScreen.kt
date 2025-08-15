@@ -183,7 +183,8 @@ private fun Body(
                 SearchScreen(
                     onMovieClick = { movie -> openMovieDetailsScreen(movie.id.toString()) },
                     onScroll = { },
-                    onShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) }
+                    onShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) },
+                    onChannelClick = { channel -> openVideoPlayer(channel.playLink, channel.name) }
                 )
             }
         }

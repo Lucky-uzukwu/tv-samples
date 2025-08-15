@@ -4,6 +4,8 @@ import co.touchlab.kermit.Logger
 import com.google.wiltv.data.network.MovieSearchResponse
 import com.google.wiltv.data.network.SearchService
 import com.google.wiltv.data.network.ShowSearchResponse
+import com.google.wiltv.data.network.TvChannelService
+import com.google.wiltv.data.network.TvChannelsResponse
 import com.google.wiltv.data.utils.ProfileContentHelper
 import com.google.wiltv.domain.ApiResult
 import com.google.wiltv.domain.DataError
@@ -18,6 +20,7 @@ class SearchRepositoryImpl @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository,
     private val searchService: SearchService,
+    private val tvChannelService: TvChannelService,
     private val profileRepository: ProfileRepository
 ) : SearchRepository {
     override suspend fun searchMoviesByQuery(
@@ -56,6 +59,29 @@ class SearchRepositoryImpl @Inject constructor(
         val contentParams = ProfileContentHelper.getContentFilterParams(selectedProfile)
         
         val response = searchService.searchTvShows(
+            authToken = "Bearer $token",
+            search = query,
+            itemsPerPage = itemsPerPage,
+            page = page,
+            isAdultContent = contentParams.isAdultContent,
+            isKidsContent = contentParams.isKidsContent
+        )
+        return mapToResult(response)
+    }
+
+    override suspend fun searchTvChannelsByQuery(
+        token: String,
+        query: String,
+        itemsPerPage: Int,
+        page: Int
+    ): ApiResult<TvChannelsResponse, DataError.Network> {
+        Logger.i { "Searching TV channels with query: $query" }
+        val user = userRepository.getUser()
+            ?: return ApiResult.Error(DataError.Network.LOCAL_USER_NOT_FOUND)
+        val selectedProfile = profileRepository.getSelectedProfile().firstOrNull()
+        val contentParams = ProfileContentHelper.getContentFilterParams(selectedProfile)
+        
+        val response = tvChannelService.getTvChannels(
             authToken = "Bearer $token",
             search = query,
             itemsPerPage = itemsPerPage,

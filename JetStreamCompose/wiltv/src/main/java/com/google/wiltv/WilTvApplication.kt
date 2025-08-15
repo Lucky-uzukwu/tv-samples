@@ -229,6 +229,7 @@ object SearchRepositoryModule {
         authRepository: AuthRepository,
         userRepository: UserRepository,
         searchService: SearchService,
+        tvChannelService: TvChannelService,
         profileRepository: ProfileRepository,
         @Named("isMock") isMock: Boolean
     ): SearchRepository {
@@ -239,6 +240,7 @@ object SearchRepositoryModule {
                 authRepository,
                 userRepository,
                 searchService,
+                tvChannelService,
                 profileRepository
             )
         }
