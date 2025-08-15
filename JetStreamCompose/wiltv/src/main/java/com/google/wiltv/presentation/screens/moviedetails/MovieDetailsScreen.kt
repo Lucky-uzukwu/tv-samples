@@ -194,12 +194,14 @@ private fun Details(
                     value = "Released",
                     valueColor = Color.White
                 )
-                TitleValueText(
-                    modifier = itemModifier,
-                    title = stringResource(R.string.original_language),
-                    value = selectedMovie.languages.first().englishName,
-                    valueColor = Color.White
-                )
+                if (selectedMovie.languages.isNotEmpty()) {
+                    TitleValueText(
+                        modifier = itemModifier,
+                        title = stringResource(R.string.original_language),
+                        value = selectedMovie.languages.first().englishName,
+                        valueColor = Color.White
+                    )
+                }
             }
         }
     }
@@ -216,7 +218,7 @@ private fun MovieImageWithGradients(
         contentDescription = StringConstants
             .Composable
             .ContentDescription
-            .moviePoster(movie.title), 
+            .moviePoster(movie.title),
         modifier = modifier
     )
 }

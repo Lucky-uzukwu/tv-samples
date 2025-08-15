@@ -124,7 +124,7 @@ fun SearchResult(
 
     val movieItems = movies?.collectAsLazyPagingItems()
     val showItems = shows?.collectAsLazyPagingItems()
-    
+
     val isMoviesEmpty = movieItems?.itemCount == 0
     val isShowsEmpty = showItems?.itemCount == 0
 
@@ -246,7 +246,7 @@ fun SearchResult(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Enter a search term and press Enter to find movies and shows",
+                    text = "Enter a search term and press Enter",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(16.dp)
                 )
@@ -255,7 +255,7 @@ fun SearchResult(
             // Handle loading states properly
             val moviesLoadState = movieItems?.loadState?.refresh
             val showsLoadState = showItems?.loadState?.refresh
-            
+
             // Log detailed state information
             Log.d("SearchScreen", "=== Search State Debug ===")
             Log.d("SearchScreen", "Query: '$lastSearchedQuery'")
@@ -264,10 +264,10 @@ fun SearchResult(
             Log.d("SearchScreen", "Movies ItemCount: ${movieItems?.itemCount}")
             Log.d("SearchScreen", "Shows ItemCount: ${showItems?.itemCount}")
             Log.d("SearchScreen", "Movies Empty: $isMoviesEmpty, Shows Empty: $isShowsEmpty")
-            
+
             when {
-                moviesLoadState is LoadState.Loading || 
-                showsLoadState is LoadState.Loading -> {
+                moviesLoadState is LoadState.Loading ||
+                        showsLoadState is LoadState.Loading -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -279,14 +279,17 @@ fun SearchResult(
                         )
                     }
                 }
-                
-                moviesLoadState is LoadState.Error && 
-                showsLoadState is LoadState.Error -> {
+
+                moviesLoadState is LoadState.Error &&
+                        showsLoadState is LoadState.Error -> {
                     // Only show error when BOTH fail
                     val movieError = moviesLoadState.error.message
                     val showError = showsLoadState.error.message
-                    Log.e("SearchScreen", "Both searches failed - Movies: $movieError, Shows: $showError")
-                    
+                    Log.e(
+                        "SearchScreen",
+                        "Both searches failed - Movies: $movieError, Shows: $showError"
+                    )
+
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -298,25 +301,16 @@ fun SearchResult(
                         )
                     }
                 }
-                
+
                 else -> {
                     // Handle success and partial success cases
                     val moviesReady = moviesLoadState is LoadState.NotLoading
                     val showsReady = showsLoadState is LoadState.NotLoading
                     val moviesSuccess = moviesReady && !isMoviesEmpty
                     val showsSuccess = showsReady && !isShowsEmpty
-                    
-                    Log.d("SearchScreen", "=== CONDITION DEBUG ===")
-                    Log.d("SearchScreen", "Movies Ready: $moviesReady, Success: $moviesSuccess")
-                    Log.d("SearchScreen", "Shows Ready: $showsReady, Success: $showsSuccess")
-                    Log.d("SearchScreen", "Both ready condition: ${(moviesReady && showsReady)}")
-                    Log.d("SearchScreen", "Both empty condition: ${(isMoviesEmpty && isShowsEmpty)}")
-                    Log.d("SearchScreen", "No results condition: ${(moviesReady && showsReady) && (isMoviesEmpty && isShowsEmpty)}")
-                    Log.d("SearchScreen", "Success condition: ${moviesSuccess || showsSuccess}")
-                    
+
                     if ((moviesReady && showsReady) && (isMoviesEmpty && isShowsEmpty)) {
                         // Show no results found only when both are loaded and both empty
-                        Log.d("SearchScreen", ">>> SHOWING NO RESULTS FOUND")
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
@@ -329,12 +323,11 @@ fun SearchResult(
                         }
                     } else if (moviesSuccess || showsSuccess) {
                         // Show results grid using GenreTvChannelsListScreen pattern
-                        Log.d("SearchScreen", ">>> SHOWING RESULTS GRID - Movies: ${movieItems?.itemCount}, Shows: ${showItems?.itemCount}")
                         LazyVerticalGrid(
-                            modifier = Modifier.fillMaxSize(), // KEY FIX: Add fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
                             columns = GridCells.Fixed(5),
                             contentPadding = PaddingValues(
-                                start = 16.dp,
+                                start = childPadding.start + 28.dp,
                                 end = 16.dp,
                                 bottom = WilTvBottomListPadding
                             ),
@@ -343,13 +336,14 @@ fun SearchResult(
                         ) {
                             // Movies using proper paging pattern
                             movieItems?.let { movies ->
-                                Log.d("SearchScreen", "Adding ${movies.itemCount} movie items to grid")
                                 items(
                                     count = movies.itemCount,
-                                    key = { index -> movies[index]?.id?.let { "movie_$it" } ?: "movie_loading_$index" }
+                                    key = { index ->
+                                        movies[index]?.id?.let { "movie_$it" }
+                                            ?: "movie_loading_$index"
+                                    }
                                 ) { index ->
                                     val movie = movies[index]
-                                    Log.d("SearchScreen", "Rendering movie $index: ${movie?.title}")
                                     if (movie != null) {
                                         MovieCard(
                                             onClick = { onMovieClick(movie) },
@@ -357,26 +351,36 @@ fun SearchResult(
                                                 .aspectRatio(1 / 1.5f)
                                                 .padding(6.dp),
                                         ) {
-                                            val imageUrl = movie.posterImageUrl
-                                            Log.d("SearchScreen", "Movie ${movie.title} imageUrl: '$imageUrl'")
-                                            imageUrl?.let {
-                                                Log.d("SearchScreen", "Loading PosterImage for ${movie.title}")
-                                                PosterImage(
-                                                    title = movie.title,
-                                                    posterUrl = it,
-                                                    modifier = Modifier.fillMaxSize()
-                                                )
-                                            } ?: run {
-                                                Log.w("SearchScreen", "No imageUrl for movie ${movie.title} - showing fallback")
-                                                // Fallback when no image URL
-                                                Box(
-                                                    modifier = Modifier.fillMaxSize(),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    Text(
-                                                        text = movie.title,
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        color = Color.White
+
+                                            if (movie.posterImageUrl == null) {
+                                                run {
+                                                    Log.w(
+                                                        "SearchScreen",
+                                                        "No imageUrl for movie ${movie.title} - showing fallback"
+                                                    )
+                                                    // Fallback when no image URL
+                                                    Box(
+                                                        modifier = Modifier.fillMaxSize(),
+                                                        contentAlignment = Alignment.Center
+                                                    ) {
+                                                        Text(
+                                                            text = movie.title,
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            color = Color.White
+                                                        )
+                                                    }
+                                                }
+                                            } else {
+                                                val imageUrl = movie.posterImageUrl
+                                                imageUrl.let {
+                                                    Log.d(
+                                                        "SearchScreen",
+                                                        "Loading PosterImage for ${movie.title}"
+                                                    )
+                                                    PosterImage(
+                                                        title = movie.title,
+                                                        posterUrl = it,
+                                                        modifier = Modifier.fillMaxSize()
                                                     )
                                                 }
                                             }
@@ -384,13 +388,19 @@ fun SearchResult(
                                     }
                                 }
                             }
-                            
+
                             // TV Shows using proper paging pattern
                             showItems?.let { shows ->
-                                Log.d("SearchScreen", "Adding ${shows.itemCount} show items to grid")
+                                Log.d(
+                                    "SearchScreen",
+                                    "Adding ${shows.itemCount} show items to grid"
+                                )
                                 items(
                                     count = shows.itemCount,
-                                    key = { index -> shows[index]?.id?.let { "show_$it" } ?: "show_loading_$index" }
+                                    key = { index ->
+                                        shows[index]?.id?.let { "show_$it" }
+                                            ?: "show_loading_$index"
+                                    }
                                 ) { index ->
                                     val show = shows[index]
                                     Log.d("SearchScreen", "Rendering show $index: ${show?.title}")
@@ -401,26 +411,36 @@ fun SearchResult(
                                                 .aspectRatio(1 / 1.5f)
                                                 .padding(6.dp),
                                         ) {
-                                            val imageUrl = show.posterImageUrl
-                                            Log.d("SearchScreen", "Show ${show.title} imageUrl: '$imageUrl'")
-                                            imageUrl?.let {
-                                                Log.d("SearchScreen", "Loading PosterImage for ${show.title}")
-                                                PosterImage(
-                                                    title = show.title ?: "",
-                                                    posterUrl = it,
-                                                    modifier = Modifier.fillMaxSize()
-                                                )
-                                            } ?: run {
-                                                Log.w("SearchScreen", "No imageUrl for show ${show.title} - showing fallback")
-                                                // Fallback when no image URL
-                                                Box(
-                                                    modifier = Modifier.fillMaxSize(),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    Text(
-                                                        text = show.title ?: "Unknown Show",
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        color = Color.White
+
+                                            if (show.posterImageUrl == null) {
+                                                run {
+                                                    Log.w(
+                                                        "SearchScreen",
+                                                        "No imageUrl for show ${show.title} - showing fallback"
+                                                    )
+                                                    // Fallback when no image URL
+                                                    Box(
+                                                        modifier = Modifier.fillMaxSize(),
+                                                        contentAlignment = Alignment.Center
+                                                    ) {
+                                                        Text(
+                                                            text = show.title ?: "-",
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            color = Color.White
+                                                        )
+                                                    }
+                                                }
+                                            } else {
+                                                val imageUrl = show.posterImageUrl
+                                                imageUrl.let {
+                                                    Log.d(
+                                                        "SearchScreen",
+                                                        "Loading PosterImage for ${show.title}"
+                                                    )
+                                                    PosterImage(
+                                                        title = show.title ?: "-",
+                                                        posterUrl = it,
+                                                        modifier = Modifier.fillMaxSize()
                                                     )
                                                 }
                                             }
@@ -431,9 +451,15 @@ fun SearchResult(
                         }
                     } else {
                         Log.d("SearchScreen", ">>> NO CONDITION MATCHED - THIS IS THE ISSUE!")
-                        Log.d("SearchScreen", "MoviesReady: $moviesReady, ShowsReady: $showsReady")  
-                        Log.d("SearchScreen", "MoviesSuccess: $moviesSuccess, ShowsSuccess: $showsSuccess")
-                        Log.d("SearchScreen", "IsMoviesEmpty: $isMoviesEmpty, IsShowsEmpty: $isShowsEmpty")
+                        Log.d("SearchScreen", "MoviesReady: $moviesReady, ShowsReady: $showsReady")
+                        Log.d(
+                            "SearchScreen",
+                            "MoviesSuccess: $moviesSuccess, ShowsSuccess: $showsSuccess"
+                        )
+                        Log.d(
+                            "SearchScreen",
+                            "IsMoviesEmpty: $isMoviesEmpty, IsShowsEmpty: $isShowsEmpty"
+                        )
                     }
                 }
             }

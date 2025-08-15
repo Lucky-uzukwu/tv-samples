@@ -65,9 +65,11 @@ fun MovieDetails(
             .height(432.dp)
             .bringIntoViewRequester(bringIntoViewRequester)
     ) {
-        Column(modifier = Modifier
-            .fillMaxWidth(0.55f)
-            .focusGroup()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(0.55f)
+                .focusGroup()
+        ) {
             Spacer(modifier = Modifier.height(50.dp))
             Column(
                 modifier = Modifier.padding(start = childPadding.start)
@@ -85,15 +87,17 @@ fun MovieDetails(
                 Column(
                     modifier = Modifier.alpha(0.75f)
                 ) {
-                    DotSeparatedRow(
-                        modifier = Modifier.padding(top = 20.dp),
-                        texts = listOf(
-                            (releaseDate?.substring(0, 4)
-                                ?: "-") + " (${countries?.first()?.iso31661})",
-                            genres?.joinToString(", ") { it.name },
-                            duration?.formatDuration() ?: "0h 0m"
+                    if (countries != null && countries.isNotEmpty()) {
+                        DotSeparatedRow(
+                            modifier = Modifier.padding(top = 20.dp),
+                            texts = listOf(
+                                (releaseDate?.substring(0, 4)
+                                    ?: "-") + " (${countries.first().iso31661})",
+                                genres?.joinToString(", ") { it.name },
+                                duration?.formatDuration() ?: "0h 0m"
+                            )
                         )
-                    )
+                    }
                     plot?.let { MovieDescription(description = it) }
                     Spacer(modifier = Modifier.height(10.dp))
 
