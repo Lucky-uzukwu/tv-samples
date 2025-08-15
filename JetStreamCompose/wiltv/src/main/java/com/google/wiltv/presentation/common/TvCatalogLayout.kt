@@ -381,6 +381,56 @@ fun TvCatalogLayout(
             )
         }
 
+        // Catalog rows
+        items(
+            count = catalogToLazyPagingItems.size,
+            key = { catalog ->
+                catalogToLazyPagingItems.keys.elementAtOrNull(catalog)?.hashCode() ?: catalog
+            },
+            contentType = { "TvShowsRow" }
+        ) { catalogIndex ->
+            val catalogKey =
+                catalogToLazyPagingItems.keys.elementAtOrNull(catalogIndex) ?: return@items
+            val tvShows = catalogToLazyPagingItems[catalogKey]
+
+            if (tvShows != null && tvShows.itemCount > 0) {
+                val catalogRowIndex = 2 + catalogIndex
+                val catalogRowId = "catalog_${catalogKey.name}"
+                val catalogRowState = rowStates.getOrPut(catalogRowId) { TvLazyListState() }
+
+
+                val catalogFocusRequesters = rememberTvShowRowFocusRequesters(
+                    tvShows = tvShows,
+                    rowIndex = catalogRowIndex,
+                    focusRequesters = focusRequesters,
+                    focusManagementConfig = focusManagementConfig
+                )
+
+                ImmersiveShowsList(
+                    tvShows = tvShows,
+                    sectionTitle = catalogKey.name,
+                    onTvShowClick = onTvShowClick,
+                    setSelectedTvShow = { tvShow ->
+                        carouselScrollEnabled = false
+                        val imageUrl = tvShow.backdropImageUrl
+                        setSelectedTvShow(tvShow)
+                        imageUrl?.let {
+                            backgroundState.load(url = it)
+                        }
+                    },
+                    lazyRowState = catalogRowState,
+                    focusRequesters = catalogFocusRequesters,
+                    onItemFocused = { tvShow, index ->
+                        lastFocusedItem = Pair(catalogRowIndex, index)
+                        shouldRestoreFocus = false
+                        clearCatalogDetails = false
+                    },
+                    clearDetailsSignal = clearCatalogDetails
+                )
+
+            }
+        }
+
 
         // Genre rows (if provided)
         if (genreToLazyPagingItems != null) {
@@ -431,56 +481,6 @@ fun TvCatalogLayout(
                         clearDetailsSignal = clearCatalogDetails
                     )
                 }
-            }
-        }
-
-        // Catalog rows
-        items(
-            count = catalogToLazyPagingItems.size,
-            key = { catalog ->
-                catalogToLazyPagingItems.keys.elementAtOrNull(catalog)?.hashCode() ?: catalog
-            },
-            contentType = { "TvShowsRow" }
-        ) { catalogIndex ->
-            val catalogKey =
-                catalogToLazyPagingItems.keys.elementAtOrNull(catalogIndex) ?: return@items
-            val tvShows = catalogToLazyPagingItems[catalogKey]
-
-            if (tvShows != null && tvShows.itemCount > 0) {
-                val catalogRowIndex = 2 + catalogIndex
-                val catalogRowId = "catalog_${catalogKey.name}"
-                val catalogRowState = rowStates.getOrPut(catalogRowId) { TvLazyListState() }
-
-
-                val catalogFocusRequesters = rememberTvShowRowFocusRequesters(
-                    tvShows = tvShows,
-                    rowIndex = catalogRowIndex,
-                    focusRequesters = focusRequesters,
-                    focusManagementConfig = focusManagementConfig
-                )
-
-                ImmersiveShowsList(
-                    tvShows = tvShows,
-                    sectionTitle = catalogKey.name,
-                    onTvShowClick = onTvShowClick,
-                    setSelectedTvShow = { tvShow ->
-                        carouselScrollEnabled = false
-                        val imageUrl = tvShow.backdropImageUrl
-                        setSelectedTvShow(tvShow)
-                        imageUrl?.let {
-                            backgroundState.load(url = it)
-                        }
-                    },
-                    lazyRowState = catalogRowState,
-                    focusRequesters = catalogFocusRequesters,
-                    onItemFocused = { tvShow, index ->
-                        lastFocusedItem = Pair(catalogRowIndex, index)
-                        shouldRestoreFocus = false
-                        clearCatalogDetails = false
-                    },
-                    clearDetailsSignal = clearCatalogDetails
-                )
-
             }
         }
 

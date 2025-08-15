@@ -36,7 +36,8 @@ import com.google.wiltv.presentation.screens.videoPlayer.VideoPlayerScreen
 enum class Screens(
     private val args: List<String>? = null,
     val isTabItem: Boolean = false,
-    val tabIcon: ImageVector? = null
+    val tabIcon: ImageVector? = null,
+    val displayName: String? = null
 ) {
     AuthScreen,
     ProfileSelection,
@@ -46,7 +47,7 @@ enum class Screens(
     Home(isTabItem = true, tabIcon = Icons.Default.Home),
     Movies(isTabItem = true, tabIcon = Icons.Default.Movie),
     Shows(isTabItem = true, tabIcon = Icons.Default.Tv),
-    TvChannels(isTabItem = true, tabIcon = Icons.Default.LiveTv),
+    TvChannels(isTabItem = true, tabIcon = Icons.Default.LiveTv, displayName = "Live TV"),
     Categories(isTabItem = true, tabIcon = Icons.Default.Category),
     Profile(isTabItem = true, tabIcon = Icons.Default.Person),
 

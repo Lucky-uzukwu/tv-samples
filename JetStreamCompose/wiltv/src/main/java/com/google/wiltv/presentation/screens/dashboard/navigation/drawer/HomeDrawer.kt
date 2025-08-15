@@ -185,7 +185,7 @@ fun NavigationDrawerScope.NavigationRow(
                 )
             }) {
             Text(
-                text = item.name,
+                text = item.displayName ?: item.name,
             )
         }
 //        if (isSelected && drawerState.currentValue == DrawerValue.Closed) {

@@ -406,84 +406,6 @@ fun CatalogLayout(
             )
         }
 
-
-        // Genre rows (if provided)
-        if (genreToLazyPagingItems != null) {
-            items(
-                count = genreToLazyPagingItems.size,
-                key = { genre ->
-                    genreToLazyPagingItems.keys.elementAtOrNull(genre)?.hashCode() ?: genre
-                },
-                contentType = { "MoviesRow" }
-            ) { genreIndex ->
-                val genreKey =
-                    genreToLazyPagingItems.keys.elementAtOrNull(genreIndex) ?: return@items
-                val movies = genreToLazyPagingItems[genreKey]
-
-                // Monitor for errors in this genre row
-                LaunchedEffect(movies?.hasError()) {
-                    val genreName = genreKey.name
-                    val hasError = movies?.hasError() == true
-                    Logger.d { "🎬 LaunchedEffect triggered for genre '$genreName' - hasError: $hasError, movies != null: ${movies != null}" }
-                    
-                    if (hasError) {
-                        movies?.getErrorState()?.let { errorText ->
-                            Logger.e { "🚨 Genre row error detected for '$genreName': $errorText" }
-                            Logger.e { "🚨 Calling onRowError callback for genre '$genreName'" }
-                            onRowError?.invoke(errorText)
-                        } ?: run {
-                            Logger.w { "🚨 hasError=true but getErrorState() returned null for genre '$genreName'" }
-                        }
-                    } else {
-                        Logger.v { "🎬 No error for genre '$genreName'" }
-                    }
-                }
-
-                val shouldRenderRow = movies != null && (movies.itemCount > 0 || movies.hasError())
-                Logger.d { "🎬 Genre '${genreKey.name}' render check - movies!=null: ${movies != null}, itemCount: ${movies?.itemCount ?: 0}, hasError: ${movies?.hasError() ?: false}, shouldRender: $shouldRenderRow" }
-                
-                if (shouldRenderRow) {
-                    val adjustedIndex = catalogToLazyPagingItems.size + genreIndex
-                    val genreRowIndex = 2 + adjustedIndex
-                    val genreRowId = "genre_${genreKey.name}"
-                    val genreRowState = rowStates.getOrPut(genreRowId) { TvLazyListState() }
-                    
-                    Logger.d { "🎬 Rendering genre row '${genreKey.name}' at index $genreRowIndex" }
-
-                    val genreFocusRequesters = rememberRowFocusRequesters(
-                        movies = movies,
-                        rowIndex = genreRowIndex,
-                        focusRequesters = focusRequesters,
-                        focusManagementConfig = focusManagementConfig
-                    )
-
-                    ImmersiveListMoviesRow(
-                        movies = movies,
-                        sectionTitle = genreKey.name,
-                        onMovieClick = onMovieClick,
-                        setSelectedMovie = { movie ->
-                            carouselScrollEnabled = false
-                            val imageUrl = movie.backdropImageUrl
-                            setSelectedMovie(movie)
-                            imageUrl?.let {
-                                backgroundState.load(url = it)
-                            }
-                        },
-                        lazyRowState = genreRowState,
-                        focusRequesters = genreFocusRequesters,
-                        onItemFocused = { movie, index ->
-                            lastFocusedItem = Pair(genreRowIndex, index)
-                            shouldRestoreFocus = false
-                            clearCatalogDetails = false
-                        },
-                        clearDetailsSignal = clearCatalogDetails
-                    )
-                } else {
-                    Logger.w { "🎬 NOT rendering genre row '${genreKey.name}' - movies!=null: ${movies != null}, itemCount: ${movies?.itemCount ?: 0}, hasError: ${movies?.hasError() ?: false}" }
-                }
-            }
-        }
-
         // Catalog rows
         items(
             count = catalogToLazyPagingItems.size,
@@ -548,6 +470,84 @@ fun CatalogLayout(
                     },
                     clearDetailsSignal = clearCatalogDetails
                 )
+            }
+        }
+
+
+        // Genre rows (if provided)
+        if (genreToLazyPagingItems != null) {
+            items(
+                count = genreToLazyPagingItems.size,
+                key = { genre ->
+                    genreToLazyPagingItems.keys.elementAtOrNull(genre)?.hashCode() ?: genre
+                },
+                contentType = { "MoviesRow" }
+            ) { genreIndex ->
+                val genreKey =
+                    genreToLazyPagingItems.keys.elementAtOrNull(genreIndex) ?: return@items
+                val movies = genreToLazyPagingItems[genreKey]
+
+                // Monitor for errors in this genre row
+                LaunchedEffect(movies?.hasError()) {
+                    val genreName = genreKey.name
+                    val hasError = movies?.hasError() == true
+                    Logger.d { "🎬 LaunchedEffect triggered for genre '$genreName' - hasError: $hasError, movies != null: ${movies != null}" }
+
+                    if (hasError) {
+                        movies?.getErrorState()?.let { errorText ->
+                            Logger.e { "🚨 Genre row error detected for '$genreName': $errorText" }
+                            Logger.e { "🚨 Calling onRowError callback for genre '$genreName'" }
+                            onRowError?.invoke(errorText)
+                        } ?: run {
+                            Logger.w { "🚨 hasError=true but getErrorState() returned null for genre '$genreName'" }
+                        }
+                    } else {
+                        Logger.v { "🎬 No error for genre '$genreName'" }
+                    }
+                }
+
+                val shouldRenderRow = movies != null && (movies.itemCount > 0 || movies.hasError())
+                Logger.d { "🎬 Genre '${genreKey.name}' render check - movies!=null: ${movies != null}, itemCount: ${movies?.itemCount ?: 0}, hasError: ${movies?.hasError() ?: false}, shouldRender: $shouldRenderRow" }
+
+                if (shouldRenderRow) {
+                    val adjustedIndex = catalogToLazyPagingItems.size + genreIndex
+                    val genreRowIndex = 2 + adjustedIndex
+                    val genreRowId = "genre_${genreKey.name}"
+                    val genreRowState = rowStates.getOrPut(genreRowId) { TvLazyListState() }
+
+                    Logger.d { "🎬 Rendering genre row '${genreKey.name}' at index $genreRowIndex" }
+
+                    val genreFocusRequesters = rememberRowFocusRequesters(
+                        movies = movies,
+                        rowIndex = genreRowIndex,
+                        focusRequesters = focusRequesters,
+                        focusManagementConfig = focusManagementConfig
+                    )
+
+                    ImmersiveListMoviesRow(
+                        movies = movies,
+                        sectionTitle = genreKey.name,
+                        onMovieClick = onMovieClick,
+                        setSelectedMovie = { movie ->
+                            carouselScrollEnabled = false
+                            val imageUrl = movie.backdropImageUrl
+                            setSelectedMovie(movie)
+                            imageUrl?.let {
+                                backgroundState.load(url = it)
+                            }
+                        },
+                        lazyRowState = genreRowState,
+                        focusRequesters = genreFocusRequesters,
+                        onItemFocused = { movie, index ->
+                            lastFocusedItem = Pair(genreRowIndex, index)
+                            shouldRestoreFocus = false
+                            clearCatalogDetails = false
+                        },
+                        clearDetailsSignal = clearCatalogDetails
+                    )
+                } else {
+                    Logger.w { "🎬 NOT rendering genre row '${genreKey.name}' - movies!=null: ${movies != null}, itemCount: ${movies?.itemCount ?: 0}, hasError: ${movies?.hasError() ?: false}" }
+                }
             }
         }
 
