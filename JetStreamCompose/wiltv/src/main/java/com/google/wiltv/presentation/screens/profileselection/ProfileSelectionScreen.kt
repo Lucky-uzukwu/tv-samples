@@ -85,9 +85,7 @@ fun ProfileSelectionScreen(
                 catalogValidationPassed = state.catalogValidationPassed,
                 onProfileSelected = { profile ->
                     viewModel.selectProfile(profile)
-                    if (state.catalogValidationPassed) {
                         onProfileSelected(profile)
-                    }
                 },
                 onManageProfiles = onManageProfiles,
                 onLogout = onLogout
