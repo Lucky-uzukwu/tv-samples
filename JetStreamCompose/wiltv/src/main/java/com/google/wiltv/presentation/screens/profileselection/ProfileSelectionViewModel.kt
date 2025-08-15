@@ -65,7 +65,7 @@ class ProfileSelectionViewModel @Inject constructor(
         }
     }
 
-    fun selectProfile(profile: Profile) {
+    fun selectProfile(profile: Profile): Boolean {
         viewModelScope.launch {
             try {
                 profileRepository.selectProfile(profile.id)
@@ -76,6 +76,7 @@ class ProfileSelectionViewModel @Inject constructor(
                 )
             }
         }
+        return true
     }
 
     fun validateCatalogAccess() {
