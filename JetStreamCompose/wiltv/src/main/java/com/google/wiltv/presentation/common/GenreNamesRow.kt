@@ -48,7 +48,8 @@ fun GenreNamesRow(
     lazyRowState: TvLazyListState,
     focusRequesters: Map<Int, FocusRequester> = emptyMap(),
     downFocusRequester: FocusRequester? = null,
-    onItemFocused: (Int) -> Unit = {}
+    onItemFocused: (Int) -> Unit = {},
+    onAllClick: (() -> Unit)? = null
 ) {
     var hasFocus by remember { mutableStateOf(false) }
 
@@ -65,61 +66,122 @@ fun GenreNamesRow(
             verticalAlignment = Alignment.CenterVertically,
             contentPadding = PaddingValues(horizontal = 32.dp)
         ) {
+            // Calculate total count: +1 for "All" item if onAllClick is provided
+            val totalItemCount = if (onAllClick != null) genres.size + 1 else genres.size
 
             items(
-                count = genres.size,
-                key = { index -> genres[index].id }
+                count = totalItemCount,
+                key = { index -> 
+                    if (onAllClick != null && index == 0) "all" 
+                    else if (onAllClick != null) genres[index - 1].id 
+                    else genres[index].id
+                }
             ) { index ->
                 val focusRequester = focusRequesters[index]
-                val genre = genres[index]
                 var isFocused by remember { mutableStateOf(false) }
 
-                Surface(
-                    onClick = { onClick(genre, index) },
-                    modifier = Modifier
-                        .then(
-                            if (focusRequester != null) Modifier.focusRequester(focusRequester)
-                            else Modifier
-                        )
-                        .onFocusChanged { focusState ->
-                            isFocused = focusState.isFocused
-                            if (focusState.hasFocus) {
-                                onItemFocused(index)
+                // Handle "All" item vs regular genre
+                if (onAllClick != null && index == 0) {
+                    // "All" item
+                    Surface(
+                        onClick = { onAllClick() },
+                        modifier = Modifier
+                            .then(
+                                if (focusRequester != null) Modifier.focusRequester(focusRequester)
+                                else Modifier
+                            )
+                            .onFocusChanged { focusState ->
+                                isFocused = focusState.isFocused
+                                if (focusState.hasFocus) {
+                                    onItemFocused(index)
+                                }
                             }
-                        }
-                        .focusProperties {
-                            up = aboveFocusRequester
-                            downFocusRequester?.let { down = it }
-                        },
-                    shape = ClickableSurfaceDefaults.shape(shape = WilTvCardShape),
-                    colors = ClickableSurfaceDefaults.colors(
-                        containerColor = if (isFocused)
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
-                        else
-                            MaterialTheme.colorScheme.surface.copy(alpha = 0.1f),
-                        contentColor = Color.White,
-                        focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                        focusedContentColor = Color.White
-                    ),
-                    border = ClickableSurfaceDefaults.border(
-                        focusedBorder = Border(
-                            border = BorderStroke(
-                                width = WilTvBorderWidth,
-                                color = Color(0xFFA855F7)
-                            ),
-                            shape = WilTvCardShape
-                        )
-                    ),
-                ) {
-                    Text(
-                        text = genre.name,
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 16.sp
+                            .focusProperties {
+                                up = aboveFocusRequester
+                                downFocusRequester?.let { down = it }
+                            },
+                        shape = ClickableSurfaceDefaults.shape(shape = WilTvCardShape),
+                        colors = ClickableSurfaceDefaults.colors(
+                            containerColor = if (isFocused)
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                            else
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.1f),
+                            contentColor = Color.White,
+                            focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                            focusedContentColor = Color.White
                         ),
-                        color = Color.White,
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
-                    )
+                        border = ClickableSurfaceDefaults.border(
+                            focusedBorder = Border(
+                                border = BorderStroke(
+                                    width = WilTvBorderWidth,
+                                    color = Color(0xFFA855F7)
+                                ),
+                                shape = WilTvCardShape
+                            )
+                        ),
+                    ) {
+                        Text(
+                            text = "All",
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 16.sp
+                            ),
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
+                        )
+                    }
+                } else {
+                    // Regular genre item
+                    val genreIndex = if (onAllClick != null) index - 1 else index
+                    val genre = genres[genreIndex]
+
+                    Surface(
+                        onClick = { onClick(genre, genreIndex) },
+                        modifier = Modifier
+                            .then(
+                                if (focusRequester != null) Modifier.focusRequester(focusRequester)
+                                else Modifier
+                            )
+                            .onFocusChanged { focusState ->
+                                isFocused = focusState.isFocused
+                                if (focusState.hasFocus) {
+                                    onItemFocused(index)
+                                }
+                            }
+                            .focusProperties {
+                                up = aboveFocusRequester
+                                downFocusRequester?.let { down = it }
+                            },
+                        shape = ClickableSurfaceDefaults.shape(shape = WilTvCardShape),
+                        colors = ClickableSurfaceDefaults.colors(
+                            containerColor = if (isFocused)
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                            else
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.1f),
+                            contentColor = Color.White,
+                            focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                            focusedContentColor = Color.White
+                        ),
+                        border = ClickableSurfaceDefaults.border(
+                            focusedBorder = Border(
+                                border = BorderStroke(
+                                    width = WilTvBorderWidth,
+                                    color = Color(0xFFA855F7)
+                                ),
+                                shape = WilTvCardShape
+                            )
+                        ),
+                    ) {
+                        Text(
+                            text = genre.name,
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 16.sp
+                            ),
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
+                        )
+                    }
                 }
             }
         }

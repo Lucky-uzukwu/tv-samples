@@ -82,11 +82,13 @@ fun TvChannelCatalogLayout(
     var carouselScrollEnabled by remember { mutableStateOf(true) }
 
     // Focus management state - memoized for performance
+    // Account for "All" item by adding 1 to genre count
+    val totalGenreItemCount = genres.size + 1
     val focusRequesters =
-        remember(genres.size, genreToTvChannels.size) {
+        remember(totalGenreItemCount, genreToTvChannels.size) {
             mutableMapOf<Pair<Int, Int>, FocusRequester>().apply {
-                // Pre-create focus requesters for genres
-                for (i in 0 until genres.size) {
+                // Pre-create focus requesters for "All" item + genres
+                for (i in 0 until totalGenreItemCount) {
                     put(Pair(1, i), FocusRequester())
                 }
             }
@@ -118,18 +120,16 @@ fun TvChannelCatalogLayout(
             delay(50)
             Logger.d { "Starting focus restoration for position: $lastFocusedItem" }
 
-            val genreCount = genres.size
-
             if (lastFocusedItem.first == 1 &&
                 lastFocusedItem.second >= 0 &&
-                lastFocusedItem.second < genreCount
+                lastFocusedItem.second < totalGenreItemCount
             ) {
                 // Restore genre focus with bounds checking
                 val genreRowState = rowStates["row_genres"]
                 if (genreRowState != null) {
                     try {
                         // Ensure index is within bounds before scrolling
-                        if (lastFocusedItem.second < genreCount) {
+                        if (lastFocusedItem.second < totalGenreItemCount) {
                             genreRowState.scrollToItem(lastFocusedItem.second)
                             delay(100) // Quick delay for scroll to complete
 
@@ -187,12 +187,13 @@ fun TvChannelCatalogLayout(
         item(contentType = "TvChannelHeroSectionCarousel") {
             val targetGenreFocusRequester =
                 if (genres.isNotEmpty()) {
+                    // Add 1 to account for "All" item when targeting genres
                     val targetIndex = if (carouselTargetGenre >= 0 &&
                         carouselTargetGenre < genres.size
                     ) {
-                        carouselTargetGenre
+                        carouselTargetGenre + 1  // Offset by 1 for "All" item
                     } else {
-                        0
+                        0  // Default to "All" item
                     }
                     focusRequesters[Pair(1, targetIndex)] ?: firstLazyRowItemUnderCarouselRequester
                 } else {
@@ -230,8 +231,8 @@ fun TvChannelCatalogLayout(
             val genreRowIndex = 1
 
             val genreFocusRequesters =
-                remember(genres.size) {
-                    genres.mapIndexed { index, _ ->
+                remember(totalGenreItemCount) {
+                    (0 until totalGenreItemCount).map { index ->
                         index to (focusRequesters.getOrPut(
                             Pair(
                                 genreRowIndex,
@@ -255,48 +256,14 @@ fun TvChannelCatalogLayout(
                     lastFocusedItem = Pair(genreRowIndex, itemIndex)
                     shouldRestoreFocus = false
 
-                    if (itemIndex >= 0 && itemIndex < (genres.size)) {
-                        carouselTargetGenre = itemIndex
+                    // Handle carousel targeting with "All" item offset
+                    val adjustedIndex = if (itemIndex > 0) itemIndex - 1 else 0
+                    if (adjustedIndex >= 0 && adjustedIndex < genres.size) {
+                        carouselTargetGenre = adjustedIndex
                     }
-                }
+                },
+                onAllClick = onViewAllChannelsClick
             )
-        }
-
-        // View All Channels button
-        item(
-            contentType = "ViewAllChannelsButton",
-            key = "view_all_channels_button"
-        ) {
-            Surface(
-                onClick = { onViewAllChannelsClick() },
-                modifier = Modifier
-                    .padding(start = 40.dp, top = 16.dp, bottom = 16.dp),
-                colors = ClickableSurfaceDefaults.colors(
-                    containerColor = Color.Transparent,
-                    focusedContainerColor = Color(0xFFA855F7).copy(alpha = 0.2f)
-                ),
-                border = ClickableSurfaceDefaults.border(
-                    focusedBorder = Border(
-                        border = BorderStroke(
-                            width = 2.dp,
-                            color = Color(0xFFA855F7)
-                        )
-                    )
-                )
-            ) {
-                Text(
-                    text = "View All Channels",
-                    style = MaterialTheme.typography.headlineLarge.copy(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 24.sp
-                    ),
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White.copy(alpha = 0.9f),
-                    modifier = Modifier
-                        .alpha(1f)
-                        .padding(horizontal = 24.dp, vertical = 12.dp)
-                )
-            }
         }
     }
 }
