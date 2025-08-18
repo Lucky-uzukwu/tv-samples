@@ -11,14 +11,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.relocation.BringIntoViewRequester
-import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -33,7 +31,6 @@ import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
 import com.google.wiltv.presentation.utils.formatDuration
 import com.google.wiltv.data.models.StreamingProvider
 import com.google.wiltv.data.models.Video
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -53,15 +50,12 @@ fun MovieDetails(
     openVideoPlayer: (movieId: String) -> Unit,
 ) {
     val childPadding = rememberChildPadding()
-    val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val playButtonFocusRequester = remember { FocusRequester() }
-    val coroutineScope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(432.dp)
-            .bringIntoViewRequester(bringIntoViewRequester)
     ) {
         Column(
             modifier = Modifier
@@ -112,17 +106,21 @@ fun MovieDetails(
                 }
 
                 if (video != null) {
-                    PlayButton(
+                    Box(
                         modifier = Modifier
-                            .padding(top = 16.dp),
-                        focusRequester = playButtonFocusRequester,
-                        onClick = {
-                            coroutineScope.launch {
-                                bringIntoViewRequester.bringIntoView()
+                            .focusProperties {
+                                // Disable automatic bring-into-view for this focus group
+                                canFocus = true
                             }
-                            openVideoPlayer(id.toString())
-                        }
-                    )
+                    ) {
+                        PlayButton(
+                            modifier = Modifier.padding(top = 16.dp),
+                            focusRequester = playButtonFocusRequester,
+                            onClick = {
+                                openVideoPlayer(id.toString())
+                            }
+                        )
+                    }
                 }
             }
         }
