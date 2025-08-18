@@ -9,6 +9,7 @@ import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -40,7 +41,7 @@ fun PlayButton(
         colors = ButtonDefaults.colors(
             containerColor = md_theme_light_outline,
             contentColor = md_theme_light_onTertiary,
-            focusedContainerColor = md_theme_light_onTertiary,
+            focusedContainerColor = Color(0xFFA855F7),
             focusedContentColor = md_theme_light_shadow,
         ),
         scale = ButtonDefaults.scale(scale = 1f)
