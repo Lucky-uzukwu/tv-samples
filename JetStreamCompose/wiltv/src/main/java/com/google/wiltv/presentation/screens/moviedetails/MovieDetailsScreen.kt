@@ -3,20 +3,20 @@ package com.google.wiltv.presentation.screens.moviedetails
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
-import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
@@ -25,9 +25,9 @@ import com.google.wiltv.data.models.Person
 import com.google.wiltv.presentation.common.AuthenticatedAsyncImage
 import com.google.wiltv.presentation.common.Error
 import com.google.wiltv.presentation.common.Loading
-import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
 import com.google.wiltv.presentation.screens.movies.MovieDetails
 import com.google.wiltv.data.util.StringConstants
+import com.google.wiltv.presentation.screens.movies.MovieLargeTitle
 import kotlinx.coroutines.flow.StateFlow
 
 object MovieDetailsScreen {
@@ -83,12 +83,12 @@ private fun Details(
 ) {
     val lazyListState = rememberLazyListState()
 
-    androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()) {
         MovieImageWithGradients(
             movie = selectedMovie,
             modifier = Modifier.fillMaxSize()
         )
-        androidx.compose.foundation.layout.Box(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black.copy(alpha = 0.5f))
@@ -96,49 +96,42 @@ private fun Details(
     }
 
     BackHandler(onBack = onBackPressed)
-    
+
+    Spacer(modifier = Modifier.height(40.dp))
+
+    MovieLargeTitle(
+        movieTitle = selectedMovie.title
+    )
+
+    Spacer(modifier = Modifier.height(40.dp))
+
+    Column(
+        modifier = modifier.padding(bottom = 100.dp)
+    ) {
+        MovieDetails(
+            openVideoPlayer = openVideoPlayer,
+            id = selectedMovie.id,
+            title = selectedMovie.title,
+            tagLine = selectedMovie.tagLine,
+            releaseDate = selectedMovie.releaseDate,
+            countries = selectedMovie.countries,
+            genres = selectedMovie.genres,
+            duration = selectedMovie.duration,
+            plot = selectedMovie.plot,
+            imdbRating = selectedMovie.imdbRating,
+            imdbVotes = selectedMovie.imdbVotes,
+            streamingProviders = selectedMovie.streamingProviders,
+            video = selectedMovie.video
+        )
+    }
+
     LazyColumn(
-        contentPadding = PaddingValues(bottom = 100.dp),
+        contentPadding = PaddingValues(top = 450.dp),
         modifier = modifier,
         state = lazyListState,
         userScrollEnabled = true
     ) {
-        // Sticky header for movie title - always visible
-        stickyHeader {
-            val childPadding = rememberChildPadding()
-            Text(
-                text = selectedMovie.title,
-                style = MaterialTheme.typography.displayMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.9f)
-                ),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Transparent)
-                    .padding(start = childPadding.start, top = 20.dp, bottom = 10.dp)
-                    .focusable(),
-                maxLines = 1
-            )
-        }
-        
-        item {
-            MovieDetails(
-                openVideoPlayer = openVideoPlayer,
-                id = selectedMovie.id,
-                title = null, // Title now in sticky header
-                tagLine = selectedMovie.tagLine,
-                releaseDate = selectedMovie.releaseDate,
-                countries = selectedMovie.countries,
-                genres = selectedMovie.genres,
-                duration = selectedMovie.duration,
-                plot = selectedMovie.plot,
-                imdbRating = selectedMovie.imdbRating,
-                imdbVotes = selectedMovie.imdbVotes,
-                streamingProviders = selectedMovie.streamingProviders,
-                video = selectedMovie.video
-            )
-        }
-        
+
         item {
             MovieDetailTabs()
         }

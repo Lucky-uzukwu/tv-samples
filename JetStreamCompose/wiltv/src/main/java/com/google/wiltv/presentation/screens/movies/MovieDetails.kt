@@ -64,14 +64,16 @@ fun MovieDetails(
         ) {
             Spacer(modifier = Modifier.height(20.dp))
             Column(
-                modifier = Modifier.padding(start = childPadding.start)
+                modifier = Modifier
+                    .padding(horizontal = childPadding.start)
+                    .padding(top = childPadding.top + 40.dp)
             ) {
-                title?.let {
-                    MovieLargeTitle(
-                        modifier = Modifier.focusable(),
-                        movieTitle = it
-                    )
-                }
+//                title?.let {
+//                    MovieLargeTitle(
+////                        modifier = Modifier.focusable(),
+//                        movieTitle = it
+//                    )
+//                }
 
                 DotSeparatedRow(
                     modifier = Modifier.padding(top = 20.dp),
@@ -133,7 +135,7 @@ private fun MovieDescription(description: String) {
 }
 
 @Composable
-private fun MovieLargeTitle(
+fun MovieLargeTitle(
     modifier: Modifier = Modifier,
     movieTitle: String
 ) {
