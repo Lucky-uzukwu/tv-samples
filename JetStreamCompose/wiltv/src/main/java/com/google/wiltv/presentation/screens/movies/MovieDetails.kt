@@ -72,55 +72,44 @@ fun MovieDetails(
                         movieTitle = it
                     )
                 }
-//                if (tagLine != null) {
-//                    MovieTagLine(movieTagline = tagLine)
-//                }
 
-                Column(
-                    modifier = Modifier
-                ) {
-                    DotSeparatedRow(
-                        modifier = Modifier.padding(top = 20.dp),
-                        texts = listOf(
-                            (releaseDate?.substring(0, 4) ?: "-"),
-                            duration?.formatDuration() ?: "0h 0m",
-                            genres?.take(3)?.joinToString(", ") { it.name },
-                        )
+                DotSeparatedRow(
+                    modifier = Modifier.padding(top = 20.dp),
+                    texts = listOf(
+                        (releaseDate?.substring(0, 4) ?: "-"),
+                        duration?.formatDuration() ?: "0h 0m",
+                        genres?.take(3)?.joinToString(", ") { it.name },
                     )
-                    plot?.let { MovieDescription(description = it) }
+                )
+                plot?.let { MovieDescription(description = it) }
 
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        streamingProviders?.take(5)?.forEach { streamingProvider ->
-                            if (streamingProvider.logoUrl != null) {
-                                StreamingProviderIcon(
-                                    modifier = Modifier.padding(top = 16.dp),
-                                    logoUrl = streamingProvider.logoUrl,
-                                    contentDescription = "Prime Video",
-                                )
-                                Spacer(Modifier.width(16.dp))
-                            }
-
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    streamingProviders?.take(5)?.forEach { streamingProvider ->
+                        if (streamingProvider.logoUrl != null) {
+                            StreamingProviderIcon(
+                                modifier = Modifier.padding(top = 16.dp),
+                                logoUrl = streamingProvider.logoUrl,
+                                contentDescription = "Prime Video",
+                            )
+                            Spacer(Modifier.width(16.dp))
                         }
+
                     }
                 }
 
                 if (video != null) {
-                    Box(
+                    PlayButton(
                         modifier = Modifier
+                            .padding(top = 16.dp)
                             .focusProperties {
-                                // Disable automatic bring-into-view for this focus group
                                 canFocus = true
-                            }
-                    ) {
-                        PlayButton(
-                            modifier = Modifier.padding(top = 16.dp),
-                            focusRequester = playButtonFocusRequester,
-                            onClick = {
-                                openVideoPlayer(id.toString())
-                            }
-                        )
-                    }
+                            },
+                        focusRequester = playButtonFocusRequester,
+                        onClick = {
+                            openVideoPlayer(id.toString())
+                        }
+                    )
                 }
             }
         }
