@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -24,7 +23,7 @@ import coil.request.ImageRequest
 
 @Composable
 fun StreamingProviderIcon(
-    logoPath: String,
+    logoUrl: String,
     contentDescription: String?,
     modifier: Modifier = Modifier,
     borderColor: Color? = null,
@@ -40,7 +39,6 @@ fun StreamingProviderIcon(
         }
     },
 ) {
-    val imageUrl = "https://api.nortv.xyz/storage/$logoPath"
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
@@ -63,7 +61,7 @@ fun StreamingProviderIcon(
     ) {
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(imageUrl)
+                .data(logoUrl)
                 .crossfade(true) // Optional: for smooth transition when image loads
                 .build(),
             contentDescription = contentDescription, // Fit ensures the whole logo is visible

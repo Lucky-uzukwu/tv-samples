@@ -18,7 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -29,7 +28,6 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.wiltv.data.models.Country
 import com.google.wiltv.data.models.Genre
-import com.google.wiltv.presentation.common.IMDbLogo
 import com.google.wiltv.presentation.common.StreamingProviderIcon
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
 import com.google.wiltv.presentation.utils.formatDuration
@@ -70,7 +68,7 @@ fun MovieDetails(
                 .fillMaxWidth(0.55f)
                 .focusGroup()
         ) {
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             Column(
                 modifier = Modifier.padding(start = childPadding.start)
             ) {
@@ -80,43 +78,30 @@ fun MovieDetails(
                         movieTitle = it
                     )
                 }
-                if (tagLine != null) {
-                    MovieTagLine(movieTagline = tagLine)
-                }
+//                if (tagLine != null) {
+//                    MovieTagLine(movieTagline = tagLine)
+//                }
 
                 Column(
-                    modifier = Modifier.alpha(0.75f)
+                    modifier = Modifier
                 ) {
-                    if (countries != null && countries.isNotEmpty()) {
-                        DotSeparatedRow(
-                            modifier = Modifier.padding(top = 20.dp),
-                            texts = listOf(
-                                (releaseDate?.substring(0, 4)
-                                    ?: "-") + " (${countries.first().iso31661})",
-                                genres?.joinToString(", ") { it.name },
-                                duration?.formatDuration() ?: "0h 0m"
-                            )
+                    DotSeparatedRow(
+                        modifier = Modifier.padding(top = 20.dp),
+                        texts = listOf(
+                            (releaseDate?.substring(0, 4) ?: "-"),
+                            duration?.formatDuration() ?: "0h 0m",
+                            genres?.take(3)?.joinToString(", ") { it.name },
                         )
-                    }
+                    )
                     plot?.let { MovieDescription(description = it) }
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Row {
-                        IMDbLogo()
-                        Spacer(modifier = Modifier.width(8.dp))
-//                        DisplayFilmGenericText(
-//                            "${imdbRating.getImdbRating()}/10 - " +
-//                                    "${imdbVotes.toString().formatVotes()} Votes"
-//                        )
-                    }
 
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         streamingProviders?.take(5)?.forEach { streamingProvider ->
-                            if (streamingProvider.logoPath != null) {
+                            if (streamingProvider.logoUrl != null) {
                                 StreamingProviderIcon(
                                     modifier = Modifier.padding(top = 16.dp),
-                                    logoPath = streamingProvider.logoPath,
+                                    logoUrl = streamingProvider.logoUrl,
                                     contentDescription = "Prime Video",
                                 )
                                 Spacer(Modifier.width(16.dp))

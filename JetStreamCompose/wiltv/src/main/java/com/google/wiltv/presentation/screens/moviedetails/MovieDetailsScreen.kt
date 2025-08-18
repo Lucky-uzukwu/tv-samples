@@ -1,19 +1,3 @@
-/*
- * Copyright 2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.google.wiltv.presentation.screens.moviedetails
 
 import androidx.activity.compose.BackHandler
@@ -34,24 +18,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.tv.material3.MaterialTheme
-import coil.request.ImageRequest
 import com.google.wiltv.R
-import com.google.wiltv.presentation.common.AuthenticatedAsyncImage
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.Person
 import com.google.wiltv.data.util.StringConstants
+import com.google.wiltv.presentation.common.AuthenticatedAsyncImage
 import com.google.wiltv.presentation.common.Error
 import com.google.wiltv.presentation.common.Loading
 import com.google.wiltv.presentation.common.MoviesRow
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
-import com.google.wiltv.presentation.screens.movies.CastAndCrewList
 import com.google.wiltv.presentation.screens.movies.MovieDetails
 import com.google.wiltv.presentation.screens.movies.TitleValueText
 import kotlinx.coroutines.flow.StateFlow
@@ -194,14 +175,14 @@ private fun Details(
                     value = "Released",
                     valueColor = Color.White
                 )
-                if (selectedMovie.languages.isNotEmpty()) {
-                    TitleValueText(
-                        modifier = itemModifier,
-                        title = stringResource(R.string.original_language),
-                        value = selectedMovie.languages.first().englishName,
-                        valueColor = Color.White
-                    )
-                }
+//                if (selectedMovie.languages.isNotEmpty()) {
+//                    TitleValueText(
+//                        modifier = itemModifier,
+//                        title = stringResource(R.string.original_language),
+//                        value = selectedMovie.languages.first().englishName,
+//                        valueColor = Color.White
+//                    )
+//                }
             }
         }
     }
