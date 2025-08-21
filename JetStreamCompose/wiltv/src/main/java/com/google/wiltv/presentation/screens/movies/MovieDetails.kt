@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,20 +39,23 @@ import com.google.wiltv.data.models.Video
 fun MovieDetails(
     id: Int,
     title: String?,
-    tagLine: String?,
     releaseDate: String?,
-    countries: List<Country>?,
     genres: List<Genre>?,
     duration: Int?,
     plot: String?,
-    imdbRating: String?,
-    imdbVotes: Int?,
     streamingProviders: List<StreamingProvider>?,
     video: Video?,
     openVideoPlayer: (movieId: String) -> Unit,
+    playButtonFocusRequester: FocusRequester,
+    episodesTabFocusRequester: FocusRequester,
+    onPlayButtonFocused: (() -> Unit)? = null
 ) {
     val childPadding = rememberChildPadding()
-    val playButtonFocusRequester = remember { FocusRequester() }
+
+    // Request initial focus on Play button when screen loads
+//    LaunchedEffect(Unit) {
+//        playButtonFocusRequester.requestFocus()
+//    }
 
     Box(
         modifier = Modifier
@@ -62,18 +67,16 @@ fun MovieDetails(
                 .fillMaxWidth(0.55f)
                 .focusGroup()
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
             Column(
                 modifier = Modifier
                     .padding(horizontal = childPadding.start)
-                    .padding(top = childPadding.top + 40.dp)
             ) {
-//                title?.let {
-//                    MovieLargeTitle(
-////                        modifier = Modifier.focusable(),
-//                        movieTitle = it
-//                    )
-//                }
+                title?.let {
+                    MovieLargeTitle(
+                        modifier = Modifier.focusable(),
+                        movieTitle = it
+                    )
+                }
 
                 DotSeparatedRow(
                     modifier = Modifier.padding(top = 20.dp),
@@ -106,6 +109,16 @@ fun MovieDetails(
                             .padding(top = 16.dp)
                             .focusProperties {
                                 canFocus = true
+                                down = episodesTabFocusRequester
+                            }
+                            .onFocusChanged { focusState ->
+                                try {
+                                    if (focusState.hasFocus) {
+                                        onPlayButtonFocused?.invoke()
+                                    }
+                                } catch (e: Exception) {
+                                    // Handle any focus-related exceptions gracefully
+                                }
                             },
                         focusRequester = playButtonFocusRequester,
                         onClick = {

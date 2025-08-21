@@ -3,18 +3,23 @@ package com.google.wiltv.presentation.screens.moviedetails
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -22,13 +27,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.Person
+import com.google.wiltv.data.util.StringConstants
 import com.google.wiltv.presentation.common.AuthenticatedAsyncImage
 import com.google.wiltv.presentation.common.Error
 import com.google.wiltv.presentation.common.Loading
 import com.google.wiltv.presentation.screens.movies.MovieDetails
-import com.google.wiltv.data.util.StringConstants
 import com.google.wiltv.presentation.screens.movies.MovieLargeTitle
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 object MovieDetailsScreen {
     const val MovieIdBundleKey = "movieId"
@@ -82,58 +89,103 @@ private fun Details(
     modifier: Modifier = Modifier,
 ) {
     val lazyListState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        MovieImageWithGradients(
-            movie = selectedMovie,
-            modifier = Modifier.fillMaxSize()
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f))
-        )
+    // Ensure title and play button are visible when screen loads
+    LaunchedEffect(selectedMovie.id) {
+        lazyListState.scrollToItem(0)
     }
+
+    // Focus management state
+    val isTabsFocused = remember { mutableStateOf(false) }
+    val playButtonFocusRequester = remember { FocusRequester() }
+    val episodesTabFocusRequester = remember { FocusRequester() }
+    val suggestedTabFocusRequester = remember { FocusRequester() }
+    val detailsTabFocusRequester = remember { FocusRequester() }
 
     BackHandler(onBack = onBackPressed)
 
-    Spacer(modifier = Modifier.height(40.dp))
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Normal layout - always exists in composition but may be hidden
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(if (isTabsFocused.value) 0f else 1f)
+        ) {
+            // Background image
+            MovieImageWithGradients(
+                movie = selectedMovie,
+                modifier = Modifier.fillMaxSize()
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+            )
 
-    MovieLargeTitle(
-        movieTitle = selectedMovie.title
-    )
+            // Enhanced title visibility
+//
 
-    Spacer(modifier = Modifier.height(40.dp))
+            // Content overlay
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = lazyListState,
+                contentPadding = PaddingValues(top = 40.dp, bottom = 100.dp)
+            ) {
 
-    Column(
-        modifier = modifier.padding(bottom = 100.dp)
-    ) {
-        MovieDetails(
-            openVideoPlayer = openVideoPlayer,
-            id = selectedMovie.id,
-            title = selectedMovie.title,
-            tagLine = selectedMovie.tagLine,
-            releaseDate = selectedMovie.releaseDate,
-            countries = selectedMovie.countries,
-            genres = selectedMovie.genres,
-            duration = selectedMovie.duration,
-            plot = selectedMovie.plot,
-            imdbRating = selectedMovie.imdbRating,
-            imdbVotes = selectedMovie.imdbVotes,
-            streamingProviders = selectedMovie.streamingProviders,
-            video = selectedMovie.video
-        )
-    }
+//                item {
+//                    MovieLargeTitle(
+//                        modifier = Modifier.focusable(),
+//                        movieTitle = selectedMovie.title
+//                    )
+//                }
 
-    LazyColumn(
-        contentPadding = PaddingValues(top = 450.dp),
-        modifier = modifier,
-        state = lazyListState,
-        userScrollEnabled = true
-    ) {
+                item {
+                    MovieDetails(
+                        openVideoPlayer = openVideoPlayer,
+                        id = selectedMovie.id,
+                        title = selectedMovie.title,
+                        releaseDate = selectedMovie.releaseDate,
+                        genres = selectedMovie.genres,
+                        duration = selectedMovie.duration,
+                        plot = selectedMovie.plot,
+                        streamingProviders = selectedMovie.streamingProviders,
+                        video = selectedMovie.video,
+                        playButtonFocusRequester = playButtonFocusRequester,
+                        episodesTabFocusRequester = episodesTabFocusRequester,
+                        onPlayButtonFocused = {
+                            coroutineScope.launch {
+                                delay(100) // Allow focus to settle
+                                isTabsFocused.value = false
+                            }
+                        }
+                    )
 
-        item {
-            MovieDetailTabs()
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    MovieDetailTabs(
+                        isFullScreen = false,
+                        episodesTabFocusRequester = episodesTabFocusRequester,
+                        suggestedTabFocusRequester = suggestedTabFocusRequester,
+                        detailsTabFocusRequester = detailsTabFocusRequester,
+                        playButtonFocusRequester = playButtonFocusRequester,
+                        onTabsFocusChanged = { focused -> isTabsFocused.value = focused }
+                    )
+                }
+            }
+        }
+
+        // Full-screen tabs overlay - only visible when tabs are focused
+        if (isTabsFocused.value) {
+            MovieDetailTabs(
+                modifier = Modifier.fillMaxSize(),
+                isFullScreen = true,
+                episodesTabFocusRequester = episodesTabFocusRequester,
+                suggestedTabFocusRequester = suggestedTabFocusRequester,
+                detailsTabFocusRequester = detailsTabFocusRequester,
+                playButtonFocusRequester = playButtonFocusRequester,
+                onTabsFocusChanged = { focused -> isTabsFocused.value = focused }
+            )
         }
     }
 }

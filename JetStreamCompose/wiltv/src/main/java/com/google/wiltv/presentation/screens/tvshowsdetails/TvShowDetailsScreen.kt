@@ -34,7 +34,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -110,6 +112,8 @@ private fun Details(
     modifier: Modifier = Modifier,
 ) {
     val childPadding = rememberChildPadding()
+    val playButtonFocusRequester = remember { FocusRequester() }
+    val episodesTabFocusRequester = remember { FocusRequester() }
 
     Box(modifier = Modifier.fillMaxSize()) {
         MovieImageWithGradients(
@@ -135,16 +139,15 @@ private fun Details(
                 openVideoPlayer = openVideoPlayer,
                 id = tvShow.id,
                 title = tvShow.title,
-                tagLine = tvShow.tagLine,
                 releaseDate = tvShow.releaseDate,
-                countries = tvShow.countries,
                 genres = tvShow.genres,
                 duration = tvShow.duration,
                 plot = tvShow.plot,
-                imdbRating = tvShow.imdbRating,
-                imdbVotes = tvShow.imdbVotes,
                 streamingProviders = tvShow.streamingProviders,
-                video = null
+                video = null,
+                playButtonFocusRequester = playButtonFocusRequester,
+                episodesTabFocusRequester = episodesTabFocusRequester,
+                onPlayButtonFocused = null
             )
         }
 
