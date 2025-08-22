@@ -1,8 +1,10 @@
 package com.google.wiltv.presentation.screens.moviedetails
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -24,32 +27,47 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.paging.PagingData
+import com.google.wiltv.R
+import com.google.wiltv.data.models.MovieNew
+import com.google.wiltv.data.util.StringConstants
+import com.google.wiltv.presentation.common.MoviesRow
+import com.google.wiltv.presentation.screens.movies.MovieDetails
+import com.google.wiltv.presentation.screens.movies.TitleValueText
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun MovieDetailTabs(
     modifier: Modifier = Modifier,
     isFullScreen: Boolean = false,
+    selectedMovie: MovieNew,
+    similarMovies: StateFlow<PagingData<MovieNew>>,
+    refreshScreenWithNewMovie: (MovieNew) -> Unit,
     episodesTabFocusRequester: FocusRequester,
     suggestedTabFocusRequester: FocusRequester,
     detailsTabFocusRequester: FocusRequester,
     playButtonFocusRequester: FocusRequester,
     onTabsFocusChanged: (Boolean) -> Unit
 ) {
-    val tabs = listOf("Episodes", "Suggested", "Details")
+//    val tabs = listOf("Episodes", "Suggested", "Details")
+    val tabs = listOf("Suggested", "Details")
     var selectedTabIndex by remember { mutableStateOf(0) }
-    val focusRequesters = listOf(episodesTabFocusRequester, suggestedTabFocusRequester, detailsTabFocusRequester)
+    val focusRequesters =
+        listOf(episodesTabFocusRequester, suggestedTabFocusRequester, detailsTabFocusRequester)
 
     Column(modifier = modifier) {
         TabRow(
             selectedTabIndex = selectedTabIndex,
             contentColor = Color.White,
-            containerColor = Color.Black // adjust to your theme
+            containerColor = Color.Transparent // adjust to your theme
         ) {
             tabs.forEachIndexed { index, title ->
                 Tab(
@@ -61,8 +79,10 @@ fun MovieDetailTabs(
                         .focusProperties {
                             // Always allow UP navigation to PlayButton since it's now always in composition
                             up = playButtonFocusRequester
-                            left = if (index > 0) focusRequesters[index - 1] else FocusRequester.Default
-                            right = if (index < focusRequesters.size - 1) focusRequesters[index + 1] else FocusRequester.Default
+                            left =
+                                if (index > 0) focusRequesters[index - 1] else FocusRequester.Default
+                            right =
+                                if (index < focusRequesters.size - 1) focusRequesters[index + 1] else FocusRequester.Default
                         }
                         .onFocusChanged { focusState ->
                             try {
@@ -80,9 +100,14 @@ fun MovieDetailTabs(
         }
 
         when (selectedTabIndex) {
-            0 -> EpisodesTab(isFullScreen = isFullScreen)
-            1 -> SuggestedTab(isFullScreen = isFullScreen)
-            2 -> DetailsTab(isFullScreen = isFullScreen)
+            0 -> SuggestedTab(
+                similarMovies = similarMovies,
+                selectedMovie = selectedMovie,
+                refreshScreenWithNewMovie = refreshScreenWithNewMovie,
+                isFullScreen = isFullScreen
+            )
+
+            1 -> DetailsTab(isFullScreen = isFullScreen)
         }
     }
 }
@@ -90,9 +115,11 @@ fun MovieDetailTabs(
 @Composable
 fun EpisodesTab(isFullScreen: Boolean = false) {
     LazyColumn(
-        modifier = if (isFullScreen) 
-            Modifier.fillMaxSize().padding(16.dp)
-        else 
+        modifier = if (isFullScreen)
+            Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        else
             Modifier.height(400.dp) // Fixed height to prevent infinite constraints
     ) {
         item {
@@ -120,18 +147,24 @@ fun EpisodesTab(isFullScreen: Boolean = false) {
 }
 
 @Composable
-fun SuggestedTab(isFullScreen: Boolean = false) {
+fun SuggestedTab(
+    selectedMovie: MovieNew,
+    similarMovies: StateFlow<PagingData<MovieNew>>,
+    refreshScreenWithNewMovie: (MovieNew) -> Unit,
+    isFullScreen: Boolean = false
+) {
     Box(
-        modifier = if (isFullScreen) 
-            Modifier.fillMaxSize()
-        else 
-            Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        modifier = Modifier
+            .height(400.dp)
+            .padding(16.dp)
     ) {
-        Text(
-            text = if (isFullScreen) "Full-screen suggested movies would appear here" else "Suggested content here",
-            style = if (isFullScreen) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.bodyMedium,
-            color = Color.White
+        MoviesRow(
+            title = StringConstants
+                .Composable
+                .movieDetailsScreenSimilarTo(selectedMovie.title),
+            titleStyle = MaterialTheme.typography.titleMedium,
+            similarMovies = similarMovies,
+            onMovieSelected = refreshScreenWithNewMovie
         )
     }
 }
@@ -139,9 +172,11 @@ fun SuggestedTab(isFullScreen: Boolean = false) {
 @Composable
 fun DetailsTab(isFullScreen: Boolean = false) {
     Column(
-        modifier = if (isFullScreen) 
-            Modifier.fillMaxSize().padding(24.dp)
-        else 
+        modifier = if (isFullScreen)
+            Modifier
+                .fillMaxSize()
+                .padding(24.dp)
+        else
             Modifier.padding(16.dp)
     ) {
         if (isFullScreen) {
@@ -156,13 +191,19 @@ fun DetailsTab(isFullScreen: Boolean = false) {
         Spacer(modifier = Modifier.height(8.dp))
         Text("Duration: 2h 10m", color = Color.White, style = MaterialTheme.typography.bodyMedium)
         Spacer(modifier = Modifier.height(8.dp))
-        Text("Genres: Action, Drama", color = Color.White, style = MaterialTheme.typography.bodyMedium)
-        
+        Text(
+            "Genres: Action, Drama",
+            color = Color.White,
+            style = MaterialTheme.typography.bodyMedium
+        )
+
         if (isFullScreen) {
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Additional movie information would appear here in full-screen mode", 
-                 color = Color.White.copy(alpha = 0.7f), 
-                 style = MaterialTheme.typography.bodySmall)
+            Text(
+                "Additional movie information would appear here in full-screen mode",
+                color = Color.White.copy(alpha = 0.7f),
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }

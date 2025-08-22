@@ -97,7 +97,6 @@ private fun Details(
     }
 
     // Focus management state
-    val isTabsFocused = remember { mutableStateOf(false) }
     val playButtonFocusRequester = remember { FocusRequester() }
     val episodesTabFocusRequester = remember { FocusRequester() }
     val suggestedTabFocusRequester = remember { FocusRequester() }
@@ -110,7 +109,7 @@ private fun Details(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .alpha(if (isTabsFocused.value) 0f else 1f)
+                .alpha(1f)
         ) {
             // Background image
             MovieImageWithGradients(
@@ -153,39 +152,39 @@ private fun Details(
                         video = selectedMovie.video,
                         playButtonFocusRequester = playButtonFocusRequester,
                         episodesTabFocusRequester = episodesTabFocusRequester,
-                        onPlayButtonFocused = {
-                            coroutineScope.launch {
-                                delay(100) // Allow focus to settle
-                                isTabsFocused.value = false
-                            }
-                        }
+                        onPlayButtonFocused = { }
                     )
 
-                    Spacer(modifier = Modifier.height(32.dp))
+//                    Spacer(modifier = Modifier.height(32.dp))
+//
+//                    MovieDetailTabs(
+//                        isFullScreen = false,
+//                        episodesTabFocusRequester = episodesTabFocusRequester,
+//                        suggestedTabFocusRequester = suggestedTabFocusRequester,
+//                        detailsTabFocusRequester = detailsTabFocusRequester,
+//                        playButtonFocusRequester = playButtonFocusRequester,
+//                        onTabsFocusChanged = { focused -> isTabsFocused.value = focused },
+//                        selectedMovie = selectedMovie,
+//                        similarMovies = similarMovies,
+//                        refreshScreenWithNewMovie = refreshScreenWithNewMovie
+//                    )
+                }
 
+                item {
                     MovieDetailTabs(
-                        isFullScreen = false,
+                        modifier = Modifier.fillMaxSize(),
+                        isFullScreen = true,
                         episodesTabFocusRequester = episodesTabFocusRequester,
                         suggestedTabFocusRequester = suggestedTabFocusRequester,
                         detailsTabFocusRequester = detailsTabFocusRequester,
                         playButtonFocusRequester = playButtonFocusRequester,
-                        onTabsFocusChanged = { focused -> isTabsFocused.value = focused }
+                        onTabsFocusChanged = { focused -> },
+                        selectedMovie = selectedMovie,
+                        similarMovies = similarMovies,
+                        refreshScreenWithNewMovie = refreshScreenWithNewMovie
                     )
                 }
             }
-        }
-
-        // Full-screen tabs overlay - only visible when tabs are focused
-        if (isTabsFocused.value) {
-            MovieDetailTabs(
-                modifier = Modifier.fillMaxSize(),
-                isFullScreen = true,
-                episodesTabFocusRequester = episodesTabFocusRequester,
-                suggestedTabFocusRequester = suggestedTabFocusRequester,
-                detailsTabFocusRequester = detailsTabFocusRequester,
-                playButtonFocusRequester = playButtonFocusRequester,
-                onTabsFocusChanged = { focused -> isTabsFocused.value = focused }
-            )
         }
     }
 }
