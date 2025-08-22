@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -53,6 +54,38 @@ fun PlayButton(
         Spacer(Modifier.size(8.dp))
         Text(
             text = stringResource(R.string.play),
+            style = MaterialTheme.typography.titleSmall
+        )
+    }
+}
+
+@Composable
+fun ComingSoonButton(
+    modifier: Modifier = Modifier,
+    focusRequester: FocusRequester,
+) {
+    Button(
+        onClick = { }, // No action when pressed
+        modifier = modifier
+            .height(40.dp)
+            .focusRequester(focusRequester),
+        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+        shape = ButtonDefaults.shape(shape = WilTvButtonShape),
+        colors = ButtonDefaults.colors(
+            containerColor = Color(0xFF6B7280), // Gray background for disabled state
+            contentColor = Color.White.copy(alpha = 0.8f),
+            focusedContainerColor = Color(0xFF9CA3AF), // Lighter gray when focused
+            focusedContentColor = Color.White,
+        ),
+        scale = ButtonDefaults.scale(scale = 1f)
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Schedule,
+            contentDescription = null,
+        )
+        Spacer(Modifier.size(8.dp))
+        Text(
+            text = stringResource(R.string.coming_soon),
             style = MaterialTheme.typography.titleSmall
         )
     }

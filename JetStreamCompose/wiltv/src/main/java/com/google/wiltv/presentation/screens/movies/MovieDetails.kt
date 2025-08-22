@@ -125,6 +125,25 @@ fun MovieDetails(
                             openVideoPlayer(id.toString())
                         }
                     )
+                } else {
+                    ComingSoonButton(
+                        modifier = Modifier
+                            .padding(top = 16.dp)
+                            .focusProperties {
+                                canFocus = true
+                                down = episodesTabFocusRequester
+                            }
+                            .onFocusChanged { focusState ->
+                                try {
+                                    if (focusState.hasFocus) {
+                                        onPlayButtonFocused?.invoke()
+                                    }
+                                } catch (e: Exception) {
+                                    // Handle any focus-related exceptions gracefully
+                                }
+                            },
+                        focusRequester = playButtonFocusRequester
+                    )
                 }
             }
         }
