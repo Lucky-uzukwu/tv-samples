@@ -107,7 +107,7 @@ fun MovieDetailTabs(
                 isFullScreen = isFullScreen
             )
 
-            1 -> DetailsTab(isFullScreen = isFullScreen)
+            1 -> DetailsTab(selectedMovie = selectedMovie, isFullScreen = isFullScreen)
         }
     }
 }
@@ -170,7 +170,10 @@ fun SuggestedTab(
 }
 
 @Composable
-fun DetailsTab(isFullScreen: Boolean = false) {
+fun DetailsTab(
+    selectedMovie: MovieNew,
+    isFullScreen: Boolean = false
+) {
     Column(
         modifier = if (isFullScreen)
             Modifier
@@ -187,23 +190,85 @@ fun DetailsTab(isFullScreen: Boolean = false) {
                 modifier = Modifier.padding(bottom = 16.dp)
             )
         }
-        Text("Year: 2025", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+
+        // Extract year from release date
+        val year = selectedMovie.releaseDate?.split("-")?.firstOrNull() ?: "Unknown"
+        Text("Year: $year", color = Color.White, style = MaterialTheme.typography.bodyMedium)
         Spacer(modifier = Modifier.height(8.dp))
-        Text("Duration: 2h 10m", color = Color.White, style = MaterialTheme.typography.bodyMedium)
-        Spacer(modifier = Modifier.height(8.dp))
+
+        // Format duration from minutes to hours and minutes
+        val duration = selectedMovie.duration?.let { minutes ->
+            val hours = minutes / 60
+            val remainingMinutes = minutes % 60
+            "${hours}h ${remainingMinutes}m"
+        } ?: "Unknown"
         Text(
-            "Genres: Action, Drama",
+            "Duration: $duration",
+            color = Color.White,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Display genres
+        val genres = selectedMovie.genres.joinToString(", ") { it.name }
+        Text(
+            "Genres: ${genres.ifEmpty { "Unknown" }}",
             color = Color.White,
             style = MaterialTheme.typography.bodyMedium
         )
 
+        // Show additional details if available
+        selectedMovie.imdbRating?.let { rating ->
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "IMDB Rating: $rating",
+                color = Color.White,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        selectedMovie.contentRating?.let { contentRating ->
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "Content Rating: $contentRating",
+                color = Color.White,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
         if (isFullScreen) {
             Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                "Additional movie information would appear here in full-screen mode",
-                color = Color.White.copy(alpha = 0.7f),
-                style = MaterialTheme.typography.bodySmall
-            )
+
+            // Show languages if available
+//            if (selectedMovie.languages.isNotEmpty()) {
+//                val languages = selectedMovie.languages.joinToString(", ") { it.englishName }
+//                Text(
+//                    "Languages: $languages",
+//                    color = Color.White,
+//                    style = MaterialTheme.typography.bodySmall
+//                )
+//                Spacer(modifier = Modifier.height(8.dp))
+//            }
+//
+//            // Show countries if available
+//            if (!selectedMovie.countries.isNullOrEmpty()) {
+//                val countries = selectedMovie.countries.joinToString(", ") { it.englishName }
+//                Text(
+//                    "Countries: $countries",
+//                    color = Color.White,
+//                    style = MaterialTheme.typography.bodySmall
+//                )
+//                Spacer(modifier = Modifier.height(8.dp))
+//            }
+
+            // Show plot if available
+            selectedMovie.plot?.let { plot ->
+                Text(
+                    "Plot: $plot",
+                    color = Color.White.copy(alpha = 0.9f),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
     }
 }
