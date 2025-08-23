@@ -20,49 +20,29 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
-import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
-import coil.request.ImageRequest
-import com.google.wiltv.R
 import com.google.wiltv.presentation.common.AuthenticatedAsyncImage
-import com.google.wiltv.data.models.Season
 import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.util.StringConstants
 import com.google.wiltv.presentation.common.Error
 import com.google.wiltv.presentation.common.Loading
-import com.google.wiltv.presentation.common.PosterImage
-import com.google.wiltv.presentation.common.TvShowsRow
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
-import com.google.wiltv.presentation.screens.moviedetails.PersonToCharacter
-import com.google.wiltv.presentation.screens.movies.CastAndCrewList
-import com.google.wiltv.presentation.screens.movies.MovieDetails
-import com.google.wiltv.presentation.screens.movies.TitleValueText
+import com.google.wiltv.presentation.screens.tvshows.TvShowDetails
+import com.google.wiltv.presentation.screens.tvshowsdetails.TvShowDetailTabs
 import kotlinx.coroutines.flow.StateFlow
 
 object TvShowDetailsScreen {
@@ -114,6 +94,8 @@ private fun Details(
     val childPadding = rememberChildPadding()
     val playButtonFocusRequester = remember { FocusRequester() }
     val episodesTabFocusRequester = remember { FocusRequester() }
+    val suggestedTabFocusRequester = remember { FocusRequester() }
+    val detailsTabFocusRequester = remember { FocusRequester() }
 
     Box(modifier = Modifier.fillMaxSize()) {
         MovieImageWithGradients(
@@ -135,7 +117,7 @@ private fun Details(
         modifier = modifier,
     ) {
         item {
-            MovieDetails(
+            TvShowDetails(
                 openVideoPlayer = openVideoPlayer,
                 id = tvShow.id,
                 title = tvShow.title,
@@ -144,76 +126,28 @@ private fun Details(
                 duration = tvShow.duration,
                 plot = tvShow.plot,
                 streamingProviders = tvShow.streamingProviders,
-                video = null,
+                seasons = tvShow.seasons,
                 playButtonFocusRequester = playButtonFocusRequester,
                 episodesTabFocusRequester = episodesTabFocusRequester,
                 onPlayButtonFocused = null
             )
         }
 
-//        if (tvShow.people?.isNotEmpty() == true) {
-//            item {
-//                CastAndCrewList(
-//                    castAndCrew = tvShow.people.map {
-//                        PersonToCharacter(
-//                            person = it.person,
-//                            character = it.character
-//                        )
-//                    }
-//                )
-//            }
-//        }
-
-
-
         item {
-            TvShowsRow(
-                title = StringConstants
-                    .Composable
-                    .movieDetailsScreenSimilarTo(tvShow.title.toString()),
-                titleStyle = MaterialTheme.typography.titleMedium,
-                tvShows = similarTvShows,
-                onMovieSelected = refreshScreenWithNewMovie
+            TvShowDetailTabs(
+                modifier = Modifier.height(500.dp),
+                isFullScreen = false,
+                selectedTvShow = tvShow,
+                similarTvShows = similarTvShows,
+                refreshScreenWithNewTvShow = refreshScreenWithNewMovie,
+                episodesTabFocusRequester = episodesTabFocusRequester,
+                suggestedTabFocusRequester = suggestedTabFocusRequester,
+                detailsTabFocusRequester = detailsTabFocusRequester,
+                playButtonFocusRequester = playButtonFocusRequester,
+                onTabsFocusChanged = { focused -> }
             )
         }
 
-        item {
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = childPadding.start)
-                    .padding(BottomDividerPadding)
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .alpha(0.15f)
-                    .background(MaterialTheme.colorScheme.onSurface)
-            )
-        }
-
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = childPadding.start),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                val itemModifier = Modifier.width(192.dp)
-
-                TitleValueText(
-                    modifier = itemModifier,
-                    title = stringResource(R.string.status),
-                    value = "Released",
-                    valueColor = Color.White
-                )
-                tvShow.languages?.first()?.englishName?.let {
-                    TitleValueText(
-                        modifier = itemModifier,
-                        title = stringResource(R.string.original_language),
-                        value = it,
-                        valueColor = Color.White
-                    )
-                }
-            }
-        }
     }
 }
 
@@ -229,96 +163,9 @@ private fun MovieImageWithGradients(
         contentDescription = StringConstants
             .Composable
             .ContentDescription
-            .moviePoster(title), 
+            .moviePoster(title),
         modifier = modifier
     )
 }
 
 
-@Composable
-private fun TvShowSeasonsAndEpisodes(
-    seasons: List<Season>?,
-    modifier: Modifier = Modifier,
-) {
-    if (seasons.isNullOrEmpty()) {
-        return
-    }
-
-    val childPadding = rememberChildPadding()
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .focusable()
-            .padding(horizontal = childPadding.start)
-    ) {
-        Text(
-            text = "Seasons & Episodes", // Create this string resource
-            style = MaterialTheme.typography.titleMedium,
-            color = Color.White,
-            modifier = Modifier.padding(
-                top = childPadding.top, // Consistent top padding with other sections
-                bottom = 16.dp
-            )
-        )
-
-        seasons.forEachIndexed { seasonIndex, season ->
-            Text(
-                text = "Season " + season.number.toString(), // Create this string resource
-                style = MaterialTheme.typography.titleSmall,
-                color = Color.White,
-                modifier = Modifier.padding(
-                    top = if (seasonIndex > 0) 24.dp else 8.dp,
-                    bottom = 8.dp
-                )
-            )
-
-            if (season.episodes?.isEmpty() == true) {
-                Text(
-                    text = "No episodes listed for this season.", // Create this string resource
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White,
-                    modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
-                )
-            } else {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    season.episodes?.forEach { episode ->
-                        item {
-                            Column(
-                                modifier = Modifier
-                                    .padding(bottom = 12.dp)
-                                    .focusable()
-                            ) {
-                                if (episode.posterImagePath != null) {
-                                    val imageUrl =
-                                        "https://api.nortv.xyz/" + "storage/" + episode.posterImagePath
-                                    PosterImage(
-                                        title = episode.title,
-                                        posterUrl = imageUrl,
-                                        modifier = Modifier // Removed the passed modifier as it's from the Column
-                                            .height(192.dp)
-                                            .width(192.dp) // Consistent width for episode posters
-                                    )
-                                }
-                                Text(
-                                    text = episode.title,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.White,
-                                    maxLines = 3,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier
-                                        .padding(start = 8.dp, top = 4.dp)
-                                        .width(100.dp) // Ensure plot text width matches image
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-private val BottomDividerPadding = PaddingValues(vertical = 48.dp)
