@@ -1,8 +1,11 @@
 package com.google.wiltv.data.repositories
 
 import com.google.wiltv.data.models.TvShow
+import com.google.wiltv.data.models.TvShowSeasonsResponse
+import com.google.wiltv.data.models.TvShowEpisodesResponse
 import com.google.wiltv.data.network.TvShowsResponse
 import com.google.wiltv.data.network.TvShowsService
+import com.google.wiltv.data.network.TvShowSeasonsService
 import com.google.wiltv.data.utils.ProfileContentHelper
 import com.google.wiltv.domain.ApiResult
 import com.google.wiltv.domain.DataError
@@ -13,6 +16,7 @@ import javax.inject.Singleton
 @Singleton
 class TvShowsRepositoryImpl @Inject constructor(
     private val tvShowService: TvShowsService,
+    private val tvShowSeasonsService: TvShowSeasonsService,
     private val profileRepository: ProfileRepository
 ) : TvShowsRepository {
     override suspend fun getTvShowsToShowInHeroSection(
@@ -78,6 +82,32 @@ class TvShowsRepositoryImpl @Inject constructor(
         return mapToResult(tvShowService.getTvShowById(
             authToken = "Bearer $token",
             tvShowId = tvShowId
+        ))
+    }
+
+    override suspend fun getTvShowSeasons(
+        token: String,
+        tvShowId: Int
+    ): ApiResult<TvShowSeasonsResponse, DataError.Network> {
+        return mapToResult(tvShowSeasonsService.getTvShowSeasons(
+            authToken = "Bearer $token",
+            tvShowId = tvShowId
+        ))
+    }
+
+    override suspend fun getTvShowSeasonEpisodes(
+        token: String,
+        tvShowId: Int,
+        seasonId: Int,
+        page: Int,
+        itemsPerPage: Int
+    ): ApiResult<TvShowEpisodesResponse, DataError.Network> {
+        return mapToResult(tvShowSeasonsService.getTvShowSeasonEpisodes(
+            authToken = "Bearer $token",
+            tvShowId = tvShowId,
+            seasonId = seasonId,
+            page = page,
+            itemsPerPage = itemsPerPage
         ))
     }
 }

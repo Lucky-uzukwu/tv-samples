@@ -10,6 +10,7 @@ import com.google.wiltv.data.network.SearchService
 import com.google.wiltv.data.network.StreamingProviderService
 import com.google.wiltv.data.network.TokenService
 import com.google.wiltv.data.network.TvChannelService
+import com.google.wiltv.data.network.TvShowSeasonsService
 import com.google.wiltv.data.network.TvShowsService
 import com.google.wiltv.data.network.UserService
 import com.google.wiltv.data.repositories.AuthRepository
@@ -99,6 +100,7 @@ object TvShowsRepositoryModule {
     fun provideMovieRepository(
         tvShowService: TvShowsService,
         profileRepository: ProfileRepository,
+        tvShowSeasonsService: TvShowSeasonsService,
         @Named("isMock") isMock: Boolean
     ): TvShowsRepository {
         return if (isMock) {
@@ -106,7 +108,9 @@ object TvShowsRepositoryModule {
         } else {
             TvShowsRepositoryImpl(
                 tvShowService,
+                tvShowSeasonsService,
                 profileRepository
+
             )
         }
     }

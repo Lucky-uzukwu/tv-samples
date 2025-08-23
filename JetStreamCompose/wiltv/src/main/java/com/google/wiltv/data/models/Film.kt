@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 import com.google.wiltv.data.entities.MovieEntity
 import com.google.wiltv.data.entities.VideoEntity
 import com.google.wiltv.data.entities.toVideoEntity
+import kotlinx.serialization.Serializable
 
 @Stable
 data class MovieNew(
@@ -161,6 +162,7 @@ data class Episode(
     val imdbVotes: Int?,
     val backdropImagePath: String?,
     val posterImagePath: String?,
+    val posterImageUrl: String?,
     val youtubeTrailerUrl: String?,
     val contentRating: String?,
     val isAdultContent: Boolean,
@@ -170,7 +172,7 @@ data class Episode(
     val showInHeroSection: Boolean,
     val tvShowSeasonId: Int?,
     val tvShowSeasonPriority: Int?,
-    val video: Video?,
+    val video: TvShowVideo?,
 )
 
 data class MoviePerson(
@@ -257,7 +259,7 @@ data class StreamingProvider(
 data class Video(
     val id: Int,
     val hlsPlaylistUrl: String,
-    val subtitles: List<Subtitle>
+    val subtitles: List<Subtitle>?
 )
 
 fun VideoEntity.toVideo(): Video = Video(
@@ -266,10 +268,9 @@ fun VideoEntity.toVideo(): Video = Video(
     subtitles = subtitles
 )
 
-
 data class Subtitle(
     val id: Int,
-    val language: Language
+    val language: Language?
 )
 
 data class Language(
@@ -278,6 +279,27 @@ data class Language(
     val englishName: String,
     val name: String?
 )
+
+data class TvShowVideo(
+    val id: Int,
+    val hlsPlaylistUrl: String,
+    val subtitles: List<TvShowSubtitle>?
+)
+
+data class TvShowSubtitle(
+    val id: Int,
+    val language: Any?
+) {
+    val languageString: String?
+        get() = when (language) {
+            is String -> language
+            is Map<*, *> -> {
+                // Try to extract string from language object
+                (language["iso6391"] ?: language["englishName"] ?: language["name"]) as? String
+            }
+            else -> null
+        }
+}
 
 data class ViewDetails(
     val id: String,         // Corresponds to "@id"

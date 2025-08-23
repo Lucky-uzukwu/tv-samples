@@ -93,6 +93,12 @@ class NetworkModule {
 
     @Provides
     @Singleton
+    fun TvShowSeasonsService(retrofit: Retrofit): TvShowSeasonsService {
+        return retrofit.create(TvShowSeasonsService::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun TvChannelsService(retrofit: Retrofit): TvChannelService {
         return retrofit.create(TvChannelService::class.java)
     }

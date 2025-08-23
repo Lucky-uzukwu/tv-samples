@@ -112,6 +112,6 @@ fun Video.toVideoEntity(): VideoEntity = VideoEntity(
 data class VideoEntity(
     val id: Int,
     val hlsPlaylistUrl: String,
-    val subtitles: List<Subtitle>
+    val subtitles: List<Subtitle>?
 )
 

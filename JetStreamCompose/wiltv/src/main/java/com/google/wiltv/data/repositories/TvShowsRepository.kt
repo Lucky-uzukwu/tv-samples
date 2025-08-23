@@ -17,6 +17,8 @@
 package com.google.wiltv.data.repositories
 
 import com.google.wiltv.data.models.TvShow
+import com.google.wiltv.data.models.TvShowSeasonsResponse
+import com.google.wiltv.data.models.TvShowEpisodesResponse
 import com.google.wiltv.data.network.TvShowsResponse
 import com.google.wiltv.domain.ApiResult
 import com.google.wiltv.domain.DataError
@@ -46,4 +48,17 @@ interface TvShowsRepository {
         token: String,
         tvShowId: String
     ): ApiResult<TvShow, DataError.Network>
+
+    suspend fun getTvShowSeasons(
+        token: String,
+        tvShowId: Int
+    ): ApiResult<TvShowSeasonsResponse, DataError.Network>
+
+    suspend fun getTvShowSeasonEpisodes(
+        token: String,
+        tvShowId: Int,
+        seasonId: Int,
+        page: Int = 1,
+        itemsPerPage: Int = 30
+    ): ApiResult<TvShowEpisodesResponse, DataError.Network>
 }

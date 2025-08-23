@@ -146,7 +146,8 @@ object MockData {
                         showInHeroSection = false,
                         tvShowSeasonId = 52,
                         tvShowSeasonPriority = null,
-                        video = null
+                        video = null,
+                        posterImageUrl = null
                     )
                 )
             )

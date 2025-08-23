@@ -22,6 +22,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.google.wiltv.data.models.TvShow
+import com.google.wiltv.data.models.Season
 import com.google.wiltv.data.paging.pagingsources.tvshow.TvShowPagingSources
 import com.google.wiltv.data.repositories.TvShowsRepository
 import com.google.wiltv.data.repositories.UserRepository
@@ -64,6 +65,44 @@ class TvShowDetailsScreenViewModel @Inject constructor(
                     val details = detailsResult.data
                     Logger.d { "✅ TvShowDetailsScreenViewModel: Successfully fetched details for tvShow: ${details.title}" }
                     
+                    // Fetch seasons if seasonsCount > 0
+                    val seasons = if ((details.seasonsCount ?: 0) > 0) {
+                        Logger.d { "🎬 TvShowDetailsScreenViewModel: Fetching seasons for tvShow ${details.id}, seasonsCount: ${details.seasonsCount}" }
+                        when (val seasonsResult = tvShowRepository.getTvShowSeasons(
+                            token = userToken,
+                            tvShowId = details.id
+                        )) {
+                            is ApiResult.Success -> {
+                                val seasonsWithEpisodes = seasonsResult.data.member.map { season ->
+                                    if ((season.episodesCount ?: 0) > 0) {
+                                        Logger.d { "📺 TvShowDetailsScreenViewModel: Fetching episodes for season ${season.id}, episodesCount: ${season.episodesCount}" }
+                                        when (val episodesResult = tvShowRepository.getTvShowSeasonEpisodes(
+                                            token = userToken,
+                                            tvShowId = details.id,
+                                            seasonId = season.id
+                                        )) {
+                                            is ApiResult.Success -> season.copy(episodes = episodesResult.data.member)
+                                            is ApiResult.Error -> {
+                                                Logger.e { "❌ TvShowDetailsScreenViewModel: Failed to fetch episodes for season ${season.id}" }
+                                                season
+                                            }
+                                        }
+                                    } else {
+                                        season
+                                    }
+                                }
+                                Logger.d { "✅ TvShowDetailsScreenViewModel: Successfully fetched ${seasonsWithEpisodes.size} seasons" }
+                                seasonsWithEpisodes
+                            }
+                            is ApiResult.Error -> {
+                                Logger.e { "❌ TvShowDetailsScreenViewModel: Failed to fetch seasons - ${seasonsResult.message ?: seasonsResult.error}" }
+                                emptyList()
+                            }
+                        }
+                    } else {
+                        emptyList()
+                    }
+                    
                     val genreId =
                         if (details.genres?.isNotEmpty() == true) details.genres.first().id else 0
 
@@ -73,8 +112,9 @@ class TvShowDetailsScreenViewModel @Inject constructor(
                         userRepository = userRepository
                     )
                     TvShowDetailsScreenUiState.Done(
-                        similarTvShows = similarTvShows,
-                        tvShow = details
+                        tvShow = details,
+                        seasons = seasons,
+                        similarTvShows = similarTvShows
                     )
                 }
                 is ApiResult.Error -> {
@@ -113,6 +153,7 @@ sealed class TvShowDetailsScreenUiState {
     data object Error : TvShowDetailsScreenUiState()
     data class Done(
         val tvShow: TvShow,
+        val seasons: List<Season> = emptyList(),
         val similarTvShows: StateFlow<PagingData<TvShow>>
     ) : TvShowDetailsScreenUiState()
 }

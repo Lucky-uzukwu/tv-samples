@@ -50,6 +50,7 @@ fun TvShowDetailTabs(
     modifier: Modifier = Modifier,
     isFullScreen: Boolean = false,
     selectedTvShow: TvShow,
+    seasons: List<Season> = emptyList(),
     similarTvShows: StateFlow<PagingData<TvShow>>,
     refreshScreenWithNewTvShow: (TvShow) -> Unit,
     episodesTabFocusRequester: FocusRequester,
@@ -96,7 +97,7 @@ fun TvShowDetailTabs(
 
         when (selectedTabIndex) {
             0 -> EpisodesTab(
-                seasons = selectedTvShow.seasons,
+                seasons = seasons.ifEmpty { selectedTvShow.seasons },
                 isFullScreen = isFullScreen
             )
             1 -> SuggestedTab(
@@ -182,11 +183,10 @@ private fun SeasonContent(
                             .width(160.dp)
                             .padding(end = 12.dp)
                     ) {
-                        if (episode.posterImagePath != null) {
-                            val imageUrl = "https://api.nortv.xyz/storage/${episode.posterImagePath}"
+                        if (episode.posterImageUrl != null) {
                             PosterImage(
                                 title = episode.title,
-                                posterUrl = imageUrl,
+                                posterUrl = episode.posterImageUrl,
                                 modifier = Modifier
                                     .height(120.dp)
                                     .fillMaxWidth()

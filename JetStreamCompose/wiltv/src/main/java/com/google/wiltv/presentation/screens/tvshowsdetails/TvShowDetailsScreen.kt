@@ -37,6 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import com.google.wiltv.presentation.common.AuthenticatedAsyncImage
 import com.google.wiltv.data.models.TvShow
+import com.google.wiltv.data.models.Season
 import com.google.wiltv.data.util.StringConstants
 import com.google.wiltv.presentation.common.Error
 import com.google.wiltv.presentation.common.Loading
@@ -70,6 +71,7 @@ fun TvShowDetailsScreen(
         is TvShowDetailsScreenUiState.Done -> {
             Details(
                 tvShow = s.tvShow,
+                seasons = s.seasons,
                 similarTvShows = s.similarTvShows,
                 openVideoPlayer = openVideoPlayer,
                 onBackPressed = onBackPressed,
@@ -85,6 +87,7 @@ fun TvShowDetailsScreen(
 @Composable
 private fun Details(
     tvShow: TvShow,
+    seasons: List<Season>,
     similarTvShows: StateFlow<PagingData<TvShow>>,
     openVideoPlayer: (tvShowId: String) -> Unit,
     onBackPressed: () -> Unit,
@@ -138,6 +141,7 @@ private fun Details(
                 modifier = Modifier.height(500.dp),
                 isFullScreen = false,
                 selectedTvShow = tvShow,
+                seasons = seasons,
                 similarTvShows = similarTvShows,
                 refreshScreenWithNewTvShow = refreshScreenWithNewMovie,
                 episodesTabFocusRequester = episodesTabFocusRequester,
