@@ -122,22 +122,12 @@ private fun Details(
                     .background(Color.Black.copy(alpha = 0.5f))
             )
 
-            // Enhanced title visibility
-//
-
             // Content overlay
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = lazyListState,
                 contentPadding = PaddingValues(top = 40.dp, bottom = 100.dp)
             ) {
-
-//                item {
-//                    MovieLargeTitle(
-//                        modifier = Modifier.focusable(),
-//                        movieTitle = selectedMovie.title
-//                    )
-//                }
 
                 item {
                     MovieDetails(
@@ -154,20 +144,6 @@ private fun Details(
                         episodesTabFocusRequester = episodesTabFocusRequester,
                         onPlayButtonFocused = { }
                     )
-
-//                    Spacer(modifier = Modifier.height(32.dp))
-//
-//                    MovieDetailTabs(
-//                        isFullScreen = false,
-//                        episodesTabFocusRequester = episodesTabFocusRequester,
-//                        suggestedTabFocusRequester = suggestedTabFocusRequester,
-//                        detailsTabFocusRequester = detailsTabFocusRequester,
-//                        playButtonFocusRequester = playButtonFocusRequester,
-//                        onTabsFocusChanged = { focused -> isTabsFocused.value = focused },
-//                        selectedMovie = selectedMovie,
-//                        similarMovies = similarMovies,
-//                        refreshScreenWithNewMovie = refreshScreenWithNewMovie
-//                    )
                 }
 
                 item {

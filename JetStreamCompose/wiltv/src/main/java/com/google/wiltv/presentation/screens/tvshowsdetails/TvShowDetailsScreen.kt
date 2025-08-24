@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -95,6 +96,7 @@ private fun Details(
     modifier: Modifier = Modifier,
 ) {
     val childPadding = rememberChildPadding()
+    val lazyListState = rememberLazyListState()
     val playButtonFocusRequester = remember { FocusRequester() }
     val episodesTabFocusRequester = remember { FocusRequester() }
     val suggestedTabFocusRequester = remember { FocusRequester() }
@@ -116,8 +118,9 @@ private fun Details(
 
     BackHandler(onBack = onBackPressed)
     LazyColumn(
-        contentPadding = PaddingValues(bottom = 100.dp),
         modifier = modifier,
+        state = lazyListState,
+        contentPadding = PaddingValues(top = 40.dp, bottom = 100.dp),
     ) {
         item {
             TvShowDetails(

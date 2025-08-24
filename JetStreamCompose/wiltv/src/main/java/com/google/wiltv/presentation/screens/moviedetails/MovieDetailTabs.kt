@@ -57,7 +57,6 @@ fun MovieDetailTabs(
     playButtonFocusRequester: FocusRequester,
     onTabsFocusChanged: (Boolean) -> Unit
 ) {
-//    val tabs = listOf("Episodes", "Suggested", "Details")
     val tabs = listOf("Suggested", "Details")
     var selectedTabIndex by remember { mutableStateOf(0) }
     val focusRequesters =

@@ -141,12 +141,12 @@ fun EpisodesTab(
                 modifier = Modifier.padding(16.dp)
             )
         } else {
-            seasons.forEachIndexed { seasonIndex, season ->
+//            seasons.forEachIndexed { seasonIndex, season ->
                 SeasonContent(
-                    season = season,
-                    seasonIndex = seasonIndex
+                    season = seasons[0],
+                    seasonIndex = 0
                 )
-            }
+//            }
         }
     }
 }
