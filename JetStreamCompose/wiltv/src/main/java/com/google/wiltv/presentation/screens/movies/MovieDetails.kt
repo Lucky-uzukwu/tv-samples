@@ -66,6 +66,10 @@ fun MovieDetails(
             modifier = Modifier
                 .fillMaxWidth(0.55f)
                 .focusGroup()
+                .focusProperties {
+                    left = FocusRequester.Cancel
+                    right = FocusRequester.Cancel
+                }
         ) {
             Column(
                 modifier = Modifier
@@ -73,7 +77,8 @@ fun MovieDetails(
             ) {
                 title?.let {
                     MovieLargeTitle(
-                        modifier = Modifier.focusable(),
+                        modifier = Modifier
+                            .focusable(),
                         movieTitle = it
                     )
                 }
@@ -110,6 +115,8 @@ fun MovieDetails(
                             .focusProperties {
                                 canFocus = true
                                 down = episodesTabFocusRequester
+                                left = FocusRequester.Cancel
+                                right = FocusRequester.Cancel
                             }
                             .onFocusChanged { focusState ->
                                 try {
@@ -132,6 +139,8 @@ fun MovieDetails(
                             .focusProperties {
                                 canFocus = true
                                 down = episodesTabFocusRequester
+                                left = FocusRequester.Cancel
+                                right = FocusRequester.Cancel
                             }
                             .onFocusChanged { focusState ->
                                 try {

@@ -51,7 +51,7 @@ fun TvShowDetails(
     onPlayButtonFocused: (() -> Unit)? = null
 ) {
     val childPadding = rememberChildPadding()
-    
+
     // Check if any episodes have videos available
     val firstAvailableVideo = seasons?.flatMap { season ->
         season.episodes ?: emptyList()
@@ -68,6 +68,10 @@ fun TvShowDetails(
             modifier = Modifier
                 .fillMaxWidth(0.55f)
                 .focusGroup()
+                .focusProperties {
+                    left = FocusRequester.Cancel
+                    right = FocusRequester.Cancel
+                }
         ) {
             Column(
                 modifier = Modifier
@@ -75,7 +79,8 @@ fun TvShowDetails(
             ) {
                 title?.let {
                     TvShowLargeTitle(
-                        modifier = Modifier.focusable(),
+                        modifier = Modifier
+                            .focusable(),
                         tvShowTitle = it
                     )
                 }
@@ -110,6 +115,8 @@ fun TvShowDetails(
                             .focusProperties {
                                 canFocus = true
                                 down = episodesTabFocusRequester
+                                left = FocusRequester.Cancel
+                                right = FocusRequester.Cancel
                             }
                             .onFocusChanged { focusState ->
                                 try {
@@ -132,6 +139,8 @@ fun TvShowDetails(
                             .focusProperties {
                                 canFocus = true
                                 down = episodesTabFocusRequester
+                                left = FocusRequester.Cancel
+                                right = FocusRequester.Cancel
                             }
                             .onFocusChanged { focusState ->
                                 try {
