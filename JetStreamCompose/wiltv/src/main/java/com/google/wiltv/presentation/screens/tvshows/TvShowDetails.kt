@@ -47,7 +47,6 @@ fun TvShowDetails(
     seasons: List<Season>?,
     openVideoPlayer: (tvShowId: String) -> Unit,
     playButtonFocusRequester: FocusRequester,
-    episodesTabFocusRequester: FocusRequester,
     onPlayButtonFocused: (() -> Unit)? = null
 ) {
     val childPadding = rememberChildPadding()
@@ -114,7 +113,6 @@ fun TvShowDetails(
                             .padding(top = 16.dp)
                             .focusProperties {
                                 canFocus = true
-                                down = episodesTabFocusRequester
                                 left = FocusRequester.Cancel
                                 right = FocusRequester.Cancel
                             }
@@ -138,7 +136,6 @@ fun TvShowDetails(
                             .padding(top = 16.dp)
                             .focusProperties {
                                 canFocus = true
-                                down = episodesTabFocusRequester
                                 left = FocusRequester.Cancel
                                 right = FocusRequester.Cancel
                             }

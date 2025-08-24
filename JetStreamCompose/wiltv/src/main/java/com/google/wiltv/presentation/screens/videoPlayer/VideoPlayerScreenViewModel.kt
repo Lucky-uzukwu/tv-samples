@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import java.net.URLDecoder
+import co.touchlab.kermit.Logger
 
 @HiltViewModel
 class VideoPlayerScreenViewModel @Inject constructor(
@@ -53,19 +54,49 @@ class VideoPlayerScreenViewModel @Inject constructor(
             VideoPlayerScreenUiState.Error(UiText.DynamicString("Missing content ID"))
         } else {
             try {
-                // Check if this is a TV channel URL (URL-encoded)
-                val decodedContent = URLDecoder.decode(contentId, "UTF-8")
+                // Handle both encoded and direct URLs
+                val actualUrl = if (contentId.startsWith("http")) {
+                    // Direct URL (like episode URLs)
+                    Logger.i("VideoPlayerViewModel - Using direct URL: $contentId")
+                    contentId
+                } else {
+                    // URL-encoded content (like TV channels)
+                    val decoded = URLDecoder.decode(contentId, "UTF-8")
+                    Logger.i("VideoPlayerViewModel - Decoded URL: $decoded")
+                    decoded
+                }
                 
-                if (decodedContent.startsWith("http")) {
-                    // This is a TV channel URL - create a simple state for direct playback
-                    VideoPlayerScreenUiState.TvChannelDirect(directUrl = decodedContent)
+                Logger.i("VideoPlayerViewModel - Final URL: $actualUrl")
+                Logger.i("VideoPlayerViewModel - User token available: ${userToken != null}")
+                userToken?.let { Logger.i("VideoPlayerViewModel - Token first 10 chars: ${it.take(10)}...") }
+                
+                if (actualUrl.startsWith("http")) {
+                    // Check if this is a TV channel or episode URL
+                    if (actualUrl.contains("live-tv") || actualUrl.contains("livetv")) {
+                        // This is a TV channel URL - create a simple state for direct playback
+                        Logger.i("VideoPlayerViewModel - Creating TvChannelDirect state")
+                        VideoPlayerScreenUiState.TvChannelDirect(directUrl = actualUrl)
+                    } else {
+                        // This is an episode HLS URL - needs authentication
+                        Logger.i("VideoPlayerViewModel - Creating TvShowEpisodeDirect state")
+                        if (userToken == null) {
+                            Logger.e("VideoPlayerViewModel - No auth token available for episode playback")
+                            VideoPlayerScreenUiState.Error(UiText.DynamicString("Authentication required for episode playback"))
+                        } else {
+                            Logger.i("VideoPlayerViewModel - Token available for episode: ${userToken.take(10)}...")
+                            VideoPlayerScreenUiState.TvShowEpisodeDirect(
+                                directUrl = actualUrl,
+                                token = userToken
+                            )
+                        }
+                    }
                 } else {
                     // This is a movie/TV show ID - fetch movie details
                     if (userToken == null) {
                         VideoPlayerScreenUiState.Error(UiText.DynamicString("Missing user token"))
                     } else {
                         val detailsResult = movieRepository.getMovieDetailsNew(
-                            movieId = decodedContent,
+                            movieId = actualUrl,
                             token = userToken
                         )
                         
@@ -126,5 +157,10 @@ sealed class VideoPlayerScreenUiState {
     data class TvChannelDirect(
         val directUrl: String,
         val title: String? = "TV Channel"
+    ) : VideoPlayerScreenUiState()
+    data class TvShowEpisodeDirect(
+        val directUrl: String,
+        val title: String? = "Episode",
+        val token: String? = null
     ) : VideoPlayerScreenUiState()
 }

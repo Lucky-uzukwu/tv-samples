@@ -81,6 +81,15 @@ fun VideoPlayerScreen(
                 onBackPressed = onBackPressed
             )
         }
+
+        is VideoPlayerScreenUiState.TvShowEpisodeDirect -> {
+            TvShowEpisodeVideoPlayerScreenContent(
+                directUrl = s.directUrl,
+                title = s.title,
+                token = s.token,
+                onBackPressed = onBackPressed
+            )
+        }
     }
 }
 
