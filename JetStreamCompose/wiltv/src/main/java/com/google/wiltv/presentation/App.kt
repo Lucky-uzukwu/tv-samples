@@ -1,5 +1,6 @@
 package com.google.wiltv.presentation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Stable
 import java.net.URLEncoder
 import com.google.wiltv.presentation.screens.auth.AuthScreen
@@ -306,6 +307,9 @@ fun App(
                         }
                     )
                 }
+                
+                // Handle back button to exit app when at dashboard root
+                BackHandler(onBack = onBackPressed)
                 
                 DashboardScreen(
                     openCategoryMovieList = dashboardCallbacks.openCategoryMovieList,

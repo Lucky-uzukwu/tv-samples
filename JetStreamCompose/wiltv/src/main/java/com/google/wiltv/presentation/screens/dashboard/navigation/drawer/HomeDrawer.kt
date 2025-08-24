@@ -1,5 +1,6 @@
 package com.google.wiltv.presentation.screens.dashboard.navigation.drawer
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -54,6 +55,13 @@ fun HomeDrawer(
     val coroutineScope = rememberCoroutineScope()
     val focusRequesters = remember {
         List(TopBarTabs.size) { FocusRequester() }
+    }
+    
+    // Handle back button to close drawer when it's open
+    BackHandler(enabled = drawerState.currentValue == DrawerValue.Open) {
+        coroutineScope.launch {
+            drawerState.setValue(DrawerValue.Closed)
+        }
     }
 //    val contentFocusRequester = remember { FocusRequester() }
 //    var isInitialFocusSet by remember { mutableStateOf(false) }
