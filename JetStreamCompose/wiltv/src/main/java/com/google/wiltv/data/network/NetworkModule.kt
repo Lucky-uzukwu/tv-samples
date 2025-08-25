@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.room.Room
 import coil.ImageLoader
 import com.google.wiltv.AppDatabase
+import com.google.wiltv.MIGRATION_1_2
 import com.google.wiltv.data.dao.MovieRemoteKeyDao
 import com.google.wiltv.data.dao.MoviesDao
+import com.google.wiltv.data.dao.WatchlistDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -48,6 +50,7 @@ class NetworkModule {
     fun provideMovieDatabase(@ApplicationContext context: Context): AppDatabase =
         Room
             .databaseBuilder(context, AppDatabase::class.java, "app_database")
+            .addMigrations(MIGRATION_1_2)
             .build()
 
     @Singleton
@@ -58,6 +61,11 @@ class NetworkModule {
     @Provides
     fun provideRemoteKeysDao(moviesDatabase: AppDatabase): MovieRemoteKeyDao =
         moviesDatabase.getMovieRemoteKeyDao()
+
+    @Singleton
+    @Provides
+    fun provideWatchlistDao(moviesDatabase: AppDatabase): WatchlistDao =
+        moviesDatabase.getWatchlistDao()
 
 
     @Provides

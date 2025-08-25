@@ -40,6 +40,9 @@ import com.google.wiltv.data.repositories.UserRepository
 import com.google.wiltv.data.repositories.ProfileRepository
 import com.google.wiltv.data.repositories.TvChannelsRepository
 import com.google.wiltv.data.repositories.TvChannelsRepositoryImpl
+import com.google.wiltv.data.repositories.WatchlistRepository
+import com.google.wiltv.data.repositories.WatchlistRepositoryImpl
+import com.google.wiltv.data.dao.WatchlistDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -262,6 +265,19 @@ object UserRepositoryModule {
         @ApplicationContext context: Context
     ): UserRepository {
         return UserRepository(context)
+    }
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object WatchlistRepositoryModule {
+
+    @Provides
+    @Singleton
+    fun provideWatchlistRepository(
+        watchlistDao: WatchlistDao
+    ): WatchlistRepository {
+        return WatchlistRepositoryImpl(watchlistDao)
     }
 }
 
