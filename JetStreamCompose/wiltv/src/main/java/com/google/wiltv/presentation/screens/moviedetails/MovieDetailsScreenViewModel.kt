@@ -17,12 +17,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class MovieDetailsScreenViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -33,23 +36,26 @@ class MovieDetailsScreenViewModel @Inject constructor(
     
     private val movieId: String? = savedStateHandle.get<String?>(MovieDetailsScreen.MovieIdBundleKey)
     
-    // Watchlist state management
+    // Watchlist state management - now properly reactive to database changes
     val isInWatchlist: StateFlow<Boolean> = combine(
         userRepository.userId,
         savedStateHandle.getStateFlow<String?>(MovieDetailsScreen.MovieIdBundleKey, null)
     ) { userId, movieId ->
         // Use default user ID if not authenticated
         val effectiveUserId = userId ?: "default_user"
-        if (movieId != null) {
+        val currentMovieId = movieId?.toIntOrNull() ?: 0
+        
+        if (currentMovieId != 0) {
             try {
-                watchlistRepository.isInWatchlist(effectiveUserId, movieId.toIntOrNull() ?: 0).firstOrNull() ?: false
+                // Return the database Flow directly - this makes it reactive
+                watchlistRepository.isInWatchlist(effectiveUserId, currentMovieId)
             } catch (e: Exception) {
-                false
+                kotlinx.coroutines.flow.flowOf(false)
             }
         } else {
-            false
+            kotlinx.coroutines.flow.flowOf(false)
         }
-    }.stateIn(
+    }.flattenMerge(concurrency = 1).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = false

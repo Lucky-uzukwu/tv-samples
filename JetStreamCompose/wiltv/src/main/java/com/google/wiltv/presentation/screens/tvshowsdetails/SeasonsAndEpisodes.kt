@@ -68,7 +68,7 @@ fun SeasonsAndEpisodes(
     modifier: Modifier = Modifier
 ) {
     val childPadding = rememberChildPadding()
-    
+
     if (seasons.isEmpty()) {
         Box(
             modifier = modifier
@@ -112,7 +112,7 @@ private fun SeasonWithEpisodes(
     modifier: Modifier = Modifier
 ) {
     val childPadding = rememberChildPadding()
-    
+
     Column(modifier = modifier) {
         Text(
             text = "Season ${season.number ?: (seasonIndex + 1)}",
@@ -125,9 +125,9 @@ private fun SeasonWithEpisodes(
                 bottom = 16.dp
             )
         )
-        
+
         val episodes = season.episodes ?: emptyList()
-        
+
         if (episodes.isEmpty()) {
             Text(
                 text = "No episodes available for this season",
@@ -173,11 +173,11 @@ private fun EpisodeCard(
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val firstEpisodeFocusRequester = remember { FocusRequester() }
-    
+
     MovieCard(
-        onClick = { 
+        onClick = {
             Log.d("EpisodeCard", "MovieCard clicked for episode: ${episode.title}")
-            onEpisodeClick(episode) 
+            onEpisodeClick(episode)
         },
         modifier = modifier
             .width(280.dp)
@@ -208,7 +208,8 @@ private fun EpisodeCard(
                 Box(
                     modifier = Modifier
                         .aspectRatio(ItemDirection.Horizontal.aspectRatio)
-                        .background(Color.Gray.copy(alpha = 0.3f)),
+                        .background(Color.Gray.copy(alpha = 0.3f))
+                    ,
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -218,9 +219,9 @@ private fun EpisodeCard(
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(12.dp))
-            
+
             Column(
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
@@ -233,20 +234,31 @@ private fun EpisodeCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                
+
                 Spacer(modifier = Modifier.height(4.dp))
-                
-                Text(
-                    text = episode.title,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Medium
-                    ),
-                    color = Color.White,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                
-                if (episode.plot != null) {
+
+                episode.tagLine?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Medium
+                        ),
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                if (episode.video == null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Coming soon",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.7f),
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                } else if (episode.plot != null) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = episode.plot,

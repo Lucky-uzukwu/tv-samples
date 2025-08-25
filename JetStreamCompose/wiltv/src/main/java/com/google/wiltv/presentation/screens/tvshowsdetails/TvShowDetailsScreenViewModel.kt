@@ -36,9 +36,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TvShowDetailsScreenViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -49,23 +52,26 @@ class TvShowDetailsScreenViewModel @Inject constructor(
     
     private val tvShowId: String? = savedStateHandle.get<String?>(TvShowDetailsScreen.TvShowIdBundleKey)
     
-    // Watchlist state management
+    // Watchlist state management - now properly reactive to database changes
     val isInWatchlist: StateFlow<Boolean> = combine(
         userRepository.userId,
         savedStateHandle.getStateFlow<String?>(TvShowDetailsScreen.TvShowIdBundleKey, null)
     ) { userId, tvShowId ->
         // Use default user ID if not authenticated
         val effectiveUserId = userId ?: "default_user"
-        if (tvShowId != null) {
+        val currentTvShowId = tvShowId?.toIntOrNull() ?: 0
+        
+        if (currentTvShowId != 0) {
             try {
-                watchlistRepository.isInWatchlist(effectiveUserId, tvShowId.toIntOrNull() ?: 0).firstOrNull() ?: false
+                // Return the database Flow directly - this makes it reactive
+                watchlistRepository.isInWatchlist(effectiveUserId, currentTvShowId)
             } catch (e: Exception) {
-                false
+                kotlinx.coroutines.flow.flowOf(false)
             }
         } else {
-            false
+            kotlinx.coroutines.flow.flowOf(false)
         }
-    }.stateIn(
+    }.flattenMerge(concurrency = 1).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = false
