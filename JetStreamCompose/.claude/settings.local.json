@@ -16,7 +16,9 @@
       "Bash(grep:*)",
       "WebFetch(domain:pusher.com)",
       "WebFetch(domain:github.com)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(md-tree:*)",
+      "Bash(npm install:*)"
     ],
     "deny": []
   }
