@@ -4,7 +4,6 @@ import androidx.compose.runtime.Stable
 import com.google.wiltv.data.entities.MovieEntity
 import com.google.wiltv.data.entities.VideoEntity
 import com.google.wiltv.data.entities.toVideoEntity
-import kotlinx.serialization.Serializable
 
 @Stable
 data class MovieNew(

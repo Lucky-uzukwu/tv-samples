@@ -5,6 +5,7 @@ import androidx.room.Room
 import coil.ImageLoader
 import com.google.wiltv.AppDatabase
 import com.google.wiltv.MIGRATION_1_2
+import com.google.wiltv.MIGRATION_2_3
 import com.google.wiltv.data.dao.MovieRemoteKeyDao
 import com.google.wiltv.data.dao.MoviesDao
 import com.google.wiltv.data.dao.WatchlistDao
@@ -50,7 +51,7 @@ class NetworkModule {
     fun provideMovieDatabase(@ApplicationContext context: Context): AppDatabase =
         Room
             .databaseBuilder(context, AppDatabase::class.java, "app_database")
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
 
     @Singleton

@@ -1,17 +1,18 @@
+// ABOUTME: WatchlistButton component for toggling content in user watchlist
+// ABOUTME: Matches PlayButton styling with proper TV focus handling and visual feedback
 package com.google.wiltv.presentation.screens.movies
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Bookmark
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Button
@@ -26,11 +27,24 @@ import md_theme_light_outline
 import md_theme_light_shadow
 
 @Composable
-fun PlayButton(
+fun WatchlistButton(
     modifier: Modifier = Modifier,
+    isInWatchlist: Boolean,
+    isLoading: Boolean = false,
     onClick: () -> Unit,
     focusRequester: FocusRequester,
 ) {
+    val buttonText = when {
+        isLoading -> stringResource(R.string.message_loading)
+        isInWatchlist -> stringResource(R.string.in_watchlist)
+        else -> stringResource(R.string.watchlist)
+    }
+    
+    val icon = if (isInWatchlist) {
+        Icons.Outlined.Bookmark
+    } else {
+        Icons.Outlined.BookmarkBorder
+    }
 
     Button(
         onClick = onClick,
@@ -41,53 +55,21 @@ fun PlayButton(
         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
         shape = ButtonDefaults.shape(shape = WilTvButtonShape),
         colors = ButtonDefaults.colors(
-            containerColor = md_theme_light_outline,
+            containerColor = if (isInWatchlist) Color(0xFF059669) else md_theme_light_outline, // Green when in watchlist
             contentColor = md_theme_light_onTertiary,
             focusedContainerColor = Color(0xFFA855F7),
             focusedContentColor = md_theme_light_shadow,
         ),
-        scale = ButtonDefaults.scale(scale = 1f)
+        scale = ButtonDefaults.scale(scale = 1f),
+        enabled = !isLoading
     ) {
         Icon(
-            imageVector = Icons.Outlined.PlayArrow,
+            imageVector = icon,
             contentDescription = null,
         )
         Spacer(Modifier.size(8.dp))
         Text(
-            text = stringResource(R.string.play),
-            style = MaterialTheme.typography.titleSmall
-        )
-    }
-}
-
-@Composable
-fun ComingSoonButton(
-    modifier: Modifier = Modifier,
-    focusRequester: FocusRequester,
-) {
-    Button(
-        onClick = { }, // No action when pressed
-        modifier = Modifier
-            .height(40.dp)
-            .focusRequester(focusRequester)
-            .then(modifier),
-        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-        shape = ButtonDefaults.shape(shape = WilTvButtonShape),
-        colors = ButtonDefaults.colors(
-            containerColor = Color(0xFF6B7280), // Gray background for disabled state
-            contentColor = Color.White.copy(alpha = 0.8f),
-            focusedContainerColor = Color(0xFF9CA3AF), // Lighter gray when focused
-            focusedContentColor = Color.White,
-        ),
-        scale = ButtonDefaults.scale(scale = 1f)
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Schedule,
-            contentDescription = null,
-        )
-        Spacer(Modifier.size(8.dp))
-        Text(
-            text = stringResource(R.string.coming_soon),
+            text = buttonText,
             style = MaterialTheme.typography.titleSmall
         )
     }

@@ -45,6 +45,7 @@ class UserStateHolder @Inject constructor(
             ) { userParams ->
                 UserState(
                     user = User(
+                        id = java.util.UUID.randomUUID().toString(), // Generate UUID for existing users
                         identifier = userParams[0] as? String ?: "",
                         name = userParams[1] as? String ?: "",
                         email = userParams[2] as? String ?: "",

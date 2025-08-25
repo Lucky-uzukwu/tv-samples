@@ -3,6 +3,7 @@ package com.google.wiltv.presentation.screens.movies
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,13 +13,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -26,13 +25,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.google.wiltv.data.models.Country
 import com.google.wiltv.data.models.Genre
+import com.google.wiltv.data.models.StreamingProvider
+import com.google.wiltv.data.models.Video
 import com.google.wiltv.presentation.common.StreamingProviderIcon
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
 import com.google.wiltv.presentation.utils.formatDuration
-import com.google.wiltv.data.models.StreamingProvider
-import com.google.wiltv.data.models.Video
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -47,10 +45,15 @@ fun MovieDetails(
     video: Video?,
     openVideoPlayer: (movieId: String) -> Unit,
     playButtonFocusRequester: FocusRequester,
+    watchlistButtonFocusRequester: FocusRequester,
     episodesTabFocusRequester: FocusRequester,
-    onPlayButtonFocused: (() -> Unit)? = null
+    onPlayButtonFocused: (() -> Unit)? = null,
+    isInWatchlist: Boolean = false,
+    watchlistLoading: Boolean = false,
+    onToggleWatchlist: (() -> Unit)
 ) {
     val childPadding = rememberChildPadding()
+
 
     // Request initial focus on Play button when screen loads
 //    LaunchedEffect(Unit) {
@@ -64,16 +67,18 @@ fun MovieDetails(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth(0.55f)
-                .focusGroup()
-                .focusProperties {
-                    left = FocusRequester.Cancel
-                    right = FocusRequester.Cancel
-                }
         ) {
             Column(
                 modifier = Modifier
                     .padding(horizontal = childPadding.start)
+                    .fillMaxWidth(0.55f)
+                    .focusGroup()
+                    .focusProperties {
+                        left = FocusRequester.Cancel
+                        right = FocusRequester.Cancel
+                        down = playButtonFocusRequester
+                        // Remove right = Cancel to allow horizontal navigation between buttons
+                    }
             ) {
                 title?.let {
                     MovieLargeTitle(
@@ -107,16 +112,24 @@ fun MovieDetails(
 
                     }
                 }
+            }
 
+
+            // Button Row with Play/Coming Soon and Watchlist buttons
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .padding(horizontal = childPadding.start)
+
+            ) {
                 if (video != null) {
                     PlayButton(
                         modifier = Modifier
-                            .padding(top = 16.dp)
                             .focusProperties {
                                 canFocus = true
-                                down = episodesTabFocusRequester
                                 left = FocusRequester.Cancel
-                                right = FocusRequester.Cancel
+//                                    right = watchlistButtonFocusRequester
                             }
                             .onFocusChanged { focusState ->
                                 try {
@@ -135,12 +148,10 @@ fun MovieDetails(
                 } else {
                     ComingSoonButton(
                         modifier = Modifier
-                            .padding(top = 16.dp)
                             .focusProperties {
                                 canFocus = true
-                                down = episodesTabFocusRequester
                                 left = FocusRequester.Cancel
-                                right = FocusRequester.Cancel
+                                right = watchlistButtonFocusRequester
                             }
                             .onFocusChanged { focusState ->
                                 try {
@@ -154,8 +165,22 @@ fun MovieDetails(
                         focusRequester = playButtonFocusRequester
                     )
                 }
+
+                // Watchlist button - only show if toggle function is available
+                WatchlistButton(
+                    isInWatchlist = isInWatchlist,
+                    isLoading = watchlistLoading,
+                    onClick = onToggleWatchlist,
+                    focusRequester = watchlistButtonFocusRequester,
+                    modifier = Modifier.focusProperties {
+                        canFocus = true
+                        left = playButtonFocusRequester
+                        right = FocusRequester.Cancel
+                    }
+                )
             }
         }
+
     }
 }
 

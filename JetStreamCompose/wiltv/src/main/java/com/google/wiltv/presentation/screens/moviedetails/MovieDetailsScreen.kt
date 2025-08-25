@@ -54,6 +54,8 @@ fun MovieDetailsScreen(
     movieDetailsScreenViewModel: MovieDetailsScreenViewModel = hiltViewModel(),
 ) {
     val uiState by movieDetailsScreenViewModel.uiState.collectAsStateWithLifecycle()
+    val isInWatchlist by movieDetailsScreenViewModel.isInWatchlist.collectAsStateWithLifecycle()
+    val watchlistLoading by movieDetailsScreenViewModel.watchlistLoading.collectAsStateWithLifecycle()
 
     when (val s = uiState) {
         is MovieDetailsScreenUiState.Loading -> {
@@ -71,6 +73,9 @@ fun MovieDetailsScreen(
                 openVideoPlayer = openVideoPlayer,
                 onBackPressed = onBackPressed,
                 refreshScreenWithNewMovie = refreshScreenWithNewMovie,
+                isInWatchlist = isInWatchlist,
+                watchlistLoading = watchlistLoading,
+                onToggleWatchlist = movieDetailsScreenViewModel::toggleWatchlist,
                 modifier = Modifier
                     .fillMaxSize()
                     .animateContentSize()
@@ -86,6 +91,9 @@ private fun Details(
     openVideoPlayer: (movieId: String) -> Unit,
     onBackPressed: () -> Unit,
     refreshScreenWithNewMovie: (MovieNew) -> Unit,
+    isInWatchlist: Boolean,
+    watchlistLoading: Boolean,
+    onToggleWatchlist: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val lazyListState = rememberLazyListState()
@@ -98,6 +106,7 @@ private fun Details(
 
     // Focus management state
     val playButtonFocusRequester = remember { FocusRequester() }
+    val watchlistButtonFocusRequester = remember { FocusRequester() }
     val episodesTabFocusRequester = remember { FocusRequester() }
     val suggestedTabFocusRequester = remember { FocusRequester() }
     val detailsTabFocusRequester = remember { FocusRequester() }
@@ -142,7 +151,11 @@ private fun Details(
                         video = selectedMovie.video,
                         playButtonFocusRequester = playButtonFocusRequester,
                         episodesTabFocusRequester = episodesTabFocusRequester,
-                        onPlayButtonFocused = { }
+                        watchlistButtonFocusRequester = watchlistButtonFocusRequester,
+                        onPlayButtonFocused = { },
+                        isInWatchlist = isInWatchlist,
+                        watchlistLoading = watchlistLoading,
+                        onToggleWatchlist = onToggleWatchlist
                     )
                 }
 

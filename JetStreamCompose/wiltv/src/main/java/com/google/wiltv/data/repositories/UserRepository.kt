@@ -18,6 +18,7 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "us
 
 
 val defaultUser = User(
+    id = java.util.UUID.randomUUID().toString(),
     identifier = "accessCode",
     name = "name",
     email = "email",
@@ -81,7 +82,12 @@ class UserRepository @Inject constructor(
 
     val userToken: Flow<String?> =
         context.dataStore.data.map { it[KEY_USER_TOKEN] ?: "debug_token_123" }
-    val userId: Flow<String?> = context.dataStore.data.map { it[KEY_USER_ID] }
+    val userId: Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[KEY_USER_ID] ?: run {
+            // Generate UUID but don't save it here to avoid runBlocking
+            java.util.UUID.randomUUID().toString()
+        }
+    }
     val userEmail: Flow<String?> =
         context.dataStore.data.map { it[KEY_USER_EMAIL] }
     val userAccessCode: Flow<String?> =
@@ -116,6 +122,17 @@ class UserRepository @Inject constructor(
 
     suspend fun saveUserId(userId: String) {
         context.dataStore.edit { it[KEY_USER_ID] = userId }
+    }
+
+    suspend fun ensureUserIdExists(): String {
+        val existingId = userId.first()
+        return if (!existingId.isNullOrEmpty()) {
+            existingId
+        } else {
+            val newId = java.util.UUID.randomUUID().toString()
+            saveUserId(newId)
+            newId
+        }
     }
 
     suspend fun saveUserEmail(email: String) {
@@ -156,6 +173,7 @@ class UserRepository @Inject constructor(
 
     suspend fun getUser(): User? {
         return User(
+            id = userId.first() ?: java.util.UUID.randomUUID().toString(),
             email = userEmail.first() ?: "",
             identifier = userAccessCode.first() ?: "",
             name = userName.first() ?: "",

@@ -9,6 +9,7 @@ import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.paging.pagingsources.movie.MoviesPagingSources
 import com.google.wiltv.data.repositories.MovieRepository
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.data.repositories.WatchlistRepository
 import com.google.wiltv.domain.ApiResult
 import com.google.wiltv.presentation.UiText
 import com.google.wiltv.presentation.asUiText
@@ -19,14 +20,77 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MovieDetailsScreenViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    movieRepository: MovieRepository,
-    userRepository: UserRepository,
+    private val movieRepository: MovieRepository,
+    private val userRepository: UserRepository,
+    private val watchlistRepository: WatchlistRepository,
 ) : ViewModel() {
+    
+    private val movieId: String? = savedStateHandle.get<String?>(MovieDetailsScreen.MovieIdBundleKey)
+    
+    // Watchlist state management
+    val isInWatchlist: StateFlow<Boolean> = combine(
+        userRepository.userId,
+        savedStateHandle.getStateFlow<String?>(MovieDetailsScreen.MovieIdBundleKey, null)
+    ) { userId, movieId ->
+        // Use default user ID if not authenticated
+        val effectiveUserId = userId ?: "default_user"
+        if (movieId != null) {
+            try {
+                watchlistRepository.isInWatchlist(effectiveUserId, movieId.toIntOrNull() ?: 0).firstOrNull() ?: false
+            } catch (e: Exception) {
+                false
+            }
+        } else {
+            false
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = false
+    )
+    
+    private val _watchlistLoading = MutableStateFlow(false)
+    val watchlistLoading: StateFlow<Boolean> = _watchlistLoading
+    
+    fun toggleWatchlist() {
+        viewModelScope.launch {
+            val currentMovieId = movieId?.toIntOrNull()
+            
+            // Use ensureUserIdExists to safely get/create user ID
+            val effectiveUserId = try {
+                userRepository.ensureUserIdExists()
+            } catch (e: Exception) {
+                "default_user" // Fallback if storage fails
+            }
+            
+            if (currentMovieId != null) {
+                try {
+                    _watchlistLoading.value = true
+                    val isCurrentlyInWatchlist = isInWatchlist.value
+                    
+                    if (isCurrentlyInWatchlist) {
+                        watchlistRepository.removeFromWatchlist(effectiveUserId, currentMovieId)
+                        // Add success feedback here if needed
+                    } else {
+                        watchlistRepository.addToWatchlist(effectiveUserId, currentMovieId, "movie")
+                        // Add success feedback here if needed
+                    }
+                } catch (e: Exception) {
+                    // Handle error - add error feedback if needed
+                    android.util.Log.e("MovieDetailsViewModel", "Error toggling watchlist", e)
+                } finally {
+                    _watchlistLoading.value = false
+                }
+            }
+        }
+    }
+    
     val uiState: StateFlow<MovieDetailsScreenUiState> = combine(
         savedStateHandle
             .getStateFlow<String?>(MovieDetailsScreen.MovieIdBundleKey, null),

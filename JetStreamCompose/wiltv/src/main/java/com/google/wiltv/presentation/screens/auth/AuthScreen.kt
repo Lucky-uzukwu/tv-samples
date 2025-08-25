@@ -101,6 +101,7 @@ fun AuthScreen(
                         user?.let {
                             userStateHolder.updateUser(
                                 User(
+                                    id = java.util.UUID.randomUUID().toString(), // Generate UUID for new user
                                     identifier = user.identifier,
                                     name = user.name,
                                     email = user.email,

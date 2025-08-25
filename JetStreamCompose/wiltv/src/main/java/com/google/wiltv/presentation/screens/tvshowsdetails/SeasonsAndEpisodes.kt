@@ -63,6 +63,7 @@ import android.util.Log
 fun SeasonsAndEpisodes(
     seasons: List<Season>,
     playButtonFocusRequester: FocusRequester,
+    episodesTabFocusRequester: FocusRequester,
     onEpisodeClick: (Episode) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -86,7 +87,9 @@ fun SeasonsAndEpisodes(
     }
 
     Column(
-        modifier = modifier.focusGroup()
+        modifier = modifier
+            .focusGroup()
+            .focusRequester(episodesTabFocusRequester)
     ) {
         seasons.forEachIndexed { seasonIndex, season ->
             SeasonWithEpisodes(

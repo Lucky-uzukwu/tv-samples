@@ -3,6 +3,7 @@ package com.google.wiltv.presentation.screens.tvshows
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,11 +28,11 @@ import androidx.tv.material3.Text
 import com.google.wiltv.data.models.Genre
 import com.google.wiltv.data.models.Season
 import com.google.wiltv.data.models.StreamingProvider
-import com.google.wiltv.data.models.Video
 import com.google.wiltv.presentation.common.StreamingProviderIcon
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
 import com.google.wiltv.presentation.screens.movies.ComingSoonButton
 import com.google.wiltv.presentation.screens.movies.PlayButton
+import com.google.wiltv.presentation.screens.movies.WatchlistButton
 import com.google.wiltv.presentation.utils.formatDuration
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -47,7 +48,12 @@ fun TvShowDetails(
     seasons: List<Season>?,
     openVideoPlayer: (tvShowId: String) -> Unit,
     playButtonFocusRequester: FocusRequester,
-    onPlayButtonFocused: (() -> Unit)? = null
+    watchlistButtonFocusRequester: FocusRequester,
+    episodesTabFocusRequester: FocusRequester,
+    onPlayButtonFocused: (() -> Unit)? = null,
+    isInWatchlist: Boolean = false,
+    watchlistLoading: Boolean = false,
+    onToggleWatchlist: (() -> Unit)
 ) {
     val childPadding = rememberChildPadding()
 
@@ -65,16 +71,18 @@ fun TvShowDetails(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth(0.55f)
-                .focusGroup()
-                .focusProperties {
-                    left = FocusRequester.Cancel
-                    right = FocusRequester.Cancel
-                }
         ) {
             Column(
                 modifier = Modifier
                     .padding(horizontal = childPadding.start)
+                    .fillMaxWidth(0.55f)
+                    .focusGroup()
+                    .focusProperties {
+                        left = FocusRequester.Cancel
+                        right = FocusRequester.Cancel
+                        down = playButtonFocusRequester
+                        // Remove right = Cancel to allow horizontal navigation between buttons
+                    }
             ) {
                 title?.let {
                     TvShowLargeTitle(
@@ -106,15 +114,22 @@ fun TvShowDetails(
                         }
                     }
                 }
+            }
 
+            // Button Row with Play/Coming Soon and Watchlist buttons
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .padding(horizontal = childPadding.start)
+            ) {
                 if (firstAvailableVideo != null) {
                     PlayButton(
                         modifier = Modifier
-                            .padding(top = 16.dp)
                             .focusProperties {
                                 canFocus = true
                                 left = FocusRequester.Cancel
-                                right = FocusRequester.Cancel
+                                right = watchlistButtonFocusRequester
                             }
                             .onFocusChanged { focusState ->
                                 try {
@@ -133,11 +148,10 @@ fun TvShowDetails(
                 } else {
                     ComingSoonButton(
                         modifier = Modifier
-                            .padding(top = 16.dp)
                             .focusProperties {
                                 canFocus = true
                                 left = FocusRequester.Cancel
-                                right = FocusRequester.Cancel
+                                right = watchlistButtonFocusRequester
                             }
                             .onFocusChanged { focusState ->
                                 try {
@@ -151,6 +165,19 @@ fun TvShowDetails(
                         focusRequester = playButtonFocusRequester
                     )
                 }
+
+                // Watchlist button - only show if toggle function is available
+                WatchlistButton(
+                    isInWatchlist = isInWatchlist,
+                    isLoading = watchlistLoading,
+                    onClick = onToggleWatchlist,
+                    focusRequester = watchlistButtonFocusRequester,
+                    modifier = Modifier.focusProperties {
+                        canFocus = true
+                        left = playButtonFocusRequester
+                        right = FocusRequester.Cancel
+                    }
+                )
             }
         }
     }

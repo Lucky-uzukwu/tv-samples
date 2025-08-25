@@ -26,22 +26,86 @@ import com.google.wiltv.data.models.Season
 import com.google.wiltv.data.paging.pagingsources.tvshow.TvShowPagingSources
 import com.google.wiltv.data.repositories.TvShowsRepository
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.data.repositories.WatchlistRepository
 import com.google.wiltv.domain.ApiResult
 import co.touchlab.kermit.Logger
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class TvShowDetailsScreenViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    tvShowRepository: TvShowsRepository,
-    userRepository: UserRepository,
+    private val tvShowRepository: TvShowsRepository,
+    private val userRepository: UserRepository,
+    private val watchlistRepository: WatchlistRepository,
 ) : ViewModel() {
+    
+    private val tvShowId: String? = savedStateHandle.get<String?>(TvShowDetailsScreen.TvShowIdBundleKey)
+    
+    // Watchlist state management
+    val isInWatchlist: StateFlow<Boolean> = combine(
+        userRepository.userId,
+        savedStateHandle.getStateFlow<String?>(TvShowDetailsScreen.TvShowIdBundleKey, null)
+    ) { userId, tvShowId ->
+        // Use default user ID if not authenticated
+        val effectiveUserId = userId ?: "default_user"
+        if (tvShowId != null) {
+            try {
+                watchlistRepository.isInWatchlist(effectiveUserId, tvShowId.toIntOrNull() ?: 0).firstOrNull() ?: false
+            } catch (e: Exception) {
+                false
+            }
+        } else {
+            false
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = false
+    )
+    
+    private val _watchlistLoading = MutableStateFlow(false)
+    val watchlistLoading: StateFlow<Boolean> = _watchlistLoading
+    
+    fun toggleWatchlist() {
+        viewModelScope.launch {
+            val currentTvShowId = tvShowId?.toIntOrNull()
+            
+            // Use ensureUserIdExists to safely get/create user ID
+            val effectiveUserId = try {
+                userRepository.ensureUserIdExists()
+            } catch (e: Exception) {
+                "default_user" // Fallback if storage fails
+            }
+            
+            if (currentTvShowId != null) {
+                try {
+                    _watchlistLoading.value = true
+                    val isCurrentlyInWatchlist = isInWatchlist.value
+                    
+                    if (isCurrentlyInWatchlist) {
+                        watchlistRepository.removeFromWatchlist(effectiveUserId, currentTvShowId)
+                        Logger.d { "✅ TvShowDetailsScreenViewModel: Removed from watchlist - ID: $currentTvShowId" }
+                    } else {
+                        watchlistRepository.addToWatchlist(effectiveUserId, currentTvShowId, "tvshow")
+                        Logger.d { "✅ TvShowDetailsScreenViewModel: Added to watchlist - ID: $currentTvShowId" }
+                    }
+                } catch (e: Exception) {
+                    Logger.e { "❌ TvShowDetailsScreenViewModel: Failed to toggle watchlist - ${e.message}" }
+                } finally {
+                    _watchlistLoading.value = false
+                }
+            }
+        }
+    }
+    
     val uiState: StateFlow<TvShowDetailsScreenUiState> = combine(
         savedStateHandle
             .getStateFlow<String?>(TvShowDetailsScreen.TvShowIdBundleKey, null),

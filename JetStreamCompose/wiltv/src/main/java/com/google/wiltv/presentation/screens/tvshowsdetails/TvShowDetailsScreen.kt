@@ -60,6 +60,8 @@ fun TvShowDetailsScreen(
     tvShowDetailsScreenViewModel: TvShowDetailsScreenViewModel = hiltViewModel(),
 ) {
     val uiState by tvShowDetailsScreenViewModel.uiState.collectAsStateWithLifecycle()
+    val isInWatchlist by tvShowDetailsScreenViewModel.isInWatchlist.collectAsStateWithLifecycle()
+    val watchlistLoading by tvShowDetailsScreenViewModel.watchlistLoading.collectAsStateWithLifecycle()
 
     when (val s = uiState) {
         is TvShowDetailsScreenUiState.Loading -> {
@@ -76,6 +78,9 @@ fun TvShowDetailsScreen(
                 seasons = s.seasons,
                 openVideoPlayer = openVideoPlayer,
                 onBackPressed = onBackPressed,
+                isInWatchlist = isInWatchlist,
+                watchlistLoading = watchlistLoading,
+                onToggleWatchlist = tvShowDetailsScreenViewModel::toggleWatchlist,
                 modifier = Modifier
                     .fillMaxSize()
                     .animateContentSize()
@@ -90,11 +95,16 @@ private fun Details(
     seasons: List<Season>,
     openVideoPlayer: (tvShowId: String) -> Unit,
     onBackPressed: () -> Unit,
+    isInWatchlist: Boolean,
+    watchlistLoading: Boolean,
+    onToggleWatchlist: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val childPadding = rememberChildPadding()
     val lazyListState = rememberLazyListState()
     val playButtonFocusRequester = remember { FocusRequester() }
+    val watchlistButtonFocusRequester = remember { FocusRequester() }
+    val episodesTabFocusRequester = remember { FocusRequester() }
 
     Box(modifier = Modifier.fillMaxSize()) {
         MovieImageWithGradients(
@@ -128,7 +138,12 @@ private fun Details(
                 streamingProviders = tvShow.streamingProviders,
                 seasons = tvShow.seasons,
                 playButtonFocusRequester = playButtonFocusRequester,
-                onPlayButtonFocused = null
+                watchlistButtonFocusRequester = watchlistButtonFocusRequester,
+                episodesTabFocusRequester = episodesTabFocusRequester,
+                onPlayButtonFocused = null,
+                isInWatchlist = isInWatchlist,
+                watchlistLoading = watchlistLoading,
+                onToggleWatchlist = onToggleWatchlist
             )
         }
 
@@ -136,6 +151,7 @@ private fun Details(
             SeasonsAndEpisodes(
                 seasons = seasons.ifEmpty { tvShow.seasons ?: emptyList() },
                 playButtonFocusRequester = playButtonFocusRequester,
+                episodesTabFocusRequester = episodesTabFocusRequester,
                 onEpisodeClick = { episode ->
                     Log.d("TvShowDetails", "Episode clicked: ${episode.title}")
                     Log.d("TvShowDetails", "Episode video: ${episode.video}")
