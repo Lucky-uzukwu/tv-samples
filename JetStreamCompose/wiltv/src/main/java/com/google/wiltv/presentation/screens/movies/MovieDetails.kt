@@ -28,6 +28,7 @@ import androidx.tv.material3.Text
 import com.google.wiltv.data.models.Genre
 import com.google.wiltv.data.models.StreamingProvider
 import com.google.wiltv.data.models.Video
+import com.google.wiltv.data.entities.WatchProgress
 import com.google.wiltv.presentation.common.StreamingProviderIcon
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
 import com.google.wiltv.presentation.utils.formatDuration
@@ -50,7 +51,8 @@ fun MovieDetails(
     onPlayButtonFocused: (() -> Unit)? = null,
     isInWatchlist: Boolean = false,
     watchlistLoading: Boolean = false,
-    onToggleWatchlist: (() -> Unit)
+    onToggleWatchlist: (() -> Unit),
+    watchProgress: WatchProgress? = null
 ) {
     val childPadding = rememberChildPadding()
 
@@ -124,7 +126,12 @@ fun MovieDetails(
 
             ) {
                 if (video != null) {
-                    PlayButton(
+                    val hasProgress = watchProgress != null && !watchProgress.completed && watchProgress.progressMs > 0
+                    val progressPercentage = if (hasProgress && watchProgress!!.durationMs > 0) {
+                        watchProgress.progressMs.toFloat() / watchProgress.durationMs.toFloat()
+                    } else 0f
+                    
+                    ResumePlayButton(
                         modifier = Modifier
                             .focusProperties {
                                 canFocus = true
@@ -143,7 +150,9 @@ fun MovieDetails(
                         focusRequester = playButtonFocusRequester,
                         onClick = {
                             openVideoPlayer(id.toString())
-                        }
+                        },
+                        hasProgress = hasProgress,
+                        progressPercentage = progressPercentage
                     )
                 } else {
                     ComingSoonButton(

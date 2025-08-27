@@ -1,6 +1,6 @@
 package com.google.wiltv.presentation.screens.home
 
-import androidx.compose.foundation.layout.fillMaxSize
+ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,6 +41,7 @@ fun HomeScreen(
     val uiState by homeScreeViewModel.uiState.collectAsStateWithLifecycle()
     val featuredMovies = homeScreeViewModel.heroSectionMovies.collectAsLazyPagingItems()
     val watchlistItemIds by homeScreeViewModel.watchlistItemIds.collectAsStateWithLifecycle()
+    val continueWatchingItems by homeScreeViewModel.continueWatchingItems.collectAsStateWithLifecycle()
     val carouselState = rememberSaveable(saver = carouselSaver) { CarouselState(0) }
 
     // Monitor paging errors and propagate to ViewModel

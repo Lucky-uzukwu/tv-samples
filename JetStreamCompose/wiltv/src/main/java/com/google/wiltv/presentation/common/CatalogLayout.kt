@@ -7,11 +7,13 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,9 +25,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -407,7 +415,8 @@ fun CatalogLayout(
             )
         }
 
-        // Catalog rows
+
+//        // Catalog rows
         items(
             count = catalogToLazyPagingItems.size,
             key = { catalog ->
@@ -424,7 +433,7 @@ fun CatalogLayout(
                 val catalogName = catalogKey.name
                 val hasError = movies?.hasError() == true
                 Logger.d { "📚 LaunchedEffect triggered for catalog '$catalogName' - hasError: $hasError, movies != null: ${movies != null}" }
-                
+
                 if (hasError) {
                     movies?.getErrorState()?.let { errorText ->
                         Logger.e { "🚨 Catalog row error detected for '$catalogName': $errorText" }
@@ -609,4 +618,5 @@ fun CatalogBackground(
         }
     }
 }
+
 

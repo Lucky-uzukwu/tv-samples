@@ -12,6 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.PlayerSurface
@@ -23,10 +28,18 @@ import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.presentation.screens.videoPlayer.components.VideoPlayerControls
 import com.google.wiltv.presentation.screens.videoPlayer.components.VideoPlayerOverlay
 import com.google.wiltv.presentation.screens.videoPlayer.components.VideoPlayerPulse
+import com.google.wiltv.presentation.screens.videoPlayer.components.WatchProgressManager
 import com.google.wiltv.presentation.screens.videoPlayer.components.rememberPlayer
+import com.google.wiltv.presentation.screens.videoPlayer.components.rememberPlayerWithProgressTracking
 import com.google.wiltv.presentation.screens.videoPlayer.components.rememberVideoPlayerPulseState
 import com.google.wiltv.presentation.screens.videoPlayer.components.rememberVideoPlayerState
 import kotlinx.coroutines.flow.StateFlow
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface WatchProgressManagerEntryPoint {
+    fun watchProgressManager(): WatchProgressManager
+}
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -36,7 +49,26 @@ fun VideoPlayerScreenContent(
     onBackPressed: () -> Unit
 ) {
     val context = LocalContext.current
-    val exoPlayer = rememberPlayer(context)
+    
+    // Get WatchProgressManager from Hilt
+    val watchProgressManager = remember {
+        val entryPoint = EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            WatchProgressManagerEntryPoint::class.java
+        )
+        entryPoint.watchProgressManager()
+    }
+    
+    // Determine content type and ID for progress tracking
+    val contentType = if (selectedMovie.tvShowSeasonId != null) "tvshow" else "movie" 
+    val contentId = selectedMovie.id
+    
+    val exoPlayer = rememberPlayerWithProgressTracking(
+        context = context,
+        contentId = contentId,
+        contentType = contentType,
+        watchProgressManager = watchProgressManager
+    )
 
     val videoPlayerState = rememberVideoPlayerState(
         hideSeconds = 15,

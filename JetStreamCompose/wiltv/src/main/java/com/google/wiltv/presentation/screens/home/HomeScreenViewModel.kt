@@ -7,6 +7,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.google.wiltv.AppDatabase
+import com.google.wiltv.data.models.ContinueWatchingItem
 import com.google.wiltv.data.models.Genre
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.StreamingProvider
@@ -19,6 +20,7 @@ import com.google.wiltv.data.repositories.MovieRepository
 import com.google.wiltv.data.repositories.StreamingProvidersRepository
 import com.google.wiltv.data.repositories.UserRepository
 import com.google.wiltv.data.repositories.WatchlistRepository
+import com.google.wiltv.data.repositories.WatchProgressRepository
 import com.google.wiltv.domain.ApiResult
 import com.google.wiltv.presentation.UiText
 import com.google.wiltv.presentation.asUiText
@@ -30,6 +32,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -43,7 +46,8 @@ class HomeScreeViewModel @Inject constructor(
     private val genreRepository: GenreRepository,
     private val appDatabase: AppDatabase,
     private val streamingProvidersRepository: StreamingProvidersRepository,
-    private val watchlistRepository: WatchlistRepository
+    private val watchlistRepository: WatchlistRepository,
+    private val watchProgressRepository: WatchProgressRepository
 ) : ViewModel() {
 
 
@@ -97,9 +101,61 @@ class HomeScreeViewModel @Inject constructor(
         emptySet()
     )
 
+    val continueWatchingItems: StateFlow<List<ContinueWatchingItem>> = userRepository.userId.flatMapLatest { userId ->
+        if (userId != null) {
+            watchProgressRepository.getRecentWatchProgress(userId, limit = 10).map { progressList ->
+                // For now, just transform progress to items without fetching full movie details
+                // This will be optimized later with a proper mapping solution
+                progressList.filter { !it.completed && it.progressMs > 0 }.take(5).map { progress ->
+                    ContinueWatchingItem(
+                        movie = MovieNew(
+                            id = progress.contentId,
+                            title = "Loading...", // Placeholder until we implement proper movie details fetching
+                            tagLine = null,
+                            plot = null,
+                            releaseDate = null,
+                            duration = null,
+                            imdbRating = null,
+                            imdbVotes = null,
+                            backdropImagePath = null,
+                            posterImagePath = null,
+                            youtubeTrailerUrl = null,
+                            contentRating = null,
+                            isAdultContent = false,
+                            isKidsContent = false,
+                            views = null,
+                            active = true,
+                            showInHeroSection = false,
+                            tvShowSeasonPriority = null,
+                            moviePeopleCount = null,
+                            people = emptyList(),
+                            theMovieDbId = null,
+                            backdropImageUrl = null,
+                            posterImageUrl = null,
+                            genres = emptyList(),
+                            countries = emptyList(),
+                            languages = emptyList(),
+                            catalogs = emptyList(),
+                            video = null,
+                            tvShowSeasonId = if (progress.contentType == "tvshow") progress.contentId else null,
+                            peopleCount = null,
+                            streamingProviders = emptyList()
+                        ),
+                        watchProgress = progress
+                    )
+                }
+            }
+        } else {
+            kotlinx.coroutines.flow.flowOf(emptyList())
+        }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        emptyList()
+    )
+
     private val _uiState = MutableStateFlow<HomeScreenUiState>(HomeScreenUiState.Loading)
     val uiState: StateFlow<HomeScreenUiState> = _uiState.asStateFlow()
-
 
     fun fetchHomeScreenData() {
         viewModelScope.launch {
@@ -225,6 +281,7 @@ sealed interface HomeScreenUiState {
     data class Ready(
         val catalogToMovies: Map<Catalog, StateFlow<PagingData<MovieNew>>>,
         val genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>,
-        val streamingProviders: List<StreamingProvider>
+        val streamingProviders: List<StreamingProvider>,
+        val continueWatchingItems: List<ContinueWatchingItem> = emptyList()
     ) : HomeScreenUiState
 }

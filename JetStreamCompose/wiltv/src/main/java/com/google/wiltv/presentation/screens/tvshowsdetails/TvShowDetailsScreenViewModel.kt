@@ -85,7 +85,7 @@ class TvShowDetailsScreenViewModel @Inject constructor(
         viewModelScope.launch {
             val currentTvShowId = tvShowId?.toIntOrNull()
 
-            val effectiveUserId = userRepository.userAccessCode.firstOrNull() ?: "default_user_id"
+            val effectiveUserId = userRepository.userId.firstOrNull() ?: "default_user_id"
 
             if (currentTvShowId != null) {
                 try {

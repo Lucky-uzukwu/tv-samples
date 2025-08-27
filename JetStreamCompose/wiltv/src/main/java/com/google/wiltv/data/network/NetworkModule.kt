@@ -6,9 +6,11 @@ import coil.ImageLoader
 import com.google.wiltv.AppDatabase
 import com.google.wiltv.MIGRATION_1_2
 import com.google.wiltv.MIGRATION_2_3
+import com.google.wiltv.MIGRATION_3_4
 import com.google.wiltv.data.dao.MovieRemoteKeyDao
 import com.google.wiltv.data.dao.MoviesDao
 import com.google.wiltv.data.dao.WatchlistDao
+import com.google.wiltv.data.dao.WatchProgressDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -51,7 +53,7 @@ class NetworkModule {
     fun provideMovieDatabase(@ApplicationContext context: Context): AppDatabase =
         Room
             .databaseBuilder(context, AppDatabase::class.java, "app_database")
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
             .build()
 
     @Singleton
@@ -67,6 +69,11 @@ class NetworkModule {
     @Provides
     fun provideWatchlistDao(moviesDatabase: AppDatabase): WatchlistDao =
         moviesDatabase.getWatchlistDao()
+
+    @Singleton
+    @Provides
+    fun provideWatchProgressDao(moviesDatabase: AppDatabase): WatchProgressDao =
+        moviesDatabase.getWatchProgressDao()
 
 
     @Provides

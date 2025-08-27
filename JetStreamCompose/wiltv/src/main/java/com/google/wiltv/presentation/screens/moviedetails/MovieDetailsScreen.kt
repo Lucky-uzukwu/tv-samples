@@ -27,6 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.Person
+import com.google.wiltv.data.entities.WatchProgress
 import com.google.wiltv.data.util.StringConstants
 import com.google.wiltv.presentation.common.AuthenticatedAsyncImage
 import com.google.wiltv.presentation.common.Error
@@ -56,6 +57,7 @@ fun MovieDetailsScreen(
     val uiState by movieDetailsScreenViewModel.uiState.collectAsStateWithLifecycle()
     val isInWatchlist by movieDetailsScreenViewModel.isInWatchlist.collectAsStateWithLifecycle()
     val watchlistLoading by movieDetailsScreenViewModel.watchlistLoading.collectAsStateWithLifecycle()
+    val watchProgress by movieDetailsScreenViewModel.watchProgress.collectAsStateWithLifecycle()
 
     when (val s = uiState) {
         is MovieDetailsScreenUiState.Loading -> {
@@ -76,6 +78,7 @@ fun MovieDetailsScreen(
                 isInWatchlist = isInWatchlist,
                 watchlistLoading = watchlistLoading,
                 onToggleWatchlist = movieDetailsScreenViewModel::toggleWatchlist,
+                watchProgress = watchProgress,
                 modifier = Modifier
                     .fillMaxSize()
                     .animateContentSize()
@@ -94,6 +97,7 @@ private fun Details(
     isInWatchlist: Boolean,
     watchlistLoading: Boolean,
     onToggleWatchlist: () -> Unit,
+    watchProgress: WatchProgress?,
     modifier: Modifier = Modifier,
 ) {
     val lazyListState = rememberLazyListState()
@@ -155,7 +159,8 @@ private fun Details(
                         onPlayButtonFocused = { },
                         isInWatchlist = isInWatchlist,
                         watchlistLoading = watchlistLoading,
-                        onToggleWatchlist = onToggleWatchlist
+                        onToggleWatchlist = onToggleWatchlist,
+                        watchProgress = watchProgress
                     )
                 }
 

@@ -42,7 +42,10 @@ import com.google.wiltv.data.repositories.TvChannelsRepository
 import com.google.wiltv.data.repositories.TvChannelsRepositoryImpl
 import com.google.wiltv.data.repositories.WatchlistRepository
 import com.google.wiltv.data.repositories.WatchlistRepositoryImpl
+import com.google.wiltv.data.repositories.WatchProgressRepository
+import com.google.wiltv.data.repositories.WatchProgressRepositoryImpl
 import com.google.wiltv.data.dao.WatchlistDao
+import com.google.wiltv.data.dao.WatchProgressDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -278,6 +281,19 @@ object WatchlistRepositoryModule {
         watchlistDao: WatchlistDao
     ): WatchlistRepository {
         return WatchlistRepositoryImpl(watchlistDao)
+    }
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object WatchProgressRepositoryModule {
+
+    @Provides
+    @Singleton
+    fun provideWatchProgressRepository(
+        watchProgressDao: WatchProgressDao
+    ): WatchProgressRepository {
+        return WatchProgressRepositoryImpl(watchProgressDao)
     }
 }
 

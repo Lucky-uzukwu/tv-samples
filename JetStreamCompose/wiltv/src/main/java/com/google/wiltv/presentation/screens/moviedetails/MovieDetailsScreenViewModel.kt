@@ -10,6 +10,8 @@ import com.google.wiltv.data.paging.pagingsources.movie.MoviesPagingSources
 import com.google.wiltv.data.repositories.MovieRepository
 import com.google.wiltv.data.repositories.UserRepository
 import com.google.wiltv.data.repositories.WatchlistRepository
+import com.google.wiltv.data.repositories.WatchProgressRepository
+import com.google.wiltv.data.entities.WatchProgress
 import com.google.wiltv.domain.ApiResult
 import com.google.wiltv.presentation.UiText
 import com.google.wiltv.presentation.asUiText
@@ -32,6 +34,7 @@ class MovieDetailsScreenViewModel @Inject constructor(
     private val movieRepository: MovieRepository,
     private val userRepository: UserRepository,
     private val watchlistRepository: WatchlistRepository,
+    private val watchProgressRepository: WatchProgressRepository,
 ) : ViewModel() {
 
     private val movieId: String? =
@@ -65,11 +68,34 @@ class MovieDetailsScreenViewModel @Inject constructor(
     private val _watchlistLoading = MutableStateFlow(false)
     val watchlistLoading: StateFlow<Boolean> = _watchlistLoading
 
+    // Watch progress state management - reactive to database changes
+    val watchProgress: StateFlow<WatchProgress?> = combine(
+        userRepository.userId,
+        savedStateHandle.getStateFlow<String?>(MovieDetailsScreen.MovieIdBundleKey, null)
+    ) { userId, movieId ->
+        val effectiveUserId = userId
+        val currentMovieId = movieId?.toIntOrNull() ?: 0
+
+        if (currentMovieId != 0 && effectiveUserId != null) {
+            try {
+                watchProgressRepository.getWatchProgress(effectiveUserId, currentMovieId)
+            } catch (e: Exception) {
+                kotlinx.coroutines.flow.flowOf(null)
+            }
+        } else {
+            kotlinx.coroutines.flow.flowOf(null)
+        }
+    }.flattenMerge(concurrency = 1).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = null
+    )
+
     fun toggleWatchlist() {
         viewModelScope.launch {
             val currentMovieId = movieId?.toIntOrNull()
 
-            val effectiveUserId = userRepository.userAccessCode.firstOrNull() ?: "default_user_id"
+            val effectiveUserId = userRepository.userId.firstOrNull() ?: "default_user_id"
 
             if (currentMovieId != null) {
                 try {

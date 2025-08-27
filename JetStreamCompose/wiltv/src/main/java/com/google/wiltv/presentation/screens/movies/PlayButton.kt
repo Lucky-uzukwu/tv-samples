@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Replay
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -88,6 +89,46 @@ fun ComingSoonButton(
         Spacer(Modifier.size(8.dp))
         Text(
             text = stringResource(R.string.coming_soon),
+            style = MaterialTheme.typography.titleSmall
+        )
+    }
+}
+
+@Composable
+fun ResumePlayButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    focusRequester: FocusRequester,
+    hasProgress: Boolean = false,
+    progressPercentage: Float = 0f
+) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .height(40.dp)
+            .focusRequester(focusRequester)
+            .then(modifier),
+        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+        shape = ButtonDefaults.shape(shape = WilTvButtonShape),
+        colors = ButtonDefaults.colors(
+            containerColor = md_theme_light_outline,
+            contentColor = md_theme_light_onTertiary,
+            focusedContainerColor = Color(0xFFA855F7),
+            focusedContentColor = md_theme_light_shadow,
+        ),
+        scale = ButtonDefaults.scale(scale = 1f)
+    ) {
+        Icon(
+            imageVector = if (hasProgress) Icons.Outlined.Replay else Icons.Outlined.PlayArrow,
+            contentDescription = null,
+        )
+        Spacer(Modifier.size(8.dp))
+        Text(
+            text = if (hasProgress) {
+                "Resume (${(progressPercentage * 100).toInt()}%)"
+            } else {
+                stringResource(R.string.play)
+            },
             style = MaterialTheme.typography.titleSmall
         )
     }

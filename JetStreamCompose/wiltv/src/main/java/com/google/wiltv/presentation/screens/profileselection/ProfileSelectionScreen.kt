@@ -94,6 +94,7 @@ fun ProfileSelectionScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ProfileSelectionContent(
     profiles: List<Profile>,
