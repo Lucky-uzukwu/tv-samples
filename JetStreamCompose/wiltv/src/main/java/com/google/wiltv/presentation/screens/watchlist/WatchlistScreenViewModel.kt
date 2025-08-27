@@ -29,18 +29,29 @@ class WatchlistScreenViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _loading = MutableStateFlow(false)
+    
+    // Search and filter state
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery
+    
+    private val _contentTypeFilter = MutableStateFlow(ContentTypeFilter.ALL)
+    val contentTypeFilter: StateFlow<ContentTypeFilter> = _contentTypeFilter
 
+    // Combined state for watchlist items with search and filter
     val uiState: StateFlow<WatchlistScreenUiState> = combine(
         userRepository.userId,
         userRepository.userToken,
-        _loading
-    ) { userId, userToken, loading ->
+        _loading,
+        _searchQuery,
+        _contentTypeFilter
+    ) { userId, userToken, loading, searchQuery, contentTypeFilter ->
         if (loading) {
             WatchlistScreenUiState.Loading
         } else if (userId == null || userToken == null) {
             WatchlistScreenUiState.Error
         } else {
-            getUserWatchlistItems(userId, userToken)
+            val baseState = getUserWatchlistItems(userId, userToken)
+            filterWatchlistItems(baseState, searchQuery, contentTypeFilter)
         }
     }.stateIn(
         scope = viewModelScope,
@@ -101,6 +112,53 @@ class WatchlistScreenViewModel @Inject constructor(
         }
     }
 
+    private fun filterWatchlistItems(
+        baseState: WatchlistScreenUiState,
+        searchQuery: String,
+        contentTypeFilter: ContentTypeFilter
+    ): WatchlistScreenUiState {
+        return when (baseState) {
+            is WatchlistScreenUiState.Success -> {
+                val filteredItems = baseState.watchlistItems.filter { item ->
+                    // Apply content type filter
+                    val matchesContentType = when (contentTypeFilter) {
+                        ContentTypeFilter.ALL -> true
+                        ContentTypeFilter.MOVIES -> item is WatchlistContentItem.Movie
+                        ContentTypeFilter.TV_SHOWS -> item is WatchlistContentItem.TvShow
+                    }
+                    
+                    // Apply search query filter
+                    val matchesSearch = if (searchQuery.isBlank()) {
+                        true
+                    } else {
+                        val title = when (item) {
+                            is WatchlistContentItem.Movie -> item.movie.title
+                            is WatchlistContentItem.TvShow -> item.tvShow.title ?: ""
+                        }
+                        title.contains(searchQuery, ignoreCase = true)
+                    }
+                    
+                    matchesContentType && matchesSearch
+                }
+                
+                if (filteredItems.isEmpty()) {
+                    WatchlistScreenUiState.Empty
+                } else {
+                    WatchlistScreenUiState.Success(filteredItems)
+                }
+            }
+            else -> baseState // Return original state for Loading, Error, Empty
+        }
+    }
+    
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+    
+    fun updateContentTypeFilter(filter: ContentTypeFilter) {
+        _contentTypeFilter.value = filter
+    }
+
     fun removeFromWatchlist(contentId: Int) {
         viewModelScope.launch {
             try {
@@ -126,4 +184,8 @@ sealed class WatchlistContentItem {
     
     data class Movie(override val contentId: Int, val movie: MovieNew) : WatchlistContentItem()
     data class TvShow(override val contentId: Int, val tvShow: com.google.wiltv.data.models.TvShow) : WatchlistContentItem()
+}
+
+enum class ContentTypeFilter {
+    ALL, MOVIES, TV_SHOWS
 }
