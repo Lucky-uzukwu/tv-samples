@@ -75,8 +75,8 @@ fun AuthScreen(
     LaunchedEffect(uiEvent) {
         if (uiEvent is AuthScreenUiEvent.NavigateToLogin && uiState is AuthScreenUiState.Success<*>) {
             val identifier = when {
-                registrationCode.isNotBlank() && identifierOrEmail.isBlank() -> registrationCode
-                loginRequestCode.isNotBlank() && identifierOrEmail.isBlank() -> loginRequestCode
+                registrationCode.isNotBlank() && identifierOrEmail.isBlank() && loginRequestCode.isBlank() -> registrationCode
+                loginRequestCode.isNotBlank() && identifierOrEmail.isBlank() && registrationCode.isBlank() -> loginRequestCode
                 identifierOrEmail.isNotBlank() -> identifierOrEmail
                 else -> null
             }
