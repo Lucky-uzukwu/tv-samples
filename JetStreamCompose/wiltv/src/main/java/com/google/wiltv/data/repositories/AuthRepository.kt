@@ -21,7 +21,7 @@ interface AuthRepository {
         deviceName: String,
     ): ApiResult<LoginResponse, DataError.Network>
 
-    suspend fun getUser(token: String, identifier: String): Flow<UserResponse?>
+    suspend fun getUser(token: String, identifier: String): ApiResult<UserResponse, DataError.Network>
 
     suspend fun loginWithTv(
         identifier: String,

@@ -28,8 +28,9 @@ class UserStateHolder @Inject constructor(
         viewModelScope.launch {
             // Initialize default profiles on first launch
             profileRepository.initializeDefaultProfiles()
-            
+
             combine(
+                userRepository.userId,
                 userRepository.userAccessCode,
                 userRepository.userName,
                 userRepository.userEmail,
@@ -45,20 +46,21 @@ class UserStateHolder @Inject constructor(
             ) { userParams ->
                 UserState(
                     user = User(
-                        id = java.util.UUID.randomUUID().toString(), // Generate UUID for existing users
-                        identifier = userParams[0] as? String ?: "",
-                        name = userParams[1] as? String ?: "",
-                        email = userParams[2] as? String ?: "",
-                        profilePhotoPath = userParams[3] as? String,
-                        profilePhotoUrl = userParams[4] as? String,
-                        token = userParams[5] as? String,
-                        password = userParams[6] as? String ?: "",
-                        clientIp = userParams[7] as? String ?: "",
-                        deviceName = userParams[8] as? String ?: "",
-                        deviceMacAddress = userParams[9] as? String ?: ""
+                        id = userParams[0] as? String ?: userParams[1] as? String
+                        ?: "", // Use persisted userId or fallback to identifier
+                        identifier = userParams[1] as? String ?: "",
+                        name = userParams[2] as? String ?: "",
+                        email = userParams[3] as? String ?: "",
+                        profilePhotoPath = userParams[4] as? String,
+                        profilePhotoUrl = userParams[5] as? String,
+                        token = userParams[6] as? String,
+                        password = userParams[7] as? String ?: "",
+                        clientIp = userParams[8] as? String ?: "",
+                        deviceName = userParams[9] as? String ?: "",
+                        deviceMacAddress = userParams[10] as? String ?: ""
                     ),
-                    profiles = userParams[10] as? List<Profile> ?: emptyList(),
-                    selectedProfile = userParams[11] as? Profile
+                    profiles = userParams[11] as? List<Profile> ?: emptyList(),
+                    selectedProfile = userParams[12] as? Profile
                 )
             }.collect { newState ->
                 _userState.value = newState
@@ -71,6 +73,7 @@ class UserStateHolder @Inject constructor(
         _userState.update { current ->
             current.copy(user = user)
         }
+        userRepository.saveUserId(user.id) // Save user ID to persistent storage
         user.token?.let { userRepository.saveUserToken(it) }
         userRepository.saveUserName(user.name)
         userRepository.saveUserEmail(user.email)
@@ -94,6 +97,8 @@ class UserStateHolder @Inject constructor(
             userRepository.clearUserData()
         }
     }
+
+    suspend fun getUser(): User? = _userState.value.user
 
     suspend fun selectProfile(profileId: String) {
         profileRepository.selectProfile(profileId)

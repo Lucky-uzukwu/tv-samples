@@ -33,19 +33,20 @@ class MovieDetailsScreenViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val watchlistRepository: WatchlistRepository,
 ) : ViewModel() {
-    
-    private val movieId: String? = savedStateHandle.get<String?>(MovieDetailsScreen.MovieIdBundleKey)
-    
+
+    private val movieId: String? =
+        savedStateHandle.get<String?>(MovieDetailsScreen.MovieIdBundleKey)
+
     // Watchlist state management - now properly reactive to database changes
     val isInWatchlist: StateFlow<Boolean> = combine(
         userRepository.userId,
         savedStateHandle.getStateFlow<String?>(MovieDetailsScreen.MovieIdBundleKey, null)
     ) { userId, movieId ->
         // Use default user ID if not authenticated
-        val effectiveUserId = userId ?: "default_user"
+        val effectiveUserId = userId
         val currentMovieId = movieId?.toIntOrNull() ?: 0
-        
-        if (currentMovieId != 0) {
+
+        if (currentMovieId != 0 && effectiveUserId != null) {
             try {
                 // Return the database Flow directly - this makes it reactive
                 watchlistRepository.isInWatchlist(effectiveUserId, currentMovieId)
@@ -60,26 +61,21 @@ class MovieDetailsScreenViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = false
     )
-    
+
     private val _watchlistLoading = MutableStateFlow(false)
     val watchlistLoading: StateFlow<Boolean> = _watchlistLoading
-    
+
     fun toggleWatchlist() {
         viewModelScope.launch {
             val currentMovieId = movieId?.toIntOrNull()
-            
-            // Use ensureUserIdExists to safely get/create user ID
-            val effectiveUserId = try {
-                userRepository.ensureUserIdExists()
-            } catch (e: Exception) {
-                "default_user" // Fallback if storage fails
-            }
-            
+
+            val effectiveUserId = userRepository.userAccessCode.firstOrNull() ?: "default_user_id"
+
             if (currentMovieId != null) {
                 try {
                     _watchlistLoading.value = true
                     val isCurrentlyInWatchlist = isInWatchlist.value
-                    
+
                     if (isCurrentlyInWatchlist) {
                         watchlistRepository.removeFromWatchlist(effectiveUserId, currentMovieId)
                         // Add success feedback here if needed
@@ -96,7 +92,7 @@ class MovieDetailsScreenViewModel @Inject constructor(
             }
         }
     }
-    
+
     val uiState: StateFlow<MovieDetailsScreenUiState> = combine(
         savedStateHandle
             .getStateFlow<String?>(MovieDetailsScreen.MovieIdBundleKey, null),
@@ -109,7 +105,7 @@ class MovieDetailsScreenViewModel @Inject constructor(
                 movieId = movieId,
                 token = userToken
             )
-            
+
             val details = when (detailsResult) {
                 is ApiResult.Success -> detailsResult.data
                 is ApiResult.Error -> return@combine MovieDetailsScreenUiState.Error(

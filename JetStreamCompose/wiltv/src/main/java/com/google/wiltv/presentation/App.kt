@@ -59,7 +59,7 @@ fun App(
     val navController = rememberNavController()
     var isComingBackFromDifferentScreen by remember { mutableStateOf(false) }
     val userState by userStateHolder.userState.collectAsState()
-    val startDestination = 
+    val startDestination =
         if (userState.user?.token !== null) {
             // If authenticated, go directly to profile selection
             Screens.ProfileSelection()
@@ -244,73 +244,74 @@ fun App(
                 )
             }
             composable(route = Screens.Dashboard()) {
-                val dashboardCallbacks = remember(navController, selectedMovie, selectedTvShow, userStateHolder) {
-                    DashboardCallbacks(
-                        openCategoryMovieList = { categoryId ->
-                            navController.navigate(
-                                Screens.CategoryMovieList.withArgs(categoryId)
-                            )
-                        },
-                        openGenreTvChannelsList = { genre ->
-                            navController.navigate(
-                                Screens.GenreTvChannelsList.withArgs("${genre.id}-${genre.name}")
-                            )
-                        },
-                        openAllChannels = {
-                            navController.navigate(Screens.AllChannels())
-                        },
-                        openStreamingProviderMovieList = { streamingProvider ->
-                            navController.navigate(
-                                Screens.StreamingProviderMoviesList.withArgs("${streamingProvider.id}-${streamingProvider.name}")
-                            )
-                        },
-                        openStreamingProvideShowList = { streamingProvider ->
-                            navController.navigate(
-                                Screens.StreamingProviderShowsList.withArgs("${streamingProvider.id}-${streamingProvider.name}")
-                            )
-                        },
-                        openTvShowDetailsScreen = { tvShowId ->
-                            navController.navigate(
-                                Screens.TvShowDetails.withArgs(tvShowId)
-                            )
-                        },
-                        openMovieDetailsScreen = { movieId ->
-                            navController.navigate(
-                                Screens.MovieDetails.withArgs(movieId)
-                            )
-                        },
-                        openVideoPlayer = { contentId, title ->
-                            // Check if this is a TV channel URL or a movie/show ID
-                            if (contentId.startsWith("http")) {
-                                // This is a TV channel URL, encode it
-                                val encodedUrl = URLEncoder.encode(contentId, "UTF-8")
-                                navController.navigate(Screens.VideoPlayer.withArgs(encodedUrl))
-                            } else {
-                                // This is a movie/show ID, use as-is
-                                navController.navigate(Screens.VideoPlayer.withArgs(contentId))
+                val dashboardCallbacks =
+                    remember(navController, selectedMovie, selectedTvShow, userStateHolder) {
+                        DashboardCallbacks(
+                            openCategoryMovieList = { categoryId ->
+                                navController.navigate(
+                                    Screens.CategoryMovieList.withArgs(categoryId)
+                                )
+                            },
+                            openGenreTvChannelsList = { genre ->
+                                navController.navigate(
+                                    Screens.GenreTvChannelsList.withArgs("${genre.id}-${genre.name}")
+                                )
+                            },
+                            openAllChannels = {
+                                navController.navigate(Screens.AllChannels())
+                            },
+                            openStreamingProviderMovieList = { streamingProvider ->
+                                navController.navigate(
+                                    Screens.StreamingProviderMoviesList.withArgs("${streamingProvider.id}-${streamingProvider.name}")
+                                )
+                            },
+                            openStreamingProvideShowList = { streamingProvider ->
+                                navController.navigate(
+                                    Screens.StreamingProviderShowsList.withArgs("${streamingProvider.id}-${streamingProvider.name}")
+                                )
+                            },
+                            openTvShowDetailsScreen = { tvShowId ->
+                                navController.navigate(
+                                    Screens.TvShowDetails.withArgs(tvShowId)
+                                )
+                            },
+                            openMovieDetailsScreen = { movieId ->
+                                navController.navigate(
+                                    Screens.MovieDetails.withArgs(movieId)
+                                )
+                            },
+                            openVideoPlayer = { contentId, title ->
+                                // Check if this is a TV channel URL or a movie/show ID
+                                if (contentId.startsWith("http")) {
+                                    // This is a TV channel URL, encode it
+                                    val encodedUrl = URLEncoder.encode(contentId, "UTF-8")
+                                    navController.navigate(Screens.VideoPlayer.withArgs(encodedUrl))
+                                } else {
+                                    // This is a movie/show ID, use as-is
+                                    navController.navigate(Screens.VideoPlayer.withArgs(contentId))
+                                }
+                            },
+                            setSelectedMovie = {
+                                selectedMovie.value = it
+                                selectedTvShow.value = null
+                            },
+                            setSelectedTvShow = {
+                                selectedTvShow.value = it
+                                selectedMovie.value = null
+                            },
+                            onLogOutClick = {
+                                userStateHolder.clearUser()
+                                navController.navigate(Screens.AuthScreen())
+                            },
+                            onNavigateToProfileSelection = {
+                                navController.navigate(Screens.ProfileSelection())
                             }
-                        },
-                        setSelectedMovie = {
-                            selectedMovie.value = it
-                            selectedTvShow.value = null
-                        },
-                        setSelectedTvShow = {
-                            selectedTvShow.value = it
-                            selectedMovie.value = null
-                        },
-                        onLogOutClick = {
-                            userStateHolder.clearUser()
-                            navController.navigate(Screens.AuthScreen())
-                        },
-                        onNavigateToProfileSelection = {
-                            navController.navigate(Screens.ProfileSelection())
-                        }
-                    )
-                }
-                
+                        )
+                    }
+
                 // Handle back button to exit app when at dashboard root
                 BackHandler(onBack = onBackPressed)
-                
+
                 DashboardScreen(
                     openCategoryMovieList = dashboardCallbacks.openCategoryMovieList,
                     openGenreTvChannelsList = dashboardCallbacks.openGenreTvChannelsList,

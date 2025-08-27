@@ -20,6 +20,7 @@ import com.pusher.client.connection.ConnectionEventListener
 import com.pusher.client.connection.ConnectionState
 import com.pusher.client.connection.ConnectionStateChange
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -417,7 +418,7 @@ class AuthScreenViewModel @Inject constructor(
             clientIp = clientIp,
             deviceName = deviceName
         )
-        
+
         when (response) {
             is ApiResult.Success -> {
                 Logger.d { "API Success (Login with tv): ${response.data}" }
@@ -516,31 +517,34 @@ class AuthScreenViewModel @Inject constructor(
 
     fun getUser(identifier: String): Flow<UserResponse?> = flow {
         _uiState.update { AuthScreenUiState.Loading }
+        delay(2000)
         val token = userRepository.userToken.firstOrNull() ?: return@flow emit(null)
         val response = authRepository.getUser(
             token = token,
             identifier = identifier
         )
 
-        response.collect { userResponse ->
-            when (userResponse) {
-                null -> {
-                    _uiState.update { AuthScreenUiState.Error(UiText.DynamicString("User not found")) }
-                    emit(userResponse)
-                }
-
-                else -> {
-                    _uiState.update {
-                        AuthScreenUiState.Success(
-                            body = userResponse,
-                            message = "User found"
-                        )
-                    }
-                    emit(userResponse)
-                }
+        when (response) {
+            is ApiResult.Error -> {
+                Logger.e { "API Error (Get user): ${response.message}" }
+                _uiState.value = AuthScreenUiState.Error(
+                    response.error.asUiText(response.message)
+                )
+                emit(null)
+                return@flow
             }
-        }
 
+            is ApiResult.Success -> {
+                Logger.d { "API Success (Get user): ${response.data}" }
+                _uiState.value = AuthScreenUiState.Success(
+                    body = response.data,
+                    message = "User found"
+                )
+                emit(response.data)
+                return@flow
+            }
+
+        }
 
     }
 

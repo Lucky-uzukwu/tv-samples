@@ -57,6 +57,7 @@ import com.google.wiltv.R
 import com.google.wiltv.presentation.common.Error
 import com.google.wiltv.presentation.common.Loading
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
+import com.google.wiltv.presentation.screens.watchlist.WatchlistScreen
 import com.google.wiltv.presentation.theme.ComposeTvTheme
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -66,7 +67,9 @@ fun ProfileScreen(
     sidebarWidthFraction: Float = 0.32f,
     viewModel: ProfileScreenViewModel = hiltViewModel(),
     logOutOnClick: () -> Unit,
-    onNavigateToProfileSelection: () -> Unit = {}
+    onNavigateToProfileSelection: () -> Unit = {},
+    onMovieClick: (com.google.wiltv.data.models.MovieNew) -> Unit = {},
+    onTvShowClick: (com.google.wiltv.data.models.TvShow) -> Unit = {}
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -189,6 +192,12 @@ fun ProfileScreen(
                                 selectedProfile = s.selectedProfile,
                                 profiles = s.profiles,
                                 onSwitchProfileClick = onNavigateToProfileSelection
+                            )
+                        }
+                        composable(ProfileScreens.Watchlist()) {
+                            WatchlistScreen(
+                                onMovieClick = onMovieClick,
+                                onTvShowClick = onTvShowClick
                             )
                         }
                         composable(ProfileScreens.Accounts()) {

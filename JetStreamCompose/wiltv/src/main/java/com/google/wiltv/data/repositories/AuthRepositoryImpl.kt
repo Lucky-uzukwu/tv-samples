@@ -98,27 +98,12 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
 
-    override suspend fun getUser(token: String, identifier: String): Flow<UserResponse?> = flow {
+    override suspend fun getUser(token: String, identifier: String): ApiResult<UserResponse, DataError.Network> {
         Logger.i { "Attempting to get user with identifier: $identifier" }
         val response = userService.getUserResource(
             authToken = "Bearer $token",
             identifier = identifier
         )
-        when (response.code()) {
-            200 -> {
-                Logger.i { "Successfully got user with identifier: $identifier" }
-                emit(response.body()!!)
-            }
-
-            404 -> {
-                Logger.e { "User not found with identifier: $identifier" }
-                emit(null)
-            }
-
-            401 -> {
-                Logger.e { "Unauthorized access with identifier: $identifier" }
-                emit(null)
-            }
-        }
+        return mapToResult(response)
     }
 }

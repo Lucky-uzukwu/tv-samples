@@ -122,7 +122,13 @@ private fun Body(
             composable(Screens.Profile()) {
                 ProfileScreen(
                     logOutOnClick = onLogOutClick,
-                    onNavigateToProfileSelection = onNavigateToProfileSelection
+                    onNavigateToProfileSelection = onNavigateToProfileSelection,
+                    onMovieClick = { selectedMovie ->
+                        openMovieDetailsScreen(selectedMovie.id.toString())
+                    },
+                    onTvShowClick = { selectedTvShow ->
+                        openTvShowDetailsScreen(selectedTvShow.id.toString())
+                    }
                 )
             }
             composable(Screens.Home()) {

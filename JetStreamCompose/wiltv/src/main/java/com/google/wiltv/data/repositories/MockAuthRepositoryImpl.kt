@@ -46,21 +46,18 @@ class MockAuthRepositoryImpl : AuthRepository {
     override suspend fun getUser(
         token: String,
         identifier: String
-    ): Flow<UserResponse?> = flow {
-        emit(
-            UserResponse(
-                identifier = "identifier",
-                name = "name",
-                email = "email",
-                profilePhotoPath = "profilePhotoPath",
-                profilePhotoUrl = "profilePhotoUrl",
-                deviceAllowed = 1,
-                registrationRequired = true,
-                username = "username",
-                registrationRequiredMessage = "registrationRequiredMessage",
-            )
+    ): ApiResult<UserResponse, DataError.Network> = ApiResult.Success(
+        UserResponse(
+            identifier = "identifier",
+            username = "username",
+            name = "name",
+            email = "email",
+            deviceAllowed = 1,
+            profilePhotoPath = "profilePhotoPath",
+            registrationRequired = true,
+            registrationRequiredMessage = "registrationRequiredMessage"
         )
-    }
+    )
 
     override suspend fun loginWithAccessCode(
         accessCode: String,

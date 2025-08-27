@@ -49,19 +49,20 @@ class TvShowDetailsScreenViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val watchlistRepository: WatchlistRepository,
 ) : ViewModel() {
-    
-    private val tvShowId: String? = savedStateHandle.get<String?>(TvShowDetailsScreen.TvShowIdBundleKey)
-    
+
+    private val tvShowId: String? =
+        savedStateHandle.get<String?>(TvShowDetailsScreen.TvShowIdBundleKey)
+
     // Watchlist state management - now properly reactive to database changes
     val isInWatchlist: StateFlow<Boolean> = combine(
         userRepository.userId,
         savedStateHandle.getStateFlow<String?>(TvShowDetailsScreen.TvShowIdBundleKey, null)
     ) { userId, tvShowId ->
         // Use default user ID if not authenticated
-        val effectiveUserId = userId ?: "default_user"
+        val effectiveUserId = userId
         val currentTvShowId = tvShowId?.toIntOrNull() ?: 0
-        
-        if (currentTvShowId != 0) {
+
+        if (currentTvShowId != 0 && effectiveUserId != null) {
             try {
                 // Return the database Flow directly - this makes it reactive
                 watchlistRepository.isInWatchlist(effectiveUserId, currentTvShowId)
@@ -76,31 +77,30 @@ class TvShowDetailsScreenViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = false
     )
-    
+
     private val _watchlistLoading = MutableStateFlow(false)
     val watchlistLoading: StateFlow<Boolean> = _watchlistLoading
-    
+
     fun toggleWatchlist() {
         viewModelScope.launch {
             val currentTvShowId = tvShowId?.toIntOrNull()
-            
-            // Use ensureUserIdExists to safely get/create user ID
-            val effectiveUserId = try {
-                userRepository.ensureUserIdExists()
-            } catch (e: Exception) {
-                "default_user" // Fallback if storage fails
-            }
-            
+
+            val effectiveUserId = userRepository.userAccessCode.firstOrNull() ?: "default_user_id"
+
             if (currentTvShowId != null) {
                 try {
                     _watchlistLoading.value = true
                     val isCurrentlyInWatchlist = isInWatchlist.value
-                    
+
                     if (isCurrentlyInWatchlist) {
                         watchlistRepository.removeFromWatchlist(effectiveUserId, currentTvShowId)
                         Logger.d { "✅ TvShowDetailsScreenViewModel: Removed from watchlist - ID: $currentTvShowId" }
                     } else {
-                        watchlistRepository.addToWatchlist(effectiveUserId, currentTvShowId, "tvshow")
+                        watchlistRepository.addToWatchlist(
+                            effectiveUserId,
+                            currentTvShowId,
+                            "tvshow"
+                        )
                         Logger.d { "✅ TvShowDetailsScreenViewModel: Added to watchlist - ID: $currentTvShowId" }
                     }
                 } catch (e: Exception) {
@@ -111,30 +111,30 @@ class TvShowDetailsScreenViewModel @Inject constructor(
             }
         }
     }
-    
+
     val uiState: StateFlow<TvShowDetailsScreenUiState> = combine(
         savedStateHandle
             .getStateFlow<String?>(TvShowDetailsScreen.TvShowIdBundleKey, null),
         userRepository.userToken,
     ) { tvShowId, userToken ->
         Logger.d { "📺 TvShowDetailsScreenViewModel: Processing tvShowId=$tvShowId, userToken=${userToken != null}" }
-        
+
         if (tvShowId == null || userToken == null) {
             Logger.e { "❌ TvShowDetailsScreenViewModel: Missing tvShowId or userToken" }
             TvShowDetailsScreenUiState.Error
         } else {
             Logger.d { "🔍 TvShowDetailsScreenViewModel: Fetching details for tvShowId=$tvShowId" }
-            
+
             val detailsResult = tvShowRepository.getTvShowsDetails(
                 tvShowId = tvShowId,
                 token = userToken
             )
-            
+
             when (detailsResult) {
                 is ApiResult.Success -> {
                     val details = detailsResult.data
                     Logger.d { "✅ TvShowDetailsScreenViewModel: Successfully fetched details for tvShow: ${details.title}" }
-                    
+
                     // Fetch seasons if seasonsCount > 0
                     val seasons = if ((details.seasonsCount ?: 0) > 0) {
                         Logger.d { "🎬 TvShowDetailsScreenViewModel: Fetching seasons for tvShow ${details.id}, seasonsCount: ${details.seasonsCount}" }
@@ -146,11 +146,12 @@ class TvShowDetailsScreenViewModel @Inject constructor(
                                 val seasonsWithEpisodes = seasonsResult.data.member.map { season ->
                                     if ((season.episodesCount ?: 0) > 0) {
                                         Logger.d { "📺 TvShowDetailsScreenViewModel: Fetching episodes for season ${season.id}, episodesCount: ${season.episodesCount}" }
-                                        when (val episodesResult = tvShowRepository.getTvShowSeasonEpisodes(
-                                            token = userToken,
-                                            tvShowId = details.id,
-                                            seasonId = season.id
-                                        )) {
+                                        when (val episodesResult =
+                                            tvShowRepository.getTvShowSeasonEpisodes(
+                                                token = userToken,
+                                                tvShowId = details.id,
+                                                seasonId = season.id
+                                            )) {
                                             is ApiResult.Success -> season.copy(episodes = episodesResult.data.member)
                                             is ApiResult.Error -> {
                                                 Logger.e { "❌ TvShowDetailsScreenViewModel: Failed to fetch episodes for season ${season.id}" }
@@ -164,6 +165,7 @@ class TvShowDetailsScreenViewModel @Inject constructor(
                                 Logger.d { "✅ TvShowDetailsScreenViewModel: Successfully fetched ${seasonsWithEpisodes.size} seasons" }
                                 seasonsWithEpisodes
                             }
+
                             is ApiResult.Error -> {
                                 Logger.e { "❌ TvShowDetailsScreenViewModel: Failed to fetch seasons - ${seasonsResult.message ?: seasonsResult.error}" }
                                 emptyList()
@@ -172,7 +174,7 @@ class TvShowDetailsScreenViewModel @Inject constructor(
                     } else {
                         emptyList()
                     }
-                    
+
                     val genreId =
                         if (details.genres?.isNotEmpty() == true) details.genres.first().id else 0
 
@@ -187,6 +189,7 @@ class TvShowDetailsScreenViewModel @Inject constructor(
                         similarTvShows = similarTvShows
                     )
                 }
+
                 is ApiResult.Error -> {
                     Logger.e { "❌ TvShowDetailsScreenViewModel: Failed to fetch details - ${detailsResult.message ?: detailsResult.error}" }
                     TvShowDetailsScreenUiState.Error

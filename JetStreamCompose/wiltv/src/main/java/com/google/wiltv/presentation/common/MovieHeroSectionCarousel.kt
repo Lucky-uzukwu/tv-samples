@@ -40,7 +40,7 @@ fun MovieHeroSectionCarousel(
     firstLazyRowItemUnderCarouselRequester: FocusRequester
 ) {
     var isCarouselFocused by remember { mutableStateOf(false) }
-    val itemsPerPage = 5
+    val itemsPerPage = movies.itemCount
     val activeItemIndex = carouselState.activeItemIndex
     val totalItems = movies.itemCount
     val currentPage = activeItemIndex / itemsPerPage

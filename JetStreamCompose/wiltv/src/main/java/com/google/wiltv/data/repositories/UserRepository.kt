@@ -16,21 +16,6 @@ import javax.inject.Singleton
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user")
 
-
-val defaultUser = User(
-    id = java.util.UUID.randomUUID().toString(),
-    identifier = "accessCode",
-    name = "name",
-    email = "email",
-    password = "password",
-    clientIp = "clientIp",
-    deviceName = "deviceName",
-    deviceMacAddress = "deviceMacAddress",
-    profilePhotoPath = "profilePhotoPath",
-    profilePhotoUrl = "profilePhotoUrl",
-    token = "token"
-)
-
 @Singleton
 class UserRepository @Inject constructor(
     private val context: Context
@@ -49,44 +34,11 @@ class UserRepository @Inject constructor(
         private val KEY_USER_PROFILE_PHOTO_URL = stringPreferencesKey("user_profile_photo_url")
     }
 
-    // Reading methods
-//    val userToken: Flow<String?> =
-//        context.dataStore.data.map { it[KEY_USER_TOKEN] ?: defaultUser.token }
-//    val userId: Flow<String?> = context.dataStore.data.map { it[KEY_USER_ID] ?: defaultUser.id }
-//    val userEmail: Flow<String?> =
-//        context.dataStore.data.map { it[KEY_USER_EMAIL] ?: defaultUser.email }
-//    val userAccessCode: Flow<String?> =
-//        context.dataStore.data.map { it[KEY_USER_ACCESS_CODE] ?: defaultUser.accessCode }
-//    val userName: Flow<String?> =
-//        context.dataStore.data.map { it[KEY_USER_NAME] ?: defaultUser.name }
-//    val userPassword: Flow<String?> =
-//        context.dataStore.data.map { it[KEY_USER_PASSWORD] ?: defaultUser.password }
-//    val userClientIp: Flow<String?> =
-//        context.dataStore.data.map { it[KEY_USER_CLIENT_IP] ?: defaultUser.clientIp }
-//    val userDeviceName: Flow<String?> =
-//        context.dataStore.data.map {
-//            it[KEY_USER_DEVICE_NAME] ?: defaultUser.deviceName
-//        }
-//    val userDeviceMacAddress: Flow<String?> =
-//        context.dataStore.data.map {
-//            it[KEY_USER_DEVICE_MAC_ADDRESS] ?: defaultUser.deviceMacAddress
-//        }
-//    val userProfilePhotoPath: Flow<String?> =
-//        context.dataStore.data.map {
-//            it[KEY_USER_PROFILE_PHOTO_PATH] ?: defaultUser.profilePhotoPath
-//        }
-//    val userProfilePhotoUrl: Flow<String?> =
-//        context.dataStore.data.map {
-//            it[KEY_USER_PROFILE_PHOTO_URL] ?: defaultUser.profilePhotoUrl
-//        }
 
     val userToken: Flow<String?> =
         context.dataStore.data.map { it[KEY_USER_TOKEN] ?: "debug_token_123" }
     val userId: Flow<String?> = context.dataStore.data.map { preferences ->
-        preferences[KEY_USER_ID] ?: run {
-            // Generate UUID but don't save it here to avoid runBlocking
-            java.util.UUID.randomUUID().toString()
-        }
+        preferences[KEY_USER_ID]
     }
     val userEmail: Flow<String?> =
         context.dataStore.data.map { it[KEY_USER_EMAIL] }
@@ -125,14 +77,8 @@ class UserRepository @Inject constructor(
     }
 
     suspend fun ensureUserIdExists(): String {
-        val existingId = userId.first()
-        return if (!existingId.isNullOrEmpty()) {
-            existingId
-        } else {
-            val newId = java.util.UUID.randomUUID().toString()
-            saveUserId(newId)
-            newId
-        }
+        val existingId = userAccessCode.first()
+        return existingId!!
     }
 
     suspend fun saveUserEmail(email: String) {
@@ -173,7 +119,7 @@ class UserRepository @Inject constructor(
 
     suspend fun getUser(): User? {
         return User(
-            id = userId.first() ?: java.util.UUID.randomUUID().toString(),
+            id = userAccessCode.first() ?: "",
             email = userEmail.first() ?: "",
             identifier = userAccessCode.first() ?: "",
             name = userName.first() ?: "",

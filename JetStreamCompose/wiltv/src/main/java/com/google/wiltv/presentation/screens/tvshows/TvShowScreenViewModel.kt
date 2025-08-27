@@ -42,7 +42,7 @@ class TvShowScreenViewModel @Inject constructor(
 ) : ViewModel() {
 
     val heroSectionTvShows: StateFlow<PagingData<TvShow>> = Pager(
-        PagingConfig(pageSize = 5, initialLoadSize = 5)
+        PagingConfig(pageSize = 20, initialLoadSize = 20)
     ) {
         TvShowsHeroSectionPagingSource(tvShowRepository, userRepository)
     }.flow.cachedIn(viewModelScope).stateIn(

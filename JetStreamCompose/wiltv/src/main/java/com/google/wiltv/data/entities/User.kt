@@ -1,9 +1,7 @@
 package com.google.wiltv.data.entities
 
-import java.util.UUID
-
 data class User(
-    val id: String = UUID.randomUUID().toString(),
+    val id: String,
     val identifier: String,
     val name: String,
     val email: String,
