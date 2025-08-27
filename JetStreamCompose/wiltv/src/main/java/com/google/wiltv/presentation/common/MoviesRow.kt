@@ -71,7 +71,8 @@ fun MoviesRow(
         fontSize = 30.sp
     ),
     showIndexOverImage: Boolean = false,
-    onMovieSelected: (movie: MovieNew) -> Unit = {}
+    onMovieSelected: (movie: MovieNew) -> Unit = {},
+    watchlistItemIds: Set<String> = emptySet()
 ) {
     val (lazyRow, firstItem) = remember { FocusRequester.createRefs() }
 
@@ -120,7 +121,8 @@ fun MoviesRow(
                             onMovieSelected(it)
                         },
                         movie = movie,
-                        showIndexOverImage = showIndexOverImage
+                        showIndexOverImage = showIndexOverImage,
+                        isInWatchlist = watchlistItemIds.contains(movie.id.toString())
                     )
                 }
             }
@@ -141,12 +143,14 @@ fun MoviesRowItem(
     modifier: Modifier = Modifier,
     itemDirection: ItemDirection = ItemDirection.Vertical,
     onMovieFocused: (MovieNew) -> Unit = {},
+    isInWatchlist: Boolean = false,
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val imageUrl = movie.posterImageUrl
 
     MovieCard(
         onClick = { onMovieSelected(movie) },
+        isInWatchlist = isInWatchlist,
         modifier = Modifier
             .border(
                 width = WilTvBorderWidth,
@@ -190,12 +194,14 @@ fun TvShowRowItem(
     itemDirection: ItemDirection = ItemDirection.Vertical,
     onTvShowFocused: (TvShow) -> Unit = {},
     downFocusRequester: FocusRequester? = null,
+    isInWatchlist: Boolean = false,
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val imageUrl = tvShow.posterImageUrl
 
     MovieCard(
         onClick = { onTvShowSelected(tvShow) },
+        isInWatchlist = isInWatchlist,
         modifier = Modifier
             .border(
                 width = WilTvBorderWidth,

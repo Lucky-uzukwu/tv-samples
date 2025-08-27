@@ -68,7 +68,8 @@ fun ImmersiveShowsList(
     lazyRowState: TvLazyListState? = null,
     focusRequesters: Map<Int, FocusRequester> = emptyMap(),
     onItemFocused: (TvShow, Int) -> Unit = { _, _ -> },
-    clearDetailsSignal: Boolean = false
+    clearDetailsSignal: Boolean = false,
+    watchlistItemIds: Set<String> = emptySet()
 ) {
     var isListFocused by remember { mutableStateOf(false) }
     var shouldShowDetails by remember { mutableStateOf(false) }
@@ -106,6 +107,7 @@ fun ImmersiveShowsList(
             // Don't immediately hide details when focus leaves - let them persist for sidebar navigation
         },
         lazyRowState = lazyRowState,
+        watchlistItemIds = watchlistItemIds,
         focusRequesters = focusRequesters,
         modifier = modifier.bringIntoViewIfChildrenAreFocused(
             PaddingValues(bottom = 120.dp)
@@ -125,6 +127,7 @@ private fun ImmersiveList(
     onTvShowClick: (TvShow) -> Unit,
     modifier: Modifier = Modifier,
     lazyRowState: TvLazyListState? = null,
+    watchlistItemIds: Set<String> = emptySet(),
     focusRequesters: Map<Int, FocusRequester> = emptyMap(),
 ) {
     Box(
@@ -148,6 +151,7 @@ private fun ImmersiveList(
                 onShowFocused = onTvShowFocused,
                 modifier = Modifier.onFocusChanged(onFocusChanged),
                 lazyRowState = lazyRowState,
+                watchlistItemIds = watchlistItemIds,
                 focusRequesters = focusRequesters,
             )
         }
@@ -301,6 +305,7 @@ fun ImmersiveListShowsRow(
     onShowFocused: (TvShow, Int) -> Unit = { _, _ -> },
     lazyRowState: TvLazyListState? = null,
     focusRequesters: Map<Int, FocusRequester> = emptyMap(),
+    watchlistItemIds: Set<String> = emptySet()
 ) {
     // Create infinite list by repeating the movies
     val infiniteShowsCount = if (tvShows.itemCount > 0) Int.MAX_VALUE else 0
@@ -354,6 +359,7 @@ fun ImmersiveListShowsRow(
                     onTvShowFocused = { tvShow -> onShowFocused(tvShow, index) },
                     tvShow = tvShow,
                     showIndexOverImage = showIndexOverImage,
+                    isInWatchlist = watchlistItemIds.contains(tvShow.id.toString())
                 )
             }
         }
@@ -370,12 +376,14 @@ private fun ShowsRowItem(
     modifier: Modifier = Modifier,
     itemDirection: ItemDirection = ItemDirection.Vertical,
     onTvShowFocused: (TvShow) -> Unit = {},
+    isInWatchlist: Boolean = false,
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val imageUrl = tvShow.posterImageUrl
 
     MovieCard(
         onClick = { onTvShowSelected(tvShow) },
+        isInWatchlist = isInWatchlist,
         modifier = Modifier
             .border(
                 width = WilTvBorderWidth,

@@ -44,7 +44,8 @@ fun TvShowsRow(
         fontSize = 30.sp
     ),
     showIndexOverImage: Boolean = false,
-    onMovieSelected: (movie: TvShow) -> Unit = {}
+    onMovieSelected: (movie: TvShow) -> Unit = {},
+    watchlistItemIds: Set<String> = emptySet()
 ) {
     val (lazyRow, firstItem) = remember { FocusRequester.createRefs() }
 
@@ -93,7 +94,8 @@ fun TvShowsRow(
                             onMovieSelected(it)
                         },
                         tvShow = tvShow,
-                        showIndexOverImage = showIndexOverImage
+                        showIndexOverImage = showIndexOverImage,
+                        isInWatchlist = watchlistItemIds.contains(tvShow.id.toString())
                     )
                 }
             }

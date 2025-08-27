@@ -40,6 +40,7 @@ fun HomeScreen(
 ) {
     val uiState by homeScreeViewModel.uiState.collectAsStateWithLifecycle()
     val featuredMovies = homeScreeViewModel.heroSectionMovies.collectAsLazyPagingItems()
+    val watchlistItemIds by homeScreeViewModel.watchlistItemIds.collectAsStateWithLifecycle()
     val carouselState = rememberSaveable(saver = carouselSaver) { CarouselState(0) }
 
     // Monitor paging errors and propagate to ViewModel
@@ -73,7 +74,8 @@ fun HomeScreen(
                 ),
                 onRowError = { errorText ->
                     homeScreeViewModel.handlePagingError(errorText)
-                }
+                },
+                watchlistItemIds = watchlistItemIds
             )
         }
 

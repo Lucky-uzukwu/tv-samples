@@ -55,7 +55,8 @@ fun ImmersiveListMoviesRow(
     lazyRowState: TvLazyListState? = null,
     focusRequesters: Map<Int, FocusRequester> = emptyMap(),
     onItemFocused: (MovieNew, Int) -> Unit = { _, _ -> },
-    clearDetailsSignal: Boolean = false
+    clearDetailsSignal: Boolean = false,
+    watchlistItemIds: Set<String> = emptySet()
 ) {
     var isListFocused by remember { mutableStateOf(false) }
     var shouldShowDetails by remember { mutableStateOf(false) }
@@ -94,6 +95,7 @@ fun ImmersiveListMoviesRow(
             }
             // Don't immediately hide details when focus leaves - let them persist for sidebar navigation
         },
+        watchlistItemIds = watchlistItemIds,
         modifier = modifier.bringIntoViewIfChildrenAreFocused(
             PaddingValues(bottom = 120.dp)
         )
@@ -112,6 +114,7 @@ private fun ImmersiveList(
     onMovieClick: (MovieNew) -> Unit,
     modifier: Modifier = Modifier,
     lazyRowState: TvLazyListState? = null,
+    watchlistItemIds: Set<String> = emptySet(),
     focusRequesters: Map<Int, FocusRequester> = emptyMap(),
 ) {
 
@@ -136,6 +139,7 @@ private fun ImmersiveList(
                 onMovieFocused = onMovieFocused,
                 lazyRowState = lazyRowState,
                 focusRequesters = focusRequesters,
+                watchlistItemIds = watchlistItemIds,
                 modifier = modifier.onFocusChanged(onFocusChanged)
             )
         }
@@ -255,6 +259,7 @@ fun ImmersiveListMoviesRow(
     onMovieFocused: (MovieNew, Int) -> Unit = { _, _ -> },
     lazyRowState: TvLazyListState? = null,
     focusRequesters: Map<Int, FocusRequester> = emptyMap(),
+    watchlistItemIds: Set<String> = emptySet()
 ) {
     // Create infinite list by repeating the movies
     val infiniteMovieCount = if (movies.itemCount > 0) Int.MAX_VALUE else 0
@@ -308,6 +313,7 @@ fun ImmersiveListMoviesRow(
                     onMovieFocused = { movie: MovieNew -> onMovieFocused(movie, index) },
                     movie = movie,
                     showIndexOverImage = showIndexOverImage,
+                    isInWatchlist = watchlistItemIds.contains(movie.id.toString())
                 )
             }
         }

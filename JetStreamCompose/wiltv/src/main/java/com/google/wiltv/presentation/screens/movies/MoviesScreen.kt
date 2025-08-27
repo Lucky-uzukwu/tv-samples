@@ -35,6 +35,7 @@ fun MoviesScreen(
 ) {
     val uiState by moviesScreenViewModel.uiState.collectAsStateWithLifecycle()
     val featuredMovies = moviesScreenViewModel.heroSectionMovies.collectAsLazyPagingItems()
+    val watchlistItemIds by moviesScreenViewModel.watchlistItemIds.collectAsStateWithLifecycle()
     val carouselState = rememberSaveable(saver = carouselSaver) { CarouselState(0) }
 
     // Monitor paging errors and propagate to ViewModel
@@ -68,7 +69,8 @@ fun MoviesScreen(
                 ),
                 onRowError = { errorText ->
                     moviesScreenViewModel.handlePagingError(errorText)
-                }
+                },
+                watchlistItemIds = watchlistItemIds
             )
         }
 

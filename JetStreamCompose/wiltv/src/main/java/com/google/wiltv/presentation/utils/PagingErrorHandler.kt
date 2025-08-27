@@ -20,14 +20,17 @@ fun <T : Any> LazyPagingItems<T>.getErrorState(): UiText? {
             val error = loadState.refresh as LoadState.Error
             UiText.DynamicString(error.error.message ?: "Failed to load data")
         }
+
         loadState.append is LoadState.Error -> {
             val error = loadState.append as LoadState.Error
             UiText.DynamicString(error.error.message ?: "Failed to load more data")
         }
+
         loadState.prepend is LoadState.Error -> {
             val error = loadState.prepend as LoadState.Error
             UiText.DynamicString(error.error.message ?: "Failed to refresh data")
         }
+
         else -> null
     }
 }
@@ -49,14 +52,6 @@ fun <T : Any> LazyPagingItems<T>.hasError(): Boolean {
     val appendError = loadState.append is LoadState.Error
     val prependError = loadState.prepend is LoadState.Error
     val hasAnyError = refreshError || appendError || prependError
-    
-    if (hasAnyError) {
-        Logger.e { "🔍 hasError() detected error - refresh: $refreshError, append: $appendError, prepend: $prependError" }
-        Logger.e { "🔍 LoadStates - refresh: ${loadState.refresh}, append: ${loadState.append}, prepend: ${loadState.prepend}" }
-    } else {
-        Logger.v { "🔍 hasError() - no errors detected - refresh: ${loadState.refresh}, append: ${loadState.append}, prepend: ${loadState.prepend}" }
-    }
-    
     return hasAnyError
 }
 

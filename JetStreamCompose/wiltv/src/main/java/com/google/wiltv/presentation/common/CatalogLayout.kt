@@ -69,7 +69,8 @@ fun CatalogLayout(
     streamingProviders: List<StreamingProvider>,
     onStreamingProviderClick: ((streamingProvider: StreamingProvider) -> Unit),
     focusManagementConfig: FocusManagementConfig? = null,
-    onRowError: ((errorText: UiText) -> Unit)? = null
+    onRowError: ((errorText: UiText) -> Unit)? = null,
+    watchlistItemIds: Set<String> = emptySet()
 ) {
     val tvLazyColumnState = rememberTvLazyListState()
     val rowStates = remember { mutableStateMapOf<String, TvLazyListState>() }
@@ -468,7 +469,8 @@ fun CatalogLayout(
                         shouldRestoreFocus = false
                         clearCatalogDetails = false
                     },
-                    clearDetailsSignal = clearCatalogDetails
+                    clearDetailsSignal = clearCatalogDetails,
+                    watchlistItemIds = watchlistItemIds
                 )
             }
         }
@@ -543,7 +545,8 @@ fun CatalogLayout(
                             shouldRestoreFocus = false
                             clearCatalogDetails = false
                         },
-                        clearDetailsSignal = clearCatalogDetails
+                        clearDetailsSignal = clearCatalogDetails,
+                        watchlistItemIds = watchlistItemIds
                     )
                 } else {
                     Logger.w { "🎬 NOT rendering genre row '${genreKey.name}' - movies!=null: ${movies != null}, itemCount: ${movies?.itemCount ?: 0}, hasError: ${movies?.hasError() ?: false}" }

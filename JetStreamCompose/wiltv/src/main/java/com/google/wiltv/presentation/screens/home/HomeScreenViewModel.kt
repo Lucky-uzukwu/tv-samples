@@ -18,6 +18,7 @@ import com.google.wiltv.data.repositories.GenreRepository
 import com.google.wiltv.data.repositories.MovieRepository
 import com.google.wiltv.data.repositories.StreamingProvidersRepository
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.data.repositories.WatchlistRepository
 import com.google.wiltv.domain.ApiResult
 import com.google.wiltv.presentation.UiText
 import com.google.wiltv.presentation.asUiText
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -40,7 +42,8 @@ class HomeScreeViewModel @Inject constructor(
     private val catalogRepository: CatalogRepository,
     private val genreRepository: GenreRepository,
     private val appDatabase: AppDatabase,
-    private val streamingProvidersRepository: StreamingProvidersRepository
+    private val streamingProvidersRepository: StreamingProvidersRepository,
+    private val watchlistRepository: WatchlistRepository
 ) : ViewModel() {
 
 
@@ -74,6 +77,24 @@ class HomeScreeViewModel @Inject constructor(
         viewModelScope,
         SharingStarted.WhileSubscribed(5_000),
         PagingData.empty()
+    )
+
+    val watchlistItemIds: StateFlow<Set<String>> = userRepository.userId.map { userId ->
+        if (userId != null) {
+            try {
+                watchlistRepository.getUserWatchlist(userId).stateIn(viewModelScope).value
+                    .map { it.contentId.toString() }
+                    .toSet()
+            } catch (e: Exception) {
+                emptySet()
+            }
+        } else {
+            emptySet()
+        }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        emptySet()
     )
 
     private val _uiState = MutableStateFlow<HomeScreenUiState>(HomeScreenUiState.Loading)

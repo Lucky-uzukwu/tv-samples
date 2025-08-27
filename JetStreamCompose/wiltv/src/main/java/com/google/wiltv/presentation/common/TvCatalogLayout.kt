@@ -58,7 +58,8 @@ fun TvCatalogLayout(
     contentDescription: String = "TV Shows Catalog Screen",
     streamingProviders: List<StreamingProvider>,
     onStreamingProviderClick: ((streamingProvider: StreamingProvider) -> Unit),
-    focusManagementConfig: FocusManagementConfig? = null
+    focusManagementConfig: FocusManagementConfig? = null,
+    watchlistItemIds: Set<String> = emptySet()
 ) {
     val tvLazyColumnState = rememberTvLazyListState()
     val rowStates = remember { mutableStateMapOf<String, TvLazyListState>() }
@@ -419,6 +420,7 @@ fun TvCatalogLayout(
                         }
                     },
                     lazyRowState = catalogRowState,
+                    watchlistItemIds = watchlistItemIds,
                     focusRequesters = catalogFocusRequesters,
                     onItemFocused = { tvShow, index ->
                         lastFocusedItem = Pair(catalogRowIndex, index)
@@ -472,6 +474,7 @@ fun TvCatalogLayout(
                             }
                         },
                         lazyRowState = genreRowState,
+                        watchlistItemIds = watchlistItemIds,
                         focusRequesters = genreFocusRequesters,
                         onItemFocused = { tvShow, index ->
                             lastFocusedItem = Pair(genreRowIndex, index)

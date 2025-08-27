@@ -33,6 +33,7 @@ fun TVShowScreen(
 ) {
     val uiState by tvShowScreenViewModel.uiState.collectAsStateWithLifecycle()
     val heroSectionTvShows = tvShowScreenViewModel.heroSectionTvShows.collectAsLazyPagingItems()
+    val watchlistItemIds by tvShowScreenViewModel.watchlistItemIds.collectAsStateWithLifecycle()
     val carouselState = rememberSaveable(saver = carouselSaver) { CarouselState(0) }
 
     // Monitor paging errors and propagate to ViewModel
@@ -63,7 +64,8 @@ fun TVShowScreen(
                 focusManagementConfig = FocusManagementConfig(
                     enableFocusRestoration = true,
                     enableFocusLogging = true
-                )
+                ),
+                watchlistItemIds = watchlistItemIds
             )
         }
 
