@@ -18,7 +18,6 @@ import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 
-
 @Composable
 fun CustomFillButton(
     modifier: Modifier = Modifier,
@@ -35,16 +34,18 @@ fun CustomFillButton(
         modifier = modifier,
         colors = buttonColor,
     ) {
-        icon?.let { painterResource(id = it) }
-            ?.let {
-                Icon(
-                    painter = it,
-                    contentDescription = "Icon",
-                    modifier.padding(end = iconPadding),
-                    tint = iconTint
-                )
-            }
-        Text(text = text, style = textStyle)
+        val paddedModifier = modifier.padding(end = iconPadding)
+        if (icon != null) {
+            Icon(
+                painter = painterResource(id = icon),
+                contentDescription = "Icon",
+                paddedModifier,
+                tint = iconTint
+            )
+            Text(text = text, style = textStyle)
+        } else {
+            Text(modifier = paddedModifier, text = text, style = textStyle)
+        }
     }
 }
 

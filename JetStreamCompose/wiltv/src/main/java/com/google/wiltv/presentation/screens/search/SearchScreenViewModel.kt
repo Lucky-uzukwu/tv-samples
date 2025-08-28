@@ -36,6 +36,15 @@ class SearchScreenViewModel @Inject constructor(
     private suspend fun postQuery(queryString: String) {
         try {
             Log.d("SearchViewModel", "Starting search for: '$queryString'")
+            
+            // Validate query first
+            val queryValidation = validateQuery(queryString)
+            if (queryValidation != null) {
+                val suggestion = generateSearchSuggestion(queryString)
+                internalSearchState.emit(SearchState.QueryError(queryString, suggestion))
+                return
+            }
+
             internalSearchState.emit(SearchState.Searching)
 
             Log.d("SearchViewModel", "Creating TV Shows paging source")
@@ -75,7 +84,19 @@ class SearchScreenViewModel @Inject constructor(
             internalSearchState.emit(SearchState.Done(shows = tvShows, movies = movies, channels = channels))
         } catch (e: Exception) {
             Log.e("SearchViewModel", "Error in postQuery: ${e.message}", e)
-            internalSearchState.emit(SearchState.Error(UiText.DynamicString("Search failed: ${e.message}")))
+            
+            // Determine error type based on exception
+            val errorMessage = e.message?.lowercase() ?: ""
+            when {
+                errorMessage.contains("network") || 
+                errorMessage.contains("timeout") || 
+                errorMessage.contains("connection") -> {
+                    internalSearchState.emit(SearchState.NetworkError(queryString))
+                }
+                else -> {
+                    internalSearchState.emit(SearchState.Error(UiText.DynamicString("Search failed: ${e.message}")))
+                }
+            }
         }
     }
 
@@ -94,11 +115,38 @@ class SearchScreenViewModel @Inject constructor(
             internalSearchState.emit(SearchState.Error(errorMessage))
         }
     }
+
+    private fun validateQuery(query: String): String? {
+        return when {
+            query.length < 2 -> "Try using at least 2 characters"
+            query.all { it.isDigit() } -> "Try adding some letters to your search"
+            query.contains(Regex("[^\\w\\s]")) -> "Try using only letters, numbers, and spaces"
+            else -> null
+        }
+    }
+
+    private fun generateSearchSuggestion(query: String): String {
+        return when {
+            query.length < 2 -> "Try using more specific keywords"
+            query.contains("  ") -> "Try removing extra spaces"
+            query.all { it.isUpperCase() } -> "Try using different capitalization"
+            else -> "Try different keywords or check your spelling"
+        }
+    }
+
+    fun handleNoResults(query: String) {
+        viewModelScope.launch {
+            internalSearchState.emit(SearchState.NoResults(query))
+        }
+    }
 }
 
 sealed interface SearchState {
     data object Searching : SearchState
     data class Error(val uiText: UiText) : SearchState
+    data class NetworkError(val query: String) : SearchState
+    data class NoResults(val query: String) : SearchState
+    data class QueryError(val query: String, val suggestion: String) : SearchState
     data class Done(
         val shows: StateFlow<PagingData<TvShow>>?,
         val movies: StateFlow<PagingData<MovieNew>>?,

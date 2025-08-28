@@ -59,6 +59,8 @@ import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.network.TvChannel
 import com.google.wiltv.presentation.common.MovieCard
 import com.google.wiltv.presentation.common.PosterImage
+import com.google.wiltv.presentation.common.SearchErrorSuggestions
+import com.google.wiltv.presentation.common.SearchErrorType
 import com.google.wiltv.presentation.common.TvChannelCard
 import com.google.wiltv.presentation.screens.ErrorScreen
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
@@ -79,6 +81,8 @@ fun SearchScreen(
     onShowClick: (show: TvShow) -> Unit,
     onChannelClick: (channel: TvChannel) -> Unit,
     onScroll: (isTopBarVisible: Boolean) -> Unit,
+    onBrowseCategoriesClick: () -> Unit = {},
+    onTrendingContentClick: () -> Unit = {},
     searchScreenViewModel: SearchScreenViewModel = hiltViewModel(),
 ) {
     val searchState by searchScreenViewModel.searchState.collectAsStateWithLifecycle()
@@ -96,6 +100,40 @@ fun SearchScreen(
             )
         }
 
+        is SearchState.NetworkError -> {
+            SearchErrorSuggestions(
+                errorType = SearchErrorType.NetworkError,
+                query = s.query,
+                onBrowseCategoriesClick = onBrowseCategoriesClick,
+                onTrendingContentClick = onTrendingContentClick,
+                onRetryClick = { searchScreenViewModel.query(s.query) },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        is SearchState.NoResults -> {
+            SearchErrorSuggestions(
+                errorType = SearchErrorType.NoResults,
+                query = s.query,
+                onBrowseCategoriesClick = onBrowseCategoriesClick,
+                onTrendingContentClick = onTrendingContentClick,
+                onRetryClick = { /* User needs to modify search */ },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        is SearchState.QueryError -> {
+            SearchErrorSuggestions(
+                errorType = SearchErrorType.QueryError,
+                query = s.query,
+                suggestion = s.suggestion,
+                onBrowseCategoriesClick = {},
+                onTrendingContentClick = {},
+                onRetryClick = { /* User needs to modify search */ },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
         is SearchState.Done -> {
             SearchResult(
                 movies = s.movies,
@@ -104,7 +142,8 @@ fun SearchScreen(
                 searchMovies = searchScreenViewModel::query,
                 onMovieClick = onMovieClick,
                 onShowClick = onShowClick,
-                onChannelClick = onChannelClick
+                onChannelClick = onChannelClick,
+                searchScreenViewModel = searchScreenViewModel
             )
         }
     }
@@ -120,6 +159,7 @@ fun SearchResult(
     onMovieClick: (movie: MovieNew) -> Unit,
     onShowClick: (show: TvShow) -> Unit,
     onChannelClick: (channel: TvChannel) -> Unit,
+    searchScreenViewModel: SearchScreenViewModel,
     modifier: Modifier = Modifier
 ) {
     val childPadding = rememberChildPadding()
@@ -317,17 +357,8 @@ fun SearchResult(
                     val channelsSuccess = channelsReady && !isChannelsEmpty
 
                     if ((moviesReady && showsReady && channelsReady) && (isMoviesEmpty && isShowsEmpty && isChannelsEmpty)) {
-                        // Show no results found only when both are loaded and both empty
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "No result found for \"$lastSearchedQuery\"",
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(16.dp)
-                            )
-                        }
+                        // Trigger no results state in ViewModel
+                        searchScreenViewModel.handleNoResults(lastSearchedQuery)
                     } else if (moviesSuccess || showsSuccess || channelsSuccess) {
                         // Show results grid using GenreTvChannelsListScreen pattern
                         LazyVerticalGrid(

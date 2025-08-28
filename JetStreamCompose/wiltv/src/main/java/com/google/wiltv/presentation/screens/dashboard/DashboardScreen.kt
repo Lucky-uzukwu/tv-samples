@@ -81,7 +81,11 @@ fun DashboardScreen(
                 onLogOutClick = onLogOutClick,
                 openStreamingProviderMovieList = openStreamingProviderMovieList,
                 openStreamingProvideShowList = openStreamingProvideShowList,
-                onNavigateToProfileSelection = onNavigateToProfileSelection
+                onNavigateToProfileSelection = onNavigateToProfileSelection,
+                onNavigateToScreen = { screen -> 
+                    // Navigate and let drawer know about the change
+                    navController.navigate(screen())
+                }
             )
         },
     ) { screen ->
@@ -104,7 +108,8 @@ private fun Body(
     setSelectedTvShow: (tvShow: TvShow) -> Unit,
     navController: NavHostController = rememberNavController(),
     onLogOutClick: () -> Unit,
-    onNavigateToProfileSelection: () -> Unit = {}
+    onNavigateToProfileSelection: () -> Unit = {},
+    onNavigateToScreen: (screen: Screens) -> Unit
 ) {
     val navGraph = remember(
         openMovieDetailsScreen,
@@ -190,7 +195,9 @@ private fun Body(
                     onMovieClick = { movie -> openMovieDetailsScreen(movie.id.toString()) },
                     onScroll = { },
                     onShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) },
-                    onChannelClick = { channel -> openVideoPlayer(channel.playLink, channel.name) }
+                    onChannelClick = { channel -> openVideoPlayer(channel.playLink, channel.name) },
+                    onBrowseCategoriesClick = { onNavigateToScreen(Screens.Categories) },
+                    onTrendingContentClick = { onNavigateToScreen(Screens.Home) }
                 )
             }
         }

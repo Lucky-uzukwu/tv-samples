@@ -75,11 +75,11 @@ fun HomeDrawer(
 //        isInitialFocusSet = true
 //    }
 
-//    LaunchedEffect(key1 = Unit) {
-//        navController.addOnDestinationChangedListener { _, destination, _ ->
-//            selectedTab = destination.route ?: return@addOnDestinationChangedListener
-//        }
-//    }
+    LaunchedEffect(key1 = Unit) {
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            setSelectedTab(destination.route ?: return@addOnDestinationChangedListener)
+        }
+    }
 
 
     ModalNavigationDrawer(
