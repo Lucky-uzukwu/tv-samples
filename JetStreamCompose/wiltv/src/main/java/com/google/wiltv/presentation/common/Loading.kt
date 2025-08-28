@@ -18,7 +18,7 @@ fun Loading(
     style: TextStyle = MaterialTheme.typography.displayMedium
 ) {
     Box(
-        modifier = modifier.background(Color.Black),
+        modifier = modifier.background(MaterialTheme.colorScheme.background.copy(alpha = 0.8f)),
         contentAlignment = Alignment.Center
     ) {
         Text(

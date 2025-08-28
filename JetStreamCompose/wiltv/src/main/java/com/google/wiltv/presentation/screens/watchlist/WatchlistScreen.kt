@@ -4,8 +4,10 @@ package com.google.wiltv.presentation.screens.watchlist
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -27,12 +28,16 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -51,6 +56,36 @@ import com.google.wiltv.presentation.common.PosterImage
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
 import com.google.wiltv.presentation.theme.WilTvCardShape
 
+@Composable
+private fun WatchlistMovieCard(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    var isFocused by remember { mutableStateOf(false) }
+    
+    Surface(
+        onClick = onClick,
+        modifier = modifier.onFocusChanged { isFocused = it.isFocused },
+        shape = ClickableSurfaceDefaults.shape(WilTvCardShape),
+        border = ClickableSurfaceDefaults.border(
+            focusedBorder = Border(
+                border = BorderStroke(
+                    width = 4.dp,  // Thicker focus border
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
+                shape = WilTvCardShape
+            )
+        ),
+        scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
+        content = {
+            Box(modifier = Modifier.fillMaxSize()) {
+                content()
+            }
+        }
+    )
+}
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun WatchlistScreen(
@@ -62,14 +97,8 @@ fun WatchlistScreen(
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val contentTypeFilter by viewModel.contentTypeFilter.collectAsStateWithLifecycle()
     val childPadding = rememberChildPadding()
-    val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(uiState) {
-        val currentState = uiState
-        if (currentState is WatchlistScreenUiState.Success && currentState.watchlistItems.isNotEmpty()) {
-            focusRequester.requestFocus()
-        }
-    }
+    // Remove automatic focus on grid - let user navigate down from filter tabs
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -109,15 +138,15 @@ fun WatchlistScreen(
         is WatchlistScreenUiState.Success -> {
             LazyVerticalGrid(
                 modifier = Modifier.fillMaxSize(),
-                columns = GridCells.Fixed(5),
+                columns = GridCells.Fixed(7),
                 contentPadding = PaddingValues(
                     start = childPadding.start + 28.dp,
                     end = 16.dp,
                     top = 16.dp,
                     bottom = 16.dp
                 ),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(
                     items = state.watchlistItems,
@@ -125,18 +154,11 @@ fun WatchlistScreen(
                 ) { item ->
                     when (item) {
                         is WatchlistContentItem.Movie -> {
-                            MovieCard(
+                            WatchlistMovieCard(
                                 onClick = { onMovieClick(item.movie) },
                                 modifier = Modifier
                                     .aspectRatio(1 / 1.5f)
-                                    .padding(6.dp)
-                                    .then(
-                                        if (state.watchlistItems.indexOf(item) == 0) {
-                                            Modifier.focusRequester(focusRequester)
-                                        } else {
-                                            Modifier
-                                        }
-                                    )
+                                    .padding(4.dp)
                             ) {
                                 item.movie.posterImageUrl?.let { imageUrl ->
                                     PosterImage(
@@ -159,18 +181,11 @@ fun WatchlistScreen(
                         }
                         
                         is WatchlistContentItem.TvShow -> {
-                            MovieCard(
+                            WatchlistMovieCard(
                                 onClick = { onTvShowClick(item.tvShow) },
                                 modifier = Modifier
                                     .aspectRatio(1 / 1.5f)
-                                    .padding(6.dp)
-                                    .then(
-                                        if (state.watchlistItems.indexOf(item) == 0) {
-                                            Modifier.focusRequester(focusRequester)
-                                        } else {
-                                            Modifier
-                                        }
-                                    )
+                                    .padding(4.dp)
                             ) {
                                 item.tvShow.posterImageUrl?.let { imageUrl ->
                                     PosterImage(
@@ -317,6 +332,19 @@ private fun FilterButtons(
     onContentTypeFilterChange: (ContentTypeFilter) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val allButtonFocus = remember { FocusRequester() }
+    val moviesButtonFocus = remember { FocusRequester() }
+    val tvShowsButtonFocus = remember { FocusRequester() }
+    
+    // Keep focus on selected filter after selection
+    LaunchedEffect(contentTypeFilter) {
+        when (contentTypeFilter) {
+            ContentTypeFilter.ALL -> allButtonFocus.requestFocus()
+            ContentTypeFilter.MOVIES -> moviesButtonFocus.requestFocus()
+            ContentTypeFilter.TV_SHOWS -> tvShowsButtonFocus.requestFocus()
+        }
+    }
+    
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -324,18 +352,21 @@ private fun FilterButtons(
         FilterButton(
             text = "All",
             isSelected = contentTypeFilter == ContentTypeFilter.ALL,
+            focusRequester = allButtonFocus,
             onClick = { onContentTypeFilterChange(ContentTypeFilter.ALL) }
         )
         
         FilterButton(
             text = "Movies",
             isSelected = contentTypeFilter == ContentTypeFilter.MOVIES,
+            focusRequester = moviesButtonFocus,
             onClick = { onContentTypeFilterChange(ContentTypeFilter.MOVIES) }
         )
         
         FilterButton(
             text = "TV Shows",
             isSelected = contentTypeFilter == ContentTypeFilter.TV_SHOWS,
+            focusRequester = tvShowsButtonFocus,
             onClick = { onContentTypeFilterChange(ContentTypeFilter.TV_SHOWS) }
         )
     }
@@ -345,21 +376,16 @@ private fun FilterButtons(
 private fun FilterButton(
     text: String,
     isSelected: Boolean,
+    focusRequester: FocusRequester,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val focusRequester = remember { FocusRequester() }
-    
     Button(
-        onClick = {
-            onClick()
-            // Keep focus on this button after selection
-            focusRequester.requestFocus()
-        },
+        onClick = onClick,
         modifier = modifier.focusRequester(focusRequester),
         colors = if (isSelected) {
             androidx.tv.material3.ButtonDefaults.colors(
-                containerColor = MaterialTheme.colorScheme.primary,
+                containerColor = Color(0xFFA855F7),
                 contentColor = MaterialTheme.colorScheme.onPrimary
             )
         } else {
