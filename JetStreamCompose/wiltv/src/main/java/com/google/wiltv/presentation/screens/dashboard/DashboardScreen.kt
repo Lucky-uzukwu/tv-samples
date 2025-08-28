@@ -22,7 +22,7 @@ import com.google.wiltv.data.models.StreamingProvider
 import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.network.TvChannel
 import com.google.wiltv.presentation.screens.Screens
-import com.google.wiltv.presentation.screens.categories.CategoriesScreen
+import com.google.wiltv.presentation.screens.watchlist.WatchlistScreen
 import com.google.wiltv.presentation.screens.dashboard.navigation.drawer.HomeDrawer
 import com.google.wiltv.presentation.screens.home.HomeScreen
 import com.google.wiltv.presentation.screens.movies.MoviesScreen
@@ -185,9 +185,10 @@ private fun Body(
                 )
             }
 
-            composable(Screens.Categories()) {
-                CategoriesScreen(
-                    onCategoryClick = openCategoryMovieList,
+            composable(Screens.Watchlist()) {
+                WatchlistScreen(
+                    onMovieClick = { movie -> openMovieDetailsScreen(movie.id.toString()) },
+                    onTvShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) }
                 )
             }
             composable(Screens.Search()) {
@@ -196,7 +197,7 @@ private fun Body(
                     onScroll = { },
                     onShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) },
                     onChannelClick = { channel -> openVideoPlayer(channel.playLink, channel.name) },
-                    onBrowseCategoriesClick = { onNavigateToScreen(Screens.Categories) },
+                    onBrowseCategoriesClick = { onNavigateToScreen(Screens.Watchlist) },
                     onTrendingContentClick = { onNavigateToScreen(Screens.Home) }
                 )
             }

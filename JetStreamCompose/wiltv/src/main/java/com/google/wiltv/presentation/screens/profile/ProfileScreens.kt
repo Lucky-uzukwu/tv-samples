@@ -32,7 +32,6 @@ enum class ProfileScreens(
     private val title: String? = null,
 ) {
     Profiles(Icons.Default.AccountCircle),
-    Watchlist(Icons.Default.BookmarkBorder),
     Accounts(Icons.Default.Person),
 //    About(Icons.Default.Info),
     Subtitles(Icons.Default.Subtitles),

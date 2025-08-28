@@ -17,6 +17,7 @@
 package com.google.wiltv.presentation.screens
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LiveTv
@@ -48,7 +49,7 @@ enum class Screens(
     Movies(isTabItem = true, tabIcon = Icons.Default.Movie),
     Shows(isTabItem = true, tabIcon = Icons.Default.Tv),
     TvChannels(isTabItem = true, tabIcon = Icons.Default.LiveTv, displayName = "Live TV"),
-    Categories(isTabItem = true, tabIcon = Icons.Default.Category),
+    Watchlist(isTabItem = true, tabIcon = Icons.Default.BookmarkBorder),
     Profile(isTabItem = true, tabIcon = Icons.Default.Person),
 
     //    Favourites(isTabItem = true),

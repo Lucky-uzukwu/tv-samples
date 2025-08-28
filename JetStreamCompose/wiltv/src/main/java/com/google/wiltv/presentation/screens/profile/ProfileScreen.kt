@@ -194,12 +194,6 @@ fun ProfileScreen(
                                 onSwitchProfileClick = onNavigateToProfileSelection
                             )
                         }
-                        composable(ProfileScreens.Watchlist()) {
-                            WatchlistScreen(
-                                onMovieClick = onMovieClick,
-                                onTvShowClick = onTvShowClick
-                            )
-                        }
                         composable(ProfileScreens.Accounts()) {
                             AccountsSection(
                                 userEmailAddress = s.user.email,
