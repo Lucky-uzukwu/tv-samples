@@ -8,7 +8,7 @@ import com.google.wiltv.presentation.UiText.*
 fun DataError.asUiText(message: String? = null): UiText {
     return when (this) {
         DataError.Network.REQUEST_TIMEOUT -> message?.let { DynamicString(it) } ?: StringResource(
-            R.string.the_request_timed_out
+            R.string.error_connection_timeout
         )
 
         DataError.Network.TOO_MANY_REQUESTS -> message?.let { DynamicString(it) } ?: StringResource(
@@ -16,7 +16,7 @@ fun DataError.asUiText(message: String? = null): UiText {
         )
 
         DataError.Network.NO_INTERNET -> message?.let { DynamicString(it) } ?: StringResource(
-            R.string.no_internet
+            R.string.error_no_internet_detected
         )
 
         DataError.Network.PAYLOAD_TOO_LARGE -> message?.let { DynamicString(it) } ?: StringResource(
@@ -24,7 +24,7 @@ fun DataError.asUiText(message: String? = null): UiText {
         )
 
         DataError.Network.SERVER_ERROR -> message?.let { DynamicString(it) } ?: StringResource(
-            R.string.server_error
+            R.string.error_service_unavailable
         )
 
         DataError.Network.SERIALIZATION -> message?.let { DynamicString(it) } ?: StringResource(
