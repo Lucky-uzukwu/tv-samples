@@ -41,12 +41,14 @@ fun CustomCard(
 //                .aspectRatio(cardAspectRatio)
                 .background(Color.Transparent, RoundedCornerShape(16.dp)),
         ) {
-            AuthenticatedAsyncImage(
+            EnhancedAsyncImage(
                 model = imageUrl, 
                 contentDescription = "Image",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.FillBounds,
                 alignment = Alignment.Center,
+                showRetryOnError = true,
+                onRetry = { /* Image will be retried automatically */ }
             )
         }
     }

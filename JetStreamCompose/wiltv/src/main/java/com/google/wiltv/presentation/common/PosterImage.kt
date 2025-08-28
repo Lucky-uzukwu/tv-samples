@@ -27,10 +27,10 @@ fun PosterImage(
     posterUrl: String,
     modifier: Modifier = Modifier,
 ) {
-    AuthenticatedAsyncImage(
+    EnhancedPosterImage(
         modifier = modifier,
-        model = posterUrl,
-        contentDescription = StringConstants.Composable.ContentDescription.moviePoster(title),
+        title = title,
+        posterUrl = posterUrl,
         contentScale = ContentScale.Crop
     )
 }

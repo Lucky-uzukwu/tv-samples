@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="27dp"
+    android:viewportWidth="48"
+    android:viewportHeight="27">
+    
+    <!-- Backdrop frame -->
+    <path
+        android:fillColor="@android:color/darker_gray"
+        android:pathData="M2,2 L46,2 Q47,2 47,3 L47,24 Q47,25 46,25 L2,25 Q1,25 1,24 L1,3 Q1,2 2,2 Z" />
+    
+    <!-- Play button in center -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M18,10 L30,16 L18,22 Z" />
+    
+    <!-- Corner decoration -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M4,4 L8,4 L8,5 L4,5 Z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M4,4 L4,8 L5,8 L5,4 Z" />
+    
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M40,4 L44,4 L44,5 L40,5 Z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M43,4 L43,8 L44,8 L44,4 Z" />
+    
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M4,22 L8,22 L8,23 L4,23 Z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M4,20 L4,24 L5,24 L5,20 Z" />
+    
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M40,22 L44,22 L44,23 L40,23 Z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M43,20 L43,24 L44,24 L44,20 Z" />
+</vector>

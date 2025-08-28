@@ -36,7 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.wiltv.presentation.common.AuthenticatedAsyncImage
+import com.google.wiltv.presentation.common.EnhancedBackdropImage
 import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.models.Season
 import com.google.wiltv.data.util.StringConstants
@@ -181,12 +181,9 @@ private fun MovieImageWithGradients(
     modifier: Modifier = Modifier,
 ) {
     val imageUrl = "https://api.nortv.xyz/storage/$backdropImagePath"
-    AuthenticatedAsyncImage(
-        model = imageUrl,
-        contentDescription = StringConstants
-            .Composable
-            .ContentDescription
-            .moviePoster(title),
+    EnhancedBackdropImage(
+        title = title,
+        backdropUrl = imageUrl,
         modifier = modifier
     )
 }

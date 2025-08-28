@@ -29,7 +29,7 @@ import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.Person
 import com.google.wiltv.data.entities.WatchProgress
 import com.google.wiltv.data.util.StringConstants
-import com.google.wiltv.presentation.common.AuthenticatedAsyncImage
+import com.google.wiltv.presentation.common.EnhancedBackdropImage
 import com.google.wiltv.presentation.common.Error
 import com.google.wiltv.presentation.common.Loading
 import com.google.wiltv.presentation.screens.movies.MovieDetails
@@ -189,12 +189,9 @@ private fun MovieImageWithGradients(
     modifier: Modifier = Modifier,
 ) {
     val imageUrl = movie.backdropImageUrl
-    AuthenticatedAsyncImage(
-        model = imageUrl,
-        contentDescription = StringConstants
-            .Composable
-            .ContentDescription
-            .moviePoster(movie.title),
+    EnhancedBackdropImage(
+        title = movie.title,
+        backdropUrl = imageUrl ?: "",
         modifier = modifier
     )
 }
