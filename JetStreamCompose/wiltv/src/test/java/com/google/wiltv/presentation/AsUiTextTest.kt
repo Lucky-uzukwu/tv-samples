@@ -6,6 +6,8 @@ package com.google.wiltv.presentation
 import com.google.wiltv.R
 import com.google.wiltv.domain.DataError
 import com.google.wiltv.presentation.asUiText
+import org.junit.Test
+import org.junit.Assert.*
 
 /**
  * Validation tests for enhanced asUiText() error message conversion
@@ -13,6 +15,7 @@ import com.google.wiltv.presentation.asUiText
  */
 class AsUiTextTest {
     
+    @Test
     fun validateRequestTimeoutErrorMessage() {
         // Test that REQUEST_TIMEOUT returns user-friendly message
         val error = DataError.Network.REQUEST_TIMEOUT
@@ -29,6 +32,7 @@ class AsUiTextTest {
         }
     }
     
+    @Test
     fun validateNoInternetErrorMessage() {
         // Test that NO_INTERNET returns user-friendly message
         val error = DataError.Network.NO_INTERNET
@@ -44,8 +48,9 @@ class AsUiTextTest {
         }
     }
     
+    @Test
     fun validateServerErrorMessage() {
-        // Test that SERVER_ERROR returns user-friendly message
+        // Test that SERVER_ERROR returns enhanced user-friendly message
         val error = DataError.Network.SERVER_ERROR
         val uiText = error.asUiText()
         
@@ -54,11 +59,12 @@ class AsUiTextTest {
         }
         
         val stringResource = uiText as UiText.StringResource
-        assert(stringResource.id == R.string.error_service_unavailable) {
-            "SERVER_ERROR should use error_service_unavailable string resource"
+        assert(stringResource.id == R.string.error_server_issues) {
+            "SERVER_ERROR should use enhanced error_server_issues string resource"
         }
     }
     
+    @Test
     fun validateDynamicStringFallback() {
         // Test that when custom message is provided, it uses DynamicString
         val error = DataError.Network.REQUEST_TIMEOUT
@@ -75,6 +81,7 @@ class AsUiTextTest {
         }
     }
     
+    @Test
     fun validateBackwardCompatibilityForOtherErrors() {
         // Test that non-enhanced errors still work (backward compatibility)
         val testCases = listOf(
@@ -99,6 +106,7 @@ class AsUiTextTest {
         }
     }
     
+    @Test
     fun validateNullMessageHandling() {
         // Test that null message falls back to StringResource
         val error = DataError.Network.REQUEST_TIMEOUT
@@ -114,6 +122,7 @@ class AsUiTextTest {
         }
     }
     
+    @Test
     fun validateEmptyMessageHandling() {
         // Test handling of empty strings for certain error types
         val error = DataError.Network.BAD_REQUEST
@@ -129,16 +138,51 @@ class AsUiTextTest {
         }
     }
     
+    @Test
+    fun validateUnauthorizedErrorMessage() {
+        // Test that UNAUTHORIZED returns session expired message per AC 1
+        val error = DataError.Network.UNAUTHORIZED
+        val uiText = error.asUiText("")
+        
+        assert(uiText is UiText.StringResource) {
+            "UNAUTHORIZED should return StringResource, got ${uiText::class.simpleName}"
+        }
+        
+        val stringResource = uiText as UiText.StringResource
+        assert(stringResource.id == R.string.error_session_expired) {
+            "UNAUTHORIZED should use error_session_expired string resource per AC 1"
+        }
+    }
+    
+    @Test
+    fun validateNotFoundErrorMessage() {
+        // Test that NOT_FOUND returns content unavailable message per AC 2
+        val error = DataError.Network.NOT_FOUND
+        val uiText = error.asUiText("")
+        
+        assert(uiText is UiText.StringResource) {
+            "NOT_FOUND should return StringResource, got ${uiText::class.simpleName}"
+        }
+        
+        val stringResource = uiText as UiText.StringResource
+        assert(stringResource.id == R.string.error_content_unavailable) {
+            "NOT_FOUND should use error_content_unavailable string resource per AC 2"
+        }
+    }
+    
+    @Test
     fun validateAllEnhancedErrorTypes() {
-        // Comprehensive test for all three enhanced error types
+        // Comprehensive test for all enhanced error types per AC 1, 2, 3
         val enhancedErrors = mapOf(
             DataError.Network.REQUEST_TIMEOUT to R.string.error_connection_timeout,
             DataError.Network.NO_INTERNET to R.string.error_no_internet_detected,
-            DataError.Network.SERVER_ERROR to R.string.error_service_unavailable
+            DataError.Network.SERVER_ERROR to R.string.error_server_issues,
+            DataError.Network.UNAUTHORIZED to R.string.error_session_expired,
+            DataError.Network.NOT_FOUND to R.string.error_content_unavailable
         )
         
         enhancedErrors.forEach { (error, expectedResId) ->
-            val uiText = error.asUiText()
+            val uiText = error.asUiText("")
             
             assert(uiText is UiText.StringResource) {
                 "Enhanced error $error should return StringResource"

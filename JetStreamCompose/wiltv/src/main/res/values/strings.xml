@@ -95,11 +95,19 @@ https://www.apache.org/licenses/LICENSE-2.0
     <string name="error_go_back">Go Back</string>
     <string name="error_go_home">Go Home</string>
     <string name="error_sign_in">Sign In</string>
+    <string name="error_go_to_login">Go to Login</string>
     <string name="error_check_connection">Check Connection</string>
+    <string name="error_browse_similar">Browse Similar</string>
 
     <!-- User-friendly network error messages -->
     <string name="error_connection_timeout">Connection timed out. Please check your internet connection.</string>
     <string name="error_no_internet_detected">No internet connection detected</string>
     <string name="error_service_unavailable">WilTV service is temporarily unavailable. Please try again in a few minutes.</string>
+    
+    <!-- API-specific error messages -->
+    <string name="error_session_expired">Your session has expired. Please log in again.</string>
+    <string name="error_content_unavailable">This content is no longer available</string>
+    <string name="error_server_issues">WilTV servers are experiencing issues</string>
+    <string name="error_server_maintenance">WilTV servers are under maintenance. Please try again later.</string>
 
 </resources>

@@ -24,7 +24,7 @@ fun DataError.asUiText(message: String? = null): UiText {
         )
 
         DataError.Network.SERVER_ERROR -> message?.let { DynamicString(it) } ?: StringResource(
-            R.string.error_service_unavailable
+            R.string.error_server_issues
         )
 
         DataError.Network.SERIALIZATION -> message?.let { DynamicString(it) } ?: StringResource(
@@ -52,7 +52,7 @@ fun DataError.asUiText(message: String? = null): UiText {
         }
 
         DataError.Network.NOT_FOUND -> if (message == "") {
-            StringResource(R.string.not_found)
+            StringResource(R.string.error_content_unavailable)
         } else {
             DynamicString(message!!)
         }
@@ -70,7 +70,7 @@ fun DataError.asUiText(message: String? = null): UiText {
         }
 
         DataError.Network.UNAUTHORIZED -> if (message == "") {
-            StringResource(R.string.unauthorized)
+            StringResource(R.string.error_session_expired)
         } else {
             DynamicString(message!!)
         }
