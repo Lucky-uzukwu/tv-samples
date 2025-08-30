@@ -192,9 +192,9 @@ fun UnifiedSearchResult(
 ) {
     val childPadding = rememberChildPadding()
     val gridState = rememberLazyGridState()
-    
+
     // Focus management state - similar to CatalogLayout
-    val focusRequesters = remember { 
+    val focusRequesters = remember {
         mutableMapOf<Int, FocusRequester>()
     }
     var shouldRestoreFocus by remember { mutableStateOf(true) }
@@ -279,7 +279,9 @@ fun UnifiedSearchResult(
                 when {
                     loadState is LoadState.Loading -> {
                         SearchLoadingShimmer(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(top = 8.dp),
                             childPadding = childPadding
                         )
                     }
@@ -326,14 +328,16 @@ fun UnifiedSearchResult(
                                     val searchContent = contentItems[index]
                                     if (searchContent != null) {
                                         // Get or create focus requester for this index - similar to CatalogLayout
-                                        val focusRequester = focusRequesters.getOrPut(index) { FocusRequester() }
-                                        
+                                        val focusRequester =
+                                            focusRequesters.getOrPut(index) { FocusRequester() }
+
                                         val itemModifier = Modifier
                                             .focusRequester(focusRequester)
                                             .onFocusChanged { focusState ->
                                                 if (focusState.hasFocus) {
                                                     lastFocusedIndex = index
-                                                    shouldRestoreFocus = false  // Similar to CatalogLayout
+                                                    shouldRestoreFocus =
+                                                        false  // Similar to CatalogLayout
                                                 }
                                             }
 
@@ -381,17 +385,19 @@ fun UnifiedSearchResult(
                                 contentItems?.itemCount,
                                 shouldRestoreFocus
                             ) {
-                                if (shouldRestoreFocus && 
-                                    lastFocusedIndex >= 0 && (contentItems?.itemCount ?: 0) > lastFocusedIndex) {
-                                    
+                                if (shouldRestoreFocus &&
+                                    lastFocusedIndex >= 0 && (contentItems?.itemCount
+                                        ?: 0) > lastFocusedIndex
+                                ) {
+
                                     // Short delay to ensure UI is ready - from CatalogLayout
                                     kotlinx.coroutines.delay(20)
-                                    
+
                                     try {
                                         // First scroll to make the item visible
                                         gridState.scrollToItem(lastFocusedIndex)
                                         kotlinx.coroutines.delay(100) // Wait for scroll to complete
-                                        
+
                                         // Get focus requester for this index
                                         val focusRequester = focusRequesters[lastFocusedIndex]
                                         if (focusRequester != null) {
@@ -403,22 +409,39 @@ fun UnifiedSearchResult(
                                                         focusRequester.requestFocus()
                                                         focusSuccess = true
                                                         shouldRestoreFocus = false
-                                                        Log.d("SearchScreen", "Focus restoration successful on attempt ${attempt + 1}")
+                                                        Log.d(
+                                                            "SearchScreen",
+                                                            "Focus restoration successful on attempt ${attempt + 1}"
+                                                        )
                                                     } catch (e: Exception) {
                                                         if (attempt < 2) {
                                                             kotlinx.coroutines.delay(50)
-                                                            Log.d("SearchScreen", "Focus restoration attempt ${attempt + 1} failed, retrying...")
+                                                            Log.d(
+                                                                "SearchScreen",
+                                                                "Focus restoration attempt ${attempt + 1} failed, retrying..."
+                                                            )
                                                         } else {
-                                                            Log.w("SearchScreen", "Failed to restore focus after 3 attempts", e)
+                                                            Log.w(
+                                                                "SearchScreen",
+                                                                "Failed to restore focus after 3 attempts",
+                                                                e
+                                                            )
                                                         }
                                                     }
                                                 }
                                             }
                                         } else {
-                                            Log.w("SearchScreen", "FocusRequester not found for index $lastFocusedIndex")
+                                            Log.w(
+                                                "SearchScreen",
+                                                "FocusRequester not found for index $lastFocusedIndex"
+                                            )
                                         }
                                     } catch (e: Exception) {
-                                        Log.w("SearchScreen", "Failed to restore focus at index $lastFocusedIndex", e)
+                                        Log.w(
+                                            "SearchScreen",
+                                            "Failed to restore focus at index $lastFocusedIndex",
+                                            e
+                                        )
                                         shouldRestoreFocus = false
                                     }
                                 }
