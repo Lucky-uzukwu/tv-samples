@@ -1,6 +1,7 @@
 package com.google.wiltv.presentation.common
 
 import android.view.KeyEvent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -275,6 +276,15 @@ fun SearchQueryDisplay(
     query: String,
     modifier: Modifier = Modifier
 ) {
+    var cursorVisible by remember { mutableStateOf(true) }
+    
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(500) // Blink every 500ms
+            cursorVisible = !cursorVisible
+        }
+    }
+
     androidx.tv.material3.Surface(
         modifier = modifier.fillMaxWidth(),
         shape = androidx.tv.material3.ClickableSurfaceDefaults.shape(MaterialTheme.shapes.medium),
@@ -290,28 +300,42 @@ fun SearchQueryDisplay(
             contentAlignment = Alignment.CenterStart
         ) {
             if (query.isEmpty()) {
-                Text(
-                    text = "Start typing to search...",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Start typing to search...",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                    AnimatedVisibility(visible = cursorVisible) {
+                        Text(
+                            text = "|",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color(0xFFA855F7),
+                            modifier = Modifier.padding(start = 2.dp)
+                        )
+                    }
+                }
             } else {
-                Text(
-                    text = query,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-
-            // Blinking cursor
-            if (query.isNotEmpty()) {
-                Text(
-                    text = "|",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = (query.length * 8).dp)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = query,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Medium
+                    )
+                    AnimatedVisibility(visible = cursorVisible) {
+                        Text(
+                            text = "|",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color(0xFFA855F7),
+                            modifier = Modifier.padding(start = 2.dp)
+                        )
+                    }
+                }
             }
         }
     }
