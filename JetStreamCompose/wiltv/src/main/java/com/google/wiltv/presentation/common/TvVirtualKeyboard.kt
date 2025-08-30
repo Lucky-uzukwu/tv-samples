@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onKeyEvent
@@ -79,7 +80,8 @@ fun TvVirtualKeyboard(
     onSpace: () -> Unit,
     onEnter: () -> Unit,
     modifier: Modifier = Modifier,
-    initialFocus: Boolean = true
+    initialFocus: Boolean = true,
+    upFocusRequester: FocusRequester? = null
 ) {
     var keyboardMode by remember { mutableStateOf(KeyboardMode.ALPHABET) }
     val keyboard = remember(keyboardMode) { 
@@ -144,8 +146,21 @@ fun TvVirtualKeyboard(
                                                     focusedRow = rowIndex - 1
                                                     focusedCol = colIndex
                                                     focusRequesters[focusedRow][focusedCol].requestFocus()
+                                                    true
+                                                } else {
+                                                    // At top row, try to navigate to suggestions
+                                                    if (upFocusRequester != null) {
+                                                        try {
+                                                            upFocusRequester.requestFocus()
+                                                            true
+                                                        } catch (e: IllegalStateException) {
+                                                            // FocusRequester not initialized - suggestions not visible
+                                                            false
+                                                        }
+                                                    } else {
+                                                        false
+                                                    }
                                                 }
-                                                true
                                             }
 
                                             KeyEvent.KEYCODE_DPAD_DOWN -> {

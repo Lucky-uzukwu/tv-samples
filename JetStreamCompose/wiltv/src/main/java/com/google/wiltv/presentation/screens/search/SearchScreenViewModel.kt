@@ -13,10 +13,14 @@ import com.google.wiltv.presentation.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 
 
 const val QUERY_LENGTH = 2
@@ -28,23 +32,64 @@ class SearchScreenViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val internalSearchState = MutableSharedFlow<SearchState>()
+    
+    private val _searchSuggestions = MutableStateFlow<List<String>>(emptyList())
+    val searchSuggestions: StateFlow<List<String>> = _searchSuggestions.asStateFlow()
+    
+    private var suggestionsJob: Job? = null
 
     fun query(queryString: String) {
         viewModelScope.launch { postQuery(queryString) }
     }
+    
+    fun fetchSuggestions(queryString: String) {
+        suggestionsJob?.cancel()
+        
+        if (queryString.length < QUERY_LENGTH) {
+            _searchSuggestions.value = emptyList()
+            return
+        }
+        
+        suggestionsJob = viewModelScope.launch {
+            delay(300) // Debounce to avoid excessive API calls
+            
+            try {
+                val user = userRepository.getUser()
+                if (user != null) {
+                    val result = searchRepository.getSearchSuggestions(
+                        token = user.token ?: "",
+                        query = queryString
+                    )
+                    
+                    when (result) {
+                        is com.google.wiltv.domain.ApiResult.Success -> {
+                            _searchSuggestions.value = result.data
+                            Log.d("SearchViewModel", "Fetched ${result.data.size} suggestions for '$queryString'")
+                        }
+                        is com.google.wiltv.domain.ApiResult.Error -> {
+                            Log.w("SearchViewModel", "Failed to fetch suggestions: ${result.error}")
+                            _searchSuggestions.value = emptyList()
+                        }
+                    }
+                } else {
+                    Log.w("SearchViewModel", "No user found for suggestions")
+                    _searchSuggestions.value = emptyList()
+                }
+            } catch (e: Exception) {
+                Log.w("SearchViewModel", "Error fetching suggestions", e)
+                _searchSuggestions.value = emptyList()
+            }
+        }
+    }
+    
+//    fun clearSuggestions() {
+//        suggestionsJob?.cancel()
+//        _searchSuggestions.value = emptyList()
+//    }
 
     private suspend fun postQuery(queryString: String) {
         try {
             Log.d("SearchViewModel", "Starting search for: '$queryString'")
-
-            // Validate query first
-            val queryValidation = validateQuery(queryString)
-            if (queryValidation != null) {
-                Log.d("SearchViewModel", "Search Query validation failed: $queryValidation")
-                val suggestion = generateSearchSuggestion(queryString)
-                internalSearchState.emit(SearchState.QueryError(queryString, suggestion))
-                return
-            }
 
             internalSearchState.emit(SearchState.Searching)
 

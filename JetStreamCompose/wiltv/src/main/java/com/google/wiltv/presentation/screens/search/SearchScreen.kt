@@ -53,6 +53,7 @@ import com.google.wiltv.presentation.common.SearchErrorSuggestions
 import com.google.wiltv.presentation.common.SearchErrorType
 import com.google.wiltv.presentation.common.SearchLoadingShimmer
 import com.google.wiltv.presentation.common.SearchQueryDisplay
+import com.google.wiltv.presentation.common.SearchSuggestions
 import com.google.wiltv.presentation.common.TvChannelCard
 import com.google.wiltv.presentation.common.TvVirtualKeyboard
 import com.google.wiltv.presentation.screens.ErrorScreen
@@ -198,6 +199,12 @@ fun UnifiedSearchResult(
         mutableMapOf<Int, FocusRequester>()
     }
     var shouldRestoreFocus by remember { mutableStateOf(true) }
+    
+    // Collect search suggestions from ViewModel
+    val searchSuggestions by searchScreenViewModel.searchSuggestions.collectAsStateWithLifecycle()
+    
+    // Focus requesters for navigation between suggestions and keyboard
+    val suggestionsFocusRequester = remember { FocusRequester() }
 
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var lastSearchedQuery by rememberSaveable { mutableStateOf("") }
@@ -227,9 +234,28 @@ fun UnifiedSearchResult(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
+            SearchSuggestions(
+                suggestions = searchSuggestions,
+                onSuggestionClick = { suggestion ->
+                    searchQuery = suggestion
+                    if (searchQuery.isNotBlank()) {
+                        searchScreenViewModel.query(searchQuery)
+                        lastSearchedQuery = searchQuery
+                        hasSearched = true
+                        // Focus stays on the suggestion - user decides where to navigate
+                    }
+                },
+                modifier = Modifier.padding(bottom = 8.dp),
+                isVisible = searchQuery.isNotEmpty(),
+                focusRequester = suggestionsFocusRequester,
+                downFocusRequester = null,
+                rightFocusRequester = if (hasSearched && !isEmpty) focusRequesters[0] else null
+            )
+
             TvVirtualKeyboard(
                 onKeyPress = { key ->
                     searchQuery += key
+                    searchScreenViewModel.fetchSuggestions(searchQuery)
                 },
                 onClear = {
                     searchQuery = ""
@@ -238,10 +264,12 @@ fun UnifiedSearchResult(
                 onDelete = {
                     if (searchQuery.isNotEmpty()) {
                         searchQuery = searchQuery.dropLast(1)
+                        searchScreenViewModel.fetchSuggestions(searchQuery)
                     }
                 },
                 onSpace = {
                     searchQuery += " "
+                    searchScreenViewModel.fetchSuggestions(searchQuery)
                 },
                 onEnter = {
                     if (searchQuery.isNotBlank()) {
@@ -252,7 +280,8 @@ fun UnifiedSearchResult(
                         hasSearched = true
                     }
                 },
-                initialFocus = !hasSearched
+                initialFocus = !hasSearched,
+                upFocusRequester = if (searchQuery.isNotEmpty()) suggestionsFocusRequester else null
             )
         }
 
