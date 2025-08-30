@@ -215,9 +215,9 @@ fun ProfileScreen(
                                 onSelectedIndexChange = { selectedLanguageIndex = it }
                             )
                         }
-                        composable(ProfileScreens.SearchHistory()) {
-                            SearchHistorySection()
-                        }
+//                        composable(ProfileScreens.SearchHistory()) {
+//                            SearchHistorySection()
+//                        }
                         composable(ProfileScreens.HelpAndSupport()) {
                             HelpAndSupportSection()
                         }
