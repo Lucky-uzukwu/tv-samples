@@ -28,8 +28,7 @@ class ProfileRepositoryImpl @Inject constructor(
     override fun getAllProfiles(): Flow<List<Profile>> {
         return dataStore.data.map { preferences ->
             val profilesJson = preferences[PROFILES_KEY] ?: "[]"
-            val type = object : TypeToken<List<Profile>>() {}.type
-            gson.fromJson(profilesJson, type) ?: emptyList()
+            deserializeProfiles(profilesJson)
         }
     }
 
@@ -38,8 +37,7 @@ class ProfileRepositoryImpl @Inject constructor(
             val selectedId = preferences[SELECTED_PROFILE_ID_KEY]
             if (selectedId != null) {
                 val profilesJson = preferences[PROFILES_KEY] ?: "[]"
-                val type = object : TypeToken<List<Profile>>() {}.type
-                val profiles: List<Profile> = gson.fromJson(profilesJson, type) ?: emptyList()
+                val profiles = deserializeProfiles(profilesJson)
                 profiles.find { it.id == selectedId }
             } else {
                 null
@@ -58,9 +56,7 @@ class ProfileRepositoryImpl @Inject constructor(
 
         dataStore.edit { preferences ->
             val profilesJson = preferences[PROFILES_KEY] ?: "[]"
-            val typeToken = object : TypeToken<List<Profile>>() {}.type
-            val currentProfiles: MutableList<Profile> = 
-                gson.fromJson<List<Profile>>(profilesJson, typeToken)?.toMutableList() ?: mutableListOf()
+            val currentProfiles = deserializeProfiles(profilesJson).toMutableList()
             
             currentProfiles.add(newProfile)
             preferences[PROFILES_KEY] = gson.toJson(currentProfiles)
@@ -78,9 +74,7 @@ class ProfileRepositoryImpl @Inject constructor(
     override suspend fun updateProfile(profile: Profile) {
         dataStore.edit { preferences ->
             val profilesJson = preferences[PROFILES_KEY] ?: "[]"
-            val typeToken = object : TypeToken<List<Profile>>() {}.type
-            val currentProfiles: MutableList<Profile> = 
-                gson.fromJson<List<Profile>>(profilesJson, typeToken)?.toMutableList() ?: mutableListOf()
+            val currentProfiles = deserializeProfiles(profilesJson).toMutableList()
             
             val index = currentProfiles.indexOfFirst { it.id == profile.id }
             if (index != -1) {
@@ -93,9 +87,7 @@ class ProfileRepositoryImpl @Inject constructor(
     override suspend fun deleteProfile(profileId: String) {
         dataStore.edit { preferences ->
             val profilesJson = preferences[PROFILES_KEY] ?: "[]"
-            val typeToken = object : TypeToken<List<Profile>>() {}.type
-            val currentProfiles: MutableList<Profile> = 
-                gson.fromJson<List<Profile>>(profilesJson, typeToken)?.toMutableList() ?: mutableListOf()
+            val currentProfiles = deserializeProfiles(profilesJson).toMutableList()
             
             currentProfiles.removeAll { it.id == profileId }
             preferences[PROFILES_KEY] = gson.toJson(currentProfiles)
@@ -110,16 +102,15 @@ class ProfileRepositoryImpl @Inject constructor(
     override suspend fun initializeDefaultProfiles() {
         dataStore.edit { preferences ->
             val profilesJson = preferences[PROFILES_KEY] ?: "[]"
-            val typeToken = object : TypeToken<List<Profile>>() {}.type
-            val currentProfiles: List<Profile> = gson.fromJson(profilesJson, typeToken) ?: emptyList()
+            val currentProfiles = deserializeProfiles(profilesJson)
             
             if (currentProfiles.isEmpty()) {
                 val defaultProfiles = listOf(
                     Profile(
-                        id = "default-adult",
-                        name = "Adult",
+                        id = "default-profile",
+                        name = "Default",
                         avatarUrl = "default_avatar",
-                        type = ProfileType.ADULT,
+                        type = ProfileType.DEFAULT,
                         isDefault = true
                     ),
                     Profile(
@@ -140,5 +131,19 @@ class ProfileRepositoryImpl @Inject constructor(
             preferences.remove(PROFILES_KEY)
             preferences.remove(SELECTED_PROFILE_ID_KEY)
         }
+    }
+
+    /**
+     * Deserializes profiles JSON with migration of legacy data
+     * This handles any existing data that might still contain old values
+     */
+    private fun deserializeProfiles(profilesJson: String): List<Profile> {
+        // Replace any legacy references
+        val migratedJson = profilesJson
+            .replace("\"ADULT\"", "\"DEFAULT\"")
+            .replace("\"name\":\"Adult\"", "\"name\":\"Default\"")
+            .replace("\"default-adult\"", "\"default-profile\"")
+        val type = object : TypeToken<List<Profile>>() {}.type
+        return gson.fromJson(migratedJson, type) ?: emptyList()
     }
 }

@@ -6,7 +6,6 @@ import androidx.tv.material3.Border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -120,7 +119,7 @@ fun ProfileSection(
                         } else {
                             val avatarRes = when (profile.type) {
                                 ProfileType.KIDS -> R.drawable.kids_avatar_new
-                                ProfileType.ADULT -> R.drawable.default_avatar
+                                ProfileType.DEFAULT -> R.drawable.default_avatar
                             }
                             AsyncImage(
                                 model = avatarRes,
@@ -144,7 +143,7 @@ fun ProfileSection(
                     // Profile Type Badge
                     Text(
                         text = when (profile.type) {
-                            ProfileType.ADULT -> "Adult Profile"
+                            ProfileType.DEFAULT -> "Default Profile"
                             ProfileType.KIDS -> "Kids Profile"
                         },
                         style = MaterialTheme.typography.bodyMedium,

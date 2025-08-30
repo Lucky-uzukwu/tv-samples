@@ -18,7 +18,7 @@ object ProfileContentHelper {
      * @param selectedProfile The currently selected user profile, or null if none selected
      * @return ContentFilterParams with appropriate values for API calls
      *         - KIDS profile: isKidsContent=1, isAdultContent=0
-     *         - ADULT profile: isAdultContent=1, isKidsContent=0
+     *         - DEFAULT profile: isAdultContent=1, isKidsContent=0
      *         - No profile: both null (no filtering)
      */
     fun getContentFilterParams(selectedProfile: Profile?): ContentFilterParams {
@@ -28,7 +28,7 @@ object ProfileContentHelper {
                 isKidsContent = 1
             )
 
-            ProfileType.ADULT -> ContentFilterParams(
+            ProfileType.DEFAULT -> ContentFilterParams(
                 isAdultContent = null,
                 isKidsContent = null
             )

@@ -1,5 +1,5 @@
 // ABOUTME: Profile entity representing a user profile with avatar, type, and metadata
-// ABOUTME: Supports both Adult and Kids profile types for content personalization
+// ABOUTME: Supports both Default and Kids profile types for content personalization
 package com.google.wiltv.data.entities
 
 import kotlinx.serialization.Serializable
@@ -16,6 +16,7 @@ data class Profile(
 
 @Serializable
 enum class ProfileType {
-    ADULT,
+    DEFAULT,
+
     KIDS
 }
