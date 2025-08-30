@@ -5,7 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.map
 import com.google.wiltv.data.models.MovieNew
+import com.google.wiltv.data.models.SearchContent
+import com.google.wiltv.data.network.ContentType
 import com.google.wiltv.data.paging.pagingsources.search.SearchPagingSources
 import com.google.wiltv.data.repositories.SearchRepository
 import com.google.wiltv.data.repositories.UserRepository
@@ -35,10 +38,11 @@ class StreamingProviderMoviesListScreenViewModel @Inject constructor(
             } else {
                 val streamingProviderId = streamingProvider.split("-")[0]
                 val streamingProviderName = streamingProvider.split("-")[1]
-                val movies = SearchPagingSources().searchMovies(
-                    query = "$streamingProviderId IN [‚id of sp‘]",
+                val movies = SearchPagingSources().searchUnified(
+                    query = "$streamingProviderId IN [‚id of sp']",
                     searchRepository = searchRepository,
-                    userRepository = userRepository
+                    userRepository = userRepository,
+                    contentTypes = listOf(ContentType.MOVIE)
                 ).cachedIn(viewModelScope).stateIn(
                     viewModelScope,
                     SharingStarted.WhileSubscribed(5_000),
@@ -61,7 +65,7 @@ sealed interface StreamingProviderMoviesListScreenUiState {
     object Loading : StreamingProviderMoviesListScreenUiState
     object Error : StreamingProviderMoviesListScreenUiState
     data class Done(
-        val movies: StateFlow<PagingData<MovieNew>>,
+        val movies: StateFlow<PagingData<SearchContent>>,
         val streamingProviderName: String
     ) :
         StreamingProviderMoviesListScreenUiState

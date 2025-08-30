@@ -24,8 +24,11 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Border
 import androidx.tv.material3.ClickableSurfaceDefaults
+import androidx.tv.material3.Glow
+import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.StandardCardContainer
 import androidx.tv.material3.Surface
 import com.google.wiltv.presentation.theme.WilTvBorderWidth
@@ -35,6 +38,13 @@ import com.google.wiltv.presentation.theme.WilTvCardShape
 fun TvChannelCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    scale: androidx.tv.material3.ClickableSurfaceScale = ClickableSurfaceDefaults.scale(focusedScale = 1.05f),
+    glow: androidx.tv.material3.ClickableSurfaceGlow = ClickableSurfaceDefaults.glow(
+        focusedGlow = Glow(
+            elevationColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+            elevation = 8.dp
+        )
+    ),
     content: @Composable BoxScope.() -> Unit,
 ) {
     StandardCardContainer(
@@ -58,7 +68,8 @@ fun TvChannelCard(
                         shape = WilTvCardShape
                     )
                 ),
-                scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
+                scale = scale,
+                glow = glow,
                 content = content
             )
         },

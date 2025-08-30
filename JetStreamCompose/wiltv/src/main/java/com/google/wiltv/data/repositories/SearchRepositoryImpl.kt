@@ -1,17 +1,13 @@
 package com.google.wiltv.data.repositories
 
 import co.touchlab.kermit.Logger
-import com.google.wiltv.data.network.MovieSearchResponse
+import com.google.wiltv.data.network.ContentType
 import com.google.wiltv.data.network.SearchService
-import com.google.wiltv.data.network.ShowSearchResponse
-import com.google.wiltv.data.network.TvChannelService
-import com.google.wiltv.data.network.TvChannelsResponse
+import com.google.wiltv.data.models.UnifiedSearchResponse
 import com.google.wiltv.data.utils.ProfileContentHelper
 import com.google.wiltv.domain.ApiResult
 import com.google.wiltv.domain.DataError
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,24 +16,25 @@ class SearchRepositoryImpl @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository,
     private val searchService: SearchService,
-    private val tvChannelService: TvChannelService,
     private val profileRepository: ProfileRepository
 ) : SearchRepository {
-    override suspend fun searchMoviesByQuery(
+    override suspend fun searchContent(
         token: String,
         query: String,
         itemsPerPage: Int,
-        page: Int
-    ): ApiResult<MovieSearchResponse, DataError.Network> {
-        Logger.i { "Searching movies with query: $query" }
+        page: Int,
+        contentTypes: List<ContentType>?
+    ): ApiResult<UnifiedSearchResponse, DataError.Network> {
+        Logger.i { "Searching content with query: $query, types: ${contentTypes?.map { it.apiValue }}" }
         val user = userRepository.getUser()
             ?: return ApiResult.Error(DataError.Network.LOCAL_USER_NOT_FOUND)
         val selectedProfile = profileRepository.getSelectedProfile().firstOrNull()
         val contentParams = ProfileContentHelper.getContentFilterParams(selectedProfile)
         
-        val response = searchService.searchMovie(
+        val response = searchService.search(
             authToken = "Bearer $token",
             search = query,
+            types = contentTypes?.map { it.apiValue },
             itemsPerPage = itemsPerPage,
             page = page,
             isAdultContent = contentParams.isAdultContent,
@@ -46,50 +43,32 @@ class SearchRepositoryImpl @Inject constructor(
         return mapToResult(response)
     }
 
-    override suspend fun searchTvShowsByQuery(
+    override suspend fun getSearchSuggestions(
         token: String,
         query: String,
-        itemsPerPage: Int,
-        page: Int
-    ): ApiResult<ShowSearchResponse, DataError.Network> {
-        Logger.i { "Searching TV shows with query: $query" }
-        val user = userRepository.getUser()
-            ?: return ApiResult.Error(DataError.Network.LOCAL_USER_NOT_FOUND)
-        val selectedProfile = profileRepository.getSelectedProfile().firstOrNull()
-        val contentParams = ProfileContentHelper.getContentFilterParams(selectedProfile)
+        contentType: ContentType?
+    ): ApiResult<List<String>, DataError.Network> {
+        Logger.i { "Getting search suggestions for query: $query, type: ${contentType?.apiValue}" }
         
-        val response = searchService.searchTvShows(
-            authToken = "Bearer $token",
-            search = query,
-            itemsPerPage = itemsPerPage,
-            page = page,
-            isAdultContent = contentParams.isAdultContent,
-            isKidsContent = contentParams.isKidsContent
-        )
-        return mapToResult(response)
-    }
-
-    override suspend fun searchTvChannelsByQuery(
-        token: String,
-        query: String,
-        itemsPerPage: Int,
-        page: Int
-    ): ApiResult<TvChannelsResponse, DataError.Network> {
-        Logger.i { "Searching TV channels with query: $query" }
-        val user = userRepository.getUser()
-            ?: return ApiResult.Error(DataError.Network.LOCAL_USER_NOT_FOUND)
-        val selectedProfile = profileRepository.getSelectedProfile().firstOrNull()
-        val contentParams = ProfileContentHelper.getContentFilterParams(selectedProfile)
-        
-        val response = tvChannelService.getTvChannels(
-            authToken = "Bearer $token",
-            search = query,
-            itemsPerPage = itemsPerPage,
-            page = page,
-            isAdultContent = contentParams.isAdultContent,
-            isKidsContent = contentParams.isKidsContent
-        )
-        return mapToResult(response)
+        return try {
+            val response = searchService.getAutocomplete(
+                authToken = "Bearer $token",
+                query = query,
+                type = contentType?.apiValue
+            )
+            
+            if (response.isSuccessful && response.body() != null) {
+                val suggestions = response.body()!!.member
+                Logger.i { "Received ${suggestions.size} suggestions" }
+                ApiResult.Success(suggestions)
+            } else {
+                Logger.w { "Autocomplete request failed: ${response.code()} ${response.message()}" }
+                ApiResult.Error(DataError.Network.SERVER_ERROR)
+            }
+        } catch (e: Exception) {
+            Logger.e(e) { "Error fetching search suggestions" }
+            ApiResult.Error(DataError.Network.NO_INTERNET)
+        }
     }
 
 

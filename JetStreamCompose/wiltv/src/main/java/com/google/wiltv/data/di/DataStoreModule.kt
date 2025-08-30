@@ -36,10 +36,5 @@ abstract class DataStoreModule {
             return context.dataStore
         }
 
-        @Provides
-        @Singleton
-        fun provideGson(): Gson {
-            return Gson()
-        }
     }
 }

@@ -12,8 +12,7 @@ import com.google.wiltv.data.models.Season
 import com.google.wiltv.data.models.StreamingProvider
 import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.models.Video
-import com.google.wiltv.data.network.MovieSearchResponse
-import com.google.wiltv.data.network.ShowSearchResponse
+import com.google.wiltv.data.models.ViewDetails
 
 object MockData {
 
@@ -163,12 +162,8 @@ object MockData {
     )
 
 
-    fun getMovieSearchResponse() = MovieSearchResponse(
-        member = listOf(getMovie())
-    )
-
-    fun getTvShowSearchResponse() = ShowSearchResponse(
-        member = listOf(getTvShow())
-    )
+    fun getMovies() = listOf(getMovie())
+    
+    fun getTvShows() = listOf(getTvShow())
 
 }

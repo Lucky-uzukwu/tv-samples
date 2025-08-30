@@ -28,6 +28,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.wiltv.data.models.TvShow
+import com.google.wiltv.data.models.SearchContent
 import com.google.wiltv.presentation.common.Error
 import com.google.wiltv.presentation.common.Loading
 import com.google.wiltv.presentation.common.MovieCard
@@ -75,7 +76,7 @@ fun StreamingProviderShowsListScreen(
 @Composable
 private fun ShowsGrid(
     streamingProviderName: String,
-    tvShows: StateFlow<PagingData<TvShow>>,
+    tvShows: StateFlow<PagingData<SearchContent>>,
     onBackPressed: () -> Unit,
     onShowSelected: (TvShow) -> Unit,
     modifier: Modifier = Modifier
@@ -102,7 +103,13 @@ private fun ShowsGrid(
             targetState = tvShows,
             label = "",
         ) { state ->
-            val tvShows = state.collectAsLazyPagingItems().itemSnapshotList.items
+            val searchContentList = state.collectAsLazyPagingItems().itemSnapshotList.items
+            val tvShows = searchContentList.mapNotNull { searchContent ->
+                when (searchContent) {
+                    is SearchContent.TvShowContent -> searchContent.tvShow
+                    else -> null
+                }
+            }
             if (tvShows.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),

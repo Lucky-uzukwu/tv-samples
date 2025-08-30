@@ -5,8 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.google.wiltv.data.models.MovieNew
+import androidx.paging.map
+import com.google.wiltv.data.models.SearchContent
 import com.google.wiltv.data.models.TvShow
+import com.google.wiltv.data.network.ContentType
 import com.google.wiltv.data.paging.pagingsources.search.SearchPagingSources
 import com.google.wiltv.data.repositories.SearchRepository
 import com.google.wiltv.data.repositories.UserRepository
@@ -36,10 +38,11 @@ class StreamingProviderShowsListScreenViewModel @Inject constructor(
             } else {
                 val streamingProviderId = streamingProvider.split("-")[0]
                 val streamingProviderName = streamingProvider.split("-")[1]
-                val tvShows = SearchPagingSources().searchTvShows(
-                    query = "$streamingProviderId IN [‚id of sp‘]",
+                val tvShows = SearchPagingSources().searchUnified(
+                    query = "$streamingProviderId IN [‚id of sp']",
                     searchRepository = searchRepository,
-                    userRepository = userRepository
+                    userRepository = userRepository,
+                    contentTypes = listOf(ContentType.TV_SHOW)
                 ).cachedIn(viewModelScope).stateIn(
                     viewModelScope,
                     SharingStarted.WhileSubscribed(5_000),
@@ -62,7 +65,7 @@ sealed interface StreamingProviderShowsListScreenUiState {
     object Loading : StreamingProviderShowsListScreenUiState
     object Error : StreamingProviderShowsListScreenUiState
     data class Done(
-        val shows: StateFlow<PagingData<TvShow>>,
+        val shows: StateFlow<PagingData<SearchContent>>,
         val streamingProviderName: String
     ) :
         StreamingProviderShowsListScreenUiState

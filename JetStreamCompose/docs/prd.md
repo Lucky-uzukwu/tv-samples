@@ -81,12 +81,12 @@ This enhancement suite builds upon WilTV's solid foundation (Jetpack Compose for
 - **FR16**: Search errors provide helpful suggestions and alternative actions
 - **FR17**: Video player errors offer troubleshooting steps and quality adjustment options
 
-**Epic 4: Real Categories Integration**
-- **FR18**: Categories screen loads real category data from existing category API endpoints
-- **FR19**: Category movie lists use actual API pagination instead of mock data
-- **FR20**: Category filtering and sorting maintain current UI/UX behavior with real data
-- **FR21**: Categories support both movies and TV shows with proper content type filtering
-- **FR22**: Category navigation preserves existing screen flow and deep linking capabilities
+**Epic 4: Real Genre Integration**
+- **FR18**: Genres screen loads real Genre data from existing Genre API endpoints
+- **FR19**: Genre movie lists use actual API pagination instead of mock data
+- **FR20**: Genre filtering and sorting maintain current UI/UX behavior with real data
+- **FR21**: Genres support both movies and TV shows with proper content type filtering
+- **FR22**: Genre navigation preserves existing screen flow and deep linking capabilities
 
 **Epic 5: Modern Search Experience**
 - **FR23**: Search provides real-time suggestions as users type (autocomplete functionality)

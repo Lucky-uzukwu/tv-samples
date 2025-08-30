@@ -250,7 +250,6 @@ object SearchRepositoryModule {
                 authRepository,
                 userRepository,
                 searchService,
-                tvChannelService,
                 profileRepository
             )
         }

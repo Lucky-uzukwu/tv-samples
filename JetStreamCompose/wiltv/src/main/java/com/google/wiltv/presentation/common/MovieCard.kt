@@ -30,6 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Border
 import androidx.tv.material3.ClickableSurfaceDefaults
+import androidx.tv.material3.Glow
 import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.StandardCardContainer
@@ -43,6 +44,13 @@ fun MovieCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     isInWatchlist: Boolean = false,
+    scale: androidx.tv.material3.ClickableSurfaceScale = ClickableSurfaceDefaults.scale(focusedScale = 1.05f),
+    glow: androidx.tv.material3.ClickableSurfaceGlow = ClickableSurfaceDefaults.glow(
+        focusedGlow = Glow(
+            elevationColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+            elevation = 8.dp
+        )
+    ),
     image: @Composable BoxScope.() -> Unit,
 ) {
     StandardCardContainer(
@@ -61,7 +69,8 @@ fun MovieCard(
                         shape = WilTvCardShape
                     )
                 ),
-                scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
+                scale = scale,
+                glow = glow,
                 content = {
                     Box(modifier = Modifier.fillMaxSize()) {
                         image()

@@ -1,8 +1,8 @@
 package com.google.wiltv.data.network
 
-import com.google.wiltv.data.models.MovieNew
-import com.google.wiltv.data.models.TvShow
-import com.google.wiltv.data.models.ViewDetails
+import com.google.wiltv.data.models.UnifiedSearchResponse
+import com.google.wiltv.data.models.SearchTemplate
+import com.google.wiltv.data.models.PartialCollectionView
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -11,61 +11,40 @@ import retrofit2.http.Query
 interface SearchService {
 
     @GET("/search")
-    suspend fun searchMovie(
+    suspend fun search(
         @Header("Authorization") authToken: String,
         @Header("Accept") accept: String = "application/ld+json",
-        @Query("search") search: String = "5 IN [‚id of sp‘]",
-//        @Query("types[]") type: String = "App\\Models\\Movie",
-//        @Query("search") search: String = "5 IN [‚id of sp‘]",
-//        @Query("types") types: List<String>,
-//        @Query("genres") genres: List<String>,
-//        @Query("catalogs") catalogs: List<String>,
-//        @Query("year") year: List<String>,
-//        @Query("streamingProviders") streamingProviders: List<String>,
-//        @Query("sportTypes") sportTypes: List<String>,
-//        @Query("teamA.name") teamAName: List<String>,
-//        @Query("teamB.name") teamBName: List<String>,
-//        @Query("competition") competition: List<String>,
+        @Query("search") search: String,
+        @Query("types[]") types: List<String>? = null,
+        @Query("genres[]") genres: List<String>? = null,
+        @Query("catalogs[]") catalogs: List<String>? = null,
+        @Query("year[]") year: List<String>? = null,
+        @Query("streamingProviders[]") streamingProviders: List<String>? = null,
+        @Query("sportTypes[]") sportTypes: List<String>? = null,
+        @Query("teamA.name[]") teamAName: List<String>? = null,
+        @Query("teamB.name[]") teamBName: List<String>? = null,
+        @Query("competition[]") competition: List<String>? = null,
         @Query("isAdultContent") isAdultContent: Int? = null,
         @Query("isKidsContent") isKidsContent: Int? = null,
         @Query("page") page: Int = 1,
         @Query("itemsPerPage") itemsPerPage: Int = 10,
-    ): Response<MovieSearchResponse>
+    ): Response<UnifiedSearchResponse>
 
-    @GET("/search")
-    suspend fun searchTvShows(
+    @GET("/search/auto_complete")
+    suspend fun getAutocomplete(
         @Header("Authorization") authToken: String,
         @Header("Accept") accept: String = "application/ld+json",
-        @Query("search") search: String = "5 IN [‚id of sp‘]",
-        @Query("isAdultContent") isAdultContent: Int? = null,
-        @Query("isKidsContent") isKidsContent: Int? = null,
-//        @Query("types[]") type: String = "App\\Models\\TvShow",
-//        @Query("search") search: String = "5 IN [‚id of sp‘]",
-//        @Query("types") types: List<String>,
-//        @Query("genres") genres: List<String>,
-//        @Query("catalogs") catalogs: List<String>,
-//        @Query("year") year: List<String>,
-//        @Query("streamingProviders") streamingProviders: List<String>,
-//        @Query("sportTypes") sportTypes: List<String>,
-//        @Query("teamA.name") teamAName: List<String>,
-//        @Query("teamB.name") teamBName: List<String>,
-//        @Query("competition") competition: List<String>,
-//        @Query("isKidsContent") isKidsContent: Boolean = false,
-//        @Query("isAdultContent") isAdultContent: Boolean = false,
-        @Query("page") page: Int = 1,
-        @Query("itemsPerPage") itemsPerPage: Int = 10,
-    ): Response<ShowSearchResponse>
+        @Query("search") query: String,
+        @Query("type") type: String? = null
+    ): Response<AutocompleteResponse>
 }
 
 
-data class MovieSearchResponse(
-    val member: List<MovieNew>,
+
+data class AutocompleteResponse(
+    val member: List<String>,
     val totalItems: Int? = null,
-    val viewDetails: ViewDetails? = null,
+    val search: SearchTemplate? = null,
+    val view: PartialCollectionView? = null
 )
 
-data class ShowSearchResponse(
-    val member: List<TvShow>,
-    val totalItems: Int? = null,
-    val viewDetails: ViewDetails? = null,
-)

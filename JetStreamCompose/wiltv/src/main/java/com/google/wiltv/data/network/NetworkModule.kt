@@ -11,6 +11,10 @@ import com.google.wiltv.data.dao.MovieRemoteKeyDao
 import com.google.wiltv.data.dao.MoviesDao
 import com.google.wiltv.data.dao.WatchlistDao
 import com.google.wiltv.data.dao.WatchProgressDao
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.wiltv.data.models.SearchContent
+import com.google.wiltv.data.models.SearchContentDeserializer
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -40,11 +44,19 @@ class NetworkModule {
 
     @Provides
     @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
+    fun provideGson(): Gson {
+        return GsonBuilder()
+            .registerTypeAdapter(SearchContent::class.java, SearchContentDeserializer())
+            .create()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRetrofit(okHttpClient: OkHttpClient, gson: Gson): Retrofit {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }
 

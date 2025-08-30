@@ -3,6 +3,8 @@
 
 package com.google.wiltv.presentation.common
 
+import androidx.compose.animation.core.*
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,8 +12,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,8 +23,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ButtonDefaults
+import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.WifiOff
 
 @Composable
 fun SearchErrorSuggestions(
@@ -66,6 +75,18 @@ fun NetworkErrorFallback(
     onRetryClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Pulsing animation for the icon
+    val infiniteTransition = rememberInfiniteTransition(label = "network_error")
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 1.0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha"
+    )
+    
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -73,6 +94,16 @@ fun NetworkErrorFallback(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // Network error icon with pulsing animation
+        Icon(
+            imageVector = Icons.Default.WifiOff,
+            contentDescription = "Network error",
+            modifier = Modifier
+                .size(64.dp)
+                .padding(bottom = 24.dp),
+            tint = MaterialTheme.colorScheme.error.copy(alpha = alpha)
+        )
+        
         Text(
             text = "Search is temporarily unavailable",
             style = MaterialTheme.typography.headlineMedium,
@@ -158,6 +189,16 @@ fun NoResultsSuggestions(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // Search icon with subtle animation
+        Icon(
+            imageVector = Icons.Default.Search,
+            contentDescription = "No results",
+            modifier = Modifier
+                .size(64.dp)
+                .padding(bottom = 24.dp),
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        )
+        
         Text(
             text = "No content found for \"$query\"",
             style = MaterialTheme.typography.headlineMedium,
@@ -239,6 +280,16 @@ fun QueryErrorSuggestions(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // Warning icon for query errors
+        Icon(
+            imageVector = Icons.Default.Warning,
+            contentDescription = "Query error",
+            modifier = Modifier
+                .size(56.dp)
+                .padding(bottom = 24.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        
         Text(
             text = "Let's improve that search",
             style = MaterialTheme.typography.headlineMedium,

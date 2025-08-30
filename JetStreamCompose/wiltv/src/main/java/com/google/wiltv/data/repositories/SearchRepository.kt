@@ -1,32 +1,23 @@
 package com.google.wiltv.data.repositories
 
-import com.google.wiltv.data.network.MovieSearchResponse
-import com.google.wiltv.data.network.ShowSearchResponse
-import com.google.wiltv.data.network.TvChannelsResponse
+import com.google.wiltv.data.network.ContentType
+import com.google.wiltv.data.models.UnifiedSearchResponse
 import com.google.wiltv.domain.ApiResult
 import com.google.wiltv.domain.DataError
-import kotlinx.coroutines.flow.Flow
 
 interface SearchRepository {
 
-    suspend fun searchMoviesByQuery(
+    suspend fun searchContent(
         token: String,
         query: String,
         itemsPerPage: Int,
-        page: Int
-    ): ApiResult<MovieSearchResponse, DataError.Network>
+        page: Int,
+        contentTypes: List<ContentType>? = null
+    ): ApiResult<UnifiedSearchResponse, DataError.Network>
 
-    suspend fun searchTvShowsByQuery(
+    suspend fun getSearchSuggestions(
         token: String,
         query: String,
-        itemsPerPage: Int,
-        page: Int
-    ): ApiResult<ShowSearchResponse, DataError.Network>
-
-    suspend fun searchTvChannelsByQuery(
-        token: String,
-        query: String,
-        itemsPerPage: Int,
-        page: Int
-    ): ApiResult<TvChannelsResponse, DataError.Network>
+        contentType: ContentType? = null
+    ): ApiResult<List<String>, DataError.Network>
 }
