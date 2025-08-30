@@ -14,16 +14,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -52,6 +56,8 @@ import com.google.wiltv.presentation.common.TvVirtualKeyboard
 import com.google.wiltv.presentation.screens.ErrorScreen
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
 import com.google.wiltv.presentation.theme.WilTvBottomListPadding
+import com.google.wiltv.presentation.utils.createInitialFocusRestorerModifiers
+import com.google.wiltv.presentation.utils.focusOnInitialVisibility
 import kotlinx.coroutines.flow.StateFlow
 
 
@@ -183,10 +189,15 @@ fun UnifiedSearchResult(
     modifier: Modifier = Modifier
 ) {
     val childPadding = rememberChildPadding()
+    val gridState = rememberLazyGridState()
+    val focusRestorerModifiers = createInitialFocusRestorerModifiers()
+    val isGridItemVisible = remember { mutableStateOf(false) }
 
-    var searchQuery by remember { mutableStateOf("") }
-    var lastSearchedQuery by remember { mutableStateOf("") }
-    var hasSearched by remember { mutableStateOf(false) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var lastSearchedQuery by rememberSaveable { mutableStateOf("") }
+    var hasSearched by rememberSaveable { mutableStateOf(false) }
+    var lastFocusedIndex by rememberSaveable { mutableIntStateOf(0) }
+    var isReturningFromNavigation by rememberSaveable { mutableStateOf(false) }
 
     val contentItems = content?.collectAsLazyPagingItems()
 
@@ -218,6 +229,7 @@ fun UnifiedSearchResult(
                 onClear = {
                     searchQuery = ""
                     hasSearched = false
+                    isReturningFromNavigation = false
                 },
                 onDelete = {
                     if (searchQuery.isNotEmpty()) {
@@ -234,8 +246,10 @@ fun UnifiedSearchResult(
                         searchScreenViewModel.query(trimmedQuery)
                         lastSearchedQuery = trimmedQuery
                         hasSearched = true
+                        isReturningFromNavigation = false
                     }
-                }
+                },
+                initialFocus = !isReturningFromNavigation && !hasSearched
             )
         }
 
@@ -283,7 +297,10 @@ fun UnifiedSearchResult(
                     else -> {
                         if (!isEmpty && contentItems != null) {
                             LazyVerticalGrid(
-                                modifier = Modifier.fillMaxSize(),
+                                state = gridState,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .then(focusRestorerModifiers.parentModifier),
                                 columns = GridCells.Fixed(3),
                                 contentPadding = PaddingValues(
                                     start = 16.dp,
@@ -307,20 +324,67 @@ fun UnifiedSearchResult(
                                 ) { index ->
                                     val searchContent = contentItems[index]
                                     if (searchContent != null) {
+                                        val itemModifier = Modifier
+                                            .then(
+                                                when {
+                                                    index == lastFocusedIndex && isReturningFromNavigation ->
+                                                        focusRestorerModifiers.childModifier.focusOnInitialVisibility(isGridItemVisible)
+                                                    index == 0 && !isGridItemVisible.value ->
+                                                        focusRestorerModifiers.childModifier.focusOnInitialVisibility(isGridItemVisible)
+                                                    else -> Modifier
+                                                }
+                                            )
+                                            .onFocusChanged { focusState ->
+                                                if (focusState.hasFocus) {
+                                                    lastFocusedIndex = index
+                                                }
+                                            }
+
                                         when (searchContent) {
                                             is SearchContent.MovieContent -> {
-                                                MovieSearchContent(searchContent, onMovieClick)
+                                                MovieSearchContent(
+                                                    searchContent = searchContent,
+                                                    onMovieClick = { movie ->
+                                                        isReturningFromNavigation = true
+                                                        onMovieClick(movie)
+                                                    },
+                                                    modifier = itemModifier
+                                                )
                                             }
 
                                             is SearchContent.TvShowContent -> {
-                                                TvShowSearchContent(searchContent, onShowClick)
+                                                TvShowSearchContent(
+                                                    searchContent = searchContent,
+                                                    onShowClick = { show ->
+                                                        isReturningFromNavigation = true
+                                                        onShowClick(show)
+                                                    },
+                                                    modifier = itemModifier
+                                                )
                                             }
 
                                             is SearchContent.TvChannelContent -> {
-                                                TvChannelSearchConent(searchContent, onChannelClick)
+                                                TvChannelSearchConent(
+                                                    searchContent = searchContent,
+                                                    onChannelClick = { channel ->
+                                                        isReturningFromNavigation = true
+                                                        onChannelClick(channel)
+                                                    },
+                                                    modifier = itemModifier
+                                                )
                                             }
                                         }
                                     }
+                                }
+                            }
+
+                            // Handle focus restoration when returning from navigation
+                            LaunchedEffect(isReturningFromNavigation, contentItems?.itemCount) {
+                                if (isReturningFromNavigation && (contentItems?.itemCount ?: 0) > 0) {
+                                    // Small delay to ensure UI is ready
+                                    kotlinx.coroutines.delay(100)
+                                    // Reset the flag - focus will be handled by focusRestorer
+                                    isReturningFromNavigation = false
                                 }
                             }
                         } else {
@@ -348,12 +412,13 @@ fun UnifiedSearchResult(
 @Composable
 private fun TvChannelSearchConent(
     searchContent: SearchContent.TvChannelContent,
-    onChannelClick: (TvChannel) -> Unit
+    onChannelClick: (TvChannel) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val channel = searchContent.tvChannel
     TvChannelCard(
         onClick = { onChannelClick(channel) },
-        modifier = Modifier
+        modifier = modifier
             .aspectRatio(1 / 1.5f)
             .padding(6.dp)
     ) {
@@ -384,12 +449,13 @@ private fun TvChannelSearchConent(
 @Composable
 private fun TvShowSearchContent(
     searchContent: SearchContent.TvShowContent,
-    onShowClick: (TvShow) -> Unit
+    onShowClick: (TvShow) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val show = searchContent.tvShow
     MovieCard(
         onClick = { onShowClick(show) },
-        modifier = Modifier
+        modifier = modifier
             .aspectRatio(1 / 1.5f)
             .padding(6.dp),
     ) {
@@ -420,12 +486,13 @@ private fun TvShowSearchContent(
 @Composable
 private fun MovieSearchContent(
     searchContent: SearchContent.MovieContent,
-    onMovieClick: (MovieNew) -> Unit
+    onMovieClick: (MovieNew) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val movie = searchContent.movie
     MovieCard(
         onClick = { onMovieClick(movie) },
-        modifier = Modifier
+        modifier = modifier
             .aspectRatio(1 / 1.5f)
             .padding(6.dp),
     ) {
