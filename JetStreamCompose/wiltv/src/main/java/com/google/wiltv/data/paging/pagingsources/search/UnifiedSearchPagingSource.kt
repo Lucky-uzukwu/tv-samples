@@ -19,7 +19,7 @@ class UnifiedSearchPagingSource(
     private val query: String,
     private val contentTypes: List<ContentType>? = null
 ) : PagingSource<Int, SearchContent>() {
-    
+
     override fun getRefreshKey(state: PagingState<Int, SearchContent>): Int? {
         return state.anchorPosition?.let { anchorPosition ->
             state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
@@ -32,18 +32,21 @@ class UnifiedSearchPagingSource(
             Log.d("UnifiedSearchPaging", "=== Unified Search Load Start ===")
             Log.d("UnifiedSearchPaging", "Query: '$query'")
             Log.d("UnifiedSearchPaging", "Content types: ${contentTypes?.map { it.apiValue }}")
-            Log.d("UnifiedSearchPaging", "Load params - key: ${params.key}, loadSize: ${params.loadSize}")
-            
+            Log.d(
+                "UnifiedSearchPaging",
+                "Load params - key: ${params.key}, loadSize: ${params.loadSize}"
+            )
+
             val token = userRepository.userToken.firstOrNull()
             if (token == null) {
                 Log.e("UnifiedSearchPaging", "No authentication token available")
                 return LoadResult.Error(Exception("No token"))
             }
             Log.d("UnifiedSearchPaging", "Token available: ${token.take(20)}...")
-            
+
             val currentPage = params.key ?: 1
             val pageSize = params.loadSize
-            
+
             Log.d("UnifiedSearchPaging", "Calling API - page: $currentPage, pageSize: $pageSize")
             val searchResult = searchRepository.searchContent(
                 token = token,
@@ -52,14 +55,19 @@ class UnifiedSearchPagingSource(
                 itemsPerPage = pageSize,
                 contentTypes = contentTypes
             )
-            
+
             val searchResponse = when (searchResult) {
                 is ApiResult.Success -> {
-                    Log.d("UnifiedSearchPaging", "API Success - Got ${searchResult.data.member.size} items")
+                    Log.d(
+                        "UnifiedSearchPaging",
+                        "API Success - Got ${searchResult.data.member.size} items"
+                    )
                     searchResult.data
                 }
+
                 is ApiResult.Error -> {
-                    val errorMsg = "Failed to search content: ${searchResult.message ?: searchResult.error}"
+                    val errorMsg =
+                        "Failed to search content ${(":" + searchResult.message) ?: searchResult.error}"
                     Log.e("UnifiedSearchPaging", errorMsg)
                     return LoadResult.Error(Exception(errorMsg))
                 }
@@ -70,7 +78,7 @@ class UnifiedSearchPagingSource(
                 prevKey = if (currentPage == 1) null else currentPage - 1,
                 nextKey = if (searchResponse.member.isEmpty()) null else currentPage + 1
             )
-            
+
             Log.d("UnifiedSearchPaging", "Returning Page with ${searchResponse.member.size} items")
             Log.d("UnifiedSearchPaging", "PrevKey: ${result.prevKey}, NextKey: ${result.nextKey}")
             result

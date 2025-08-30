@@ -40,7 +40,6 @@ interface SearchService {
 }
 
 
-
 data class AutocompleteResponse(
     val member: List<String>,
     val totalItems: Int? = null,

@@ -27,6 +27,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -190,8 +192,12 @@ fun UnifiedSearchResult(
 ) {
     val childPadding = rememberChildPadding()
     val gridState = rememberLazyGridState()
-    val focusRestorerModifiers = createInitialFocusRestorerModifiers()
-    val isGridItemVisible = remember { mutableStateOf(false) }
+    
+    // Focus management state - similar to CatalogLayout
+    val focusRequesters = remember { 
+        mutableMapOf<Int, FocusRequester>()
+    }
+    var shouldRestoreFocus by remember { mutableStateOf(true) }
 
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var lastSearchedQuery by rememberSaveable { mutableStateOf("") }
@@ -298,9 +304,7 @@ fun UnifiedSearchResult(
                         if (!isEmpty && contentItems != null) {
                             LazyVerticalGrid(
                                 state = gridState,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .then(focusRestorerModifiers.parentModifier),
+                                modifier = Modifier.fillMaxSize(),
                                 columns = GridCells.Fixed(3),
                                 contentPadding = PaddingValues(
                                     start = 16.dp,
@@ -324,19 +328,15 @@ fun UnifiedSearchResult(
                                 ) { index ->
                                     val searchContent = contentItems[index]
                                     if (searchContent != null) {
+                                        // Get or create focus requester for this index - similar to CatalogLayout
+                                        val focusRequester = focusRequesters.getOrPut(index) { FocusRequester() }
+                                        
                                         val itemModifier = Modifier
-                                            .then(
-                                                when {
-                                                    index == lastFocusedIndex && isReturningFromNavigation ->
-                                                        focusRestorerModifiers.childModifier.focusOnInitialVisibility(isGridItemVisible)
-                                                    index == 0 && !isGridItemVisible.value ->
-                                                        focusRestorerModifiers.childModifier.focusOnInitialVisibility(isGridItemVisible)
-                                                    else -> Modifier
-                                                }
-                                            )
+                                            .focusRequester(focusRequester)
                                             .onFocusChanged { focusState ->
                                                 if (focusState.hasFocus) {
                                                     lastFocusedIndex = index
+                                                    shouldRestoreFocus = false  // Similar to CatalogLayout
                                                 }
                                             }
 
@@ -345,6 +345,7 @@ fun UnifiedSearchResult(
                                                 MovieSearchContent(
                                                     searchContent = searchContent,
                                                     onMovieClick = { movie ->
+                                                        shouldRestoreFocus = true  // Enable focus restoration
                                                         isReturningFromNavigation = true
                                                         onMovieClick(movie)
                                                     },
@@ -356,6 +357,7 @@ fun UnifiedSearchResult(
                                                 TvShowSearchContent(
                                                     searchContent = searchContent,
                                                     onShowClick = { show ->
+                                                        shouldRestoreFocus = true  // Enable focus restoration
                                                         isReturningFromNavigation = true
                                                         onShowClick(show)
                                                     },
@@ -367,6 +369,7 @@ fun UnifiedSearchResult(
                                                 TvChannelSearchConent(
                                                     searchContent = searchContent,
                                                     onChannelClick = { channel ->
+                                                        shouldRestoreFocus = true  // Enable focus restoration
                                                         isReturningFromNavigation = true
                                                         onChannelClick(channel)
                                                     },
@@ -378,13 +381,48 @@ fun UnifiedSearchResult(
                                 }
                             }
 
-                            // Handle focus restoration when returning from navigation
-                            LaunchedEffect(isReturningFromNavigation, contentItems?.itemCount) {
-                                if (isReturningFromNavigation && (contentItems?.itemCount ?: 0) > 0) {
-                                    // Small delay to ensure UI is ready
-                                    kotlinx.coroutines.delay(100)
-                                    // Reset the flag - focus will be handled by focusRestorer
-                                    isReturningFromNavigation = false
+                            // Focus restoration with grid scrolling - similar to CatalogLayout
+                            LaunchedEffect(
+                                isReturningFromNavigation,
+                                lastFocusedIndex,
+                                contentItems?.itemCount,
+                                shouldRestoreFocus
+                            ) {
+                                if (shouldRestoreFocus && isReturningFromNavigation && 
+                                    lastFocusedIndex >= 0 && (contentItems?.itemCount ?: 0) > lastFocusedIndex) {
+                                    
+                                    // Short delay to ensure UI is ready
+                                    kotlinx.coroutines.delay(20)
+                                    
+                                    try {
+                                        // First scroll to make the item visible
+                                        gridState.scrollToItem(lastFocusedIndex)
+                                        kotlinx.coroutines.delay(100) // Wait for scroll to complete
+                                        
+                                        // Get focus requester for this index
+                                        val focusRequester = focusRequesters[lastFocusedIndex]
+                                        if (focusRequester != null) {
+                                            // Try to request focus with retry logic (from CatalogLayout)
+                                            var focusSuccess = false
+                                            repeat(3) { attempt ->
+                                                if (!focusSuccess) {
+                                                    try {
+                                                        focusRequester.requestFocus()
+                                                        focusSuccess = true
+                                                        shouldRestoreFocus = false
+                                                        isReturningFromNavigation = false
+                                                    } catch (e: Exception) {
+                                                        if (attempt < 2) {
+                                                            kotlinx.coroutines.delay(50) // Small delay before retry
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } catch (e: Exception) {
+                                        shouldRestoreFocus = false
+                                        isReturningFromNavigation = false
+                                    }
                                 }
                             }
                         } else {
