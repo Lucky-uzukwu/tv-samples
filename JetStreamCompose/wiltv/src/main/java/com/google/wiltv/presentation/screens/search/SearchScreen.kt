@@ -196,6 +196,7 @@ fun UnifiedSearchResult(
     Row(
         modifier = modifier
             .fillMaxSize()
+            .padding(start = 28.dp)
             .background(MaterialTheme.colorScheme.background)
     ) {
         // Left side: Virtual Keyboard (40% width)
