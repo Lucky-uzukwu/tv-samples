@@ -203,7 +203,6 @@ fun UnifiedSearchResult(
     var lastSearchedQuery by rememberSaveable { mutableStateOf("") }
     var hasSearched by rememberSaveable { mutableStateOf(false) }
     var lastFocusedIndex by rememberSaveable { mutableIntStateOf(0) }
-    var isReturningFromNavigation by rememberSaveable { mutableStateOf(false) }
 
     val contentItems = content?.collectAsLazyPagingItems()
 
@@ -235,7 +234,6 @@ fun UnifiedSearchResult(
                 onClear = {
                     searchQuery = ""
                     hasSearched = false
-                    isReturningFromNavigation = false
                 },
                 onDelete = {
                     if (searchQuery.isNotEmpty()) {
@@ -252,10 +250,9 @@ fun UnifiedSearchResult(
                         searchScreenViewModel.query(trimmedQuery)
                         lastSearchedQuery = trimmedQuery
                         hasSearched = true
-                        isReturningFromNavigation = false
                     }
                 },
-                initialFocus = !isReturningFromNavigation && !hasSearched
+                initialFocus = !hasSearched
             )
         }
 
@@ -345,8 +342,7 @@ fun UnifiedSearchResult(
                                                 MovieSearchContent(
                                                     searchContent = searchContent,
                                                     onMovieClick = { movie ->
-                                                        shouldRestoreFocus = true  // Enable focus restoration
-                                                        isReturningFromNavigation = true
+                                                        shouldRestoreFocus = true
                                                         onMovieClick(movie)
                                                     },
                                                     modifier = itemModifier
@@ -357,8 +353,7 @@ fun UnifiedSearchResult(
                                                 TvShowSearchContent(
                                                     searchContent = searchContent,
                                                     onShowClick = { show ->
-                                                        shouldRestoreFocus = true  // Enable focus restoration
-                                                        isReturningFromNavigation = true
+                                                        shouldRestoreFocus = true
                                                         onShowClick(show)
                                                     },
                                                     modifier = itemModifier
@@ -369,8 +364,7 @@ fun UnifiedSearchResult(
                                                 TvChannelSearchConent(
                                                     searchContent = searchContent,
                                                     onChannelClick = { channel ->
-                                                        shouldRestoreFocus = true  // Enable focus restoration
-                                                        isReturningFromNavigation = true
+                                                        shouldRestoreFocus = true
                                                         onChannelClick(channel)
                                                     },
                                                     modifier = itemModifier
@@ -381,17 +375,16 @@ fun UnifiedSearchResult(
                                 }
                             }
 
-                            // Focus restoration with grid scrolling - similar to CatalogLayout
+                            // Focus restoration with grid scrolling - aligned with CatalogLayout
                             LaunchedEffect(
-                                isReturningFromNavigation,
                                 lastFocusedIndex,
                                 contentItems?.itemCount,
                                 shouldRestoreFocus
                             ) {
-                                if (shouldRestoreFocus && isReturningFromNavigation && 
+                                if (shouldRestoreFocus && 
                                     lastFocusedIndex >= 0 && (contentItems?.itemCount ?: 0) > lastFocusedIndex) {
                                     
-                                    // Short delay to ensure UI is ready
+                                    // Short delay to ensure UI is ready - from CatalogLayout
                                     kotlinx.coroutines.delay(20)
                                     
                                     try {
@@ -402,7 +395,7 @@ fun UnifiedSearchResult(
                                         // Get focus requester for this index
                                         val focusRequester = focusRequesters[lastFocusedIndex]
                                         if (focusRequester != null) {
-                                            // Try to request focus with retry logic (from CatalogLayout)
+                                            // Try to request focus with retry logic from CatalogLayout
                                             var focusSuccess = false
                                             repeat(3) { attempt ->
                                                 if (!focusSuccess) {
@@ -410,18 +403,23 @@ fun UnifiedSearchResult(
                                                         focusRequester.requestFocus()
                                                         focusSuccess = true
                                                         shouldRestoreFocus = false
-                                                        isReturningFromNavigation = false
+                                                        Log.d("SearchScreen", "Focus restoration successful on attempt ${attempt + 1}")
                                                     } catch (e: Exception) {
                                                         if (attempt < 2) {
-                                                            kotlinx.coroutines.delay(50) // Small delay before retry
+                                                            kotlinx.coroutines.delay(50)
+                                                            Log.d("SearchScreen", "Focus restoration attempt ${attempt + 1} failed, retrying...")
+                                                        } else {
+                                                            Log.w("SearchScreen", "Failed to restore focus after 3 attempts", e)
                                                         }
                                                     }
                                                 }
                                             }
+                                        } else {
+                                            Log.w("SearchScreen", "FocusRequester not found for index $lastFocusedIndex")
                                         }
                                     } catch (e: Exception) {
+                                        Log.w("SearchScreen", "Failed to restore focus at index $lastFocusedIndex", e)
                                         shouldRestoreFocus = false
-                                        isReturningFromNavigation = false
                                     }
                                 }
                             }
