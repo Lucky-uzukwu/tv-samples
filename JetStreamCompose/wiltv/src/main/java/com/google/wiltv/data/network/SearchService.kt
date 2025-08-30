@@ -16,7 +16,7 @@ interface SearchService {
         @Header("Accept") accept: String = "application/ld+json",
         @Query("search") search: String,
         @Query("types[]") types: List<String>? = null,
-        @Query("genres[]") genres: List<String>? = null,
+        @Query("genres[]") genres: Int? = null,
         @Query("catalogs[]") catalogs: List<String>? = null,
         @Query("year[]") year: List<String>? = null,
         @Query("streamingProviders[]") streamingProviders: List<String>? = null,

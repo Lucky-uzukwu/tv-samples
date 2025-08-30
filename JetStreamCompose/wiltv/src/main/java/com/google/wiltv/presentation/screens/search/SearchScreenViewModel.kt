@@ -3,12 +3,17 @@ package com.google.wiltv.presentation.screens.search
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.google.wiltv.data.models.SearchContent
 import com.google.wiltv.data.paging.pagingsources.search.SearchPagingSources
 import com.google.wiltv.data.repositories.SearchRepository
 import com.google.wiltv.data.repositories.UserRepository
+import com.google.wiltv.data.repositories.MovieRepository
+import com.google.wiltv.data.models.MovieNew
+import com.google.wiltv.data.paging.pagingsources.movie.MoviesHeroSectionPagingSource
 import com.google.wiltv.presentation.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -28,7 +33,8 @@ const val QUERY_LENGTH = 2
 @HiltViewModel
 class SearchScreenViewModel @Inject constructor(
     private val searchRepository: SearchRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val movieRepository: MovieRepository
 ) : ViewModel() {
 
     private val internalSearchState = MutableSharedFlow<SearchState>()
@@ -37,6 +43,17 @@ class SearchScreenViewModel @Inject constructor(
     val searchSuggestions: StateFlow<List<String>> = _searchSuggestions.asStateFlow()
     
     private var suggestionsJob: Job? = null
+
+    // Initial content when user first arrives on search screen
+    val initialMovies: StateFlow<PagingData<MovieNew>> = Pager(
+        PagingConfig(pageSize = 20, initialLoadSize = 20)
+    ) {
+        MoviesHeroSectionPagingSource(movieRepository, userRepository)
+    }.flow.cachedIn(viewModelScope).stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        PagingData.empty()
+    )
 
     fun query(queryString: String) {
         viewModelScope.launch { postQuery(queryString) }

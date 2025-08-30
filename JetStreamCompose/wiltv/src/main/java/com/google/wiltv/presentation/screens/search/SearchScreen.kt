@@ -200,8 +200,9 @@ fun UnifiedSearchResult(
     }
     var shouldRestoreFocus by remember { mutableStateOf(true) }
     
-    // Collect search suggestions from ViewModel
+    // Collect search suggestions and initial movies from ViewModel
     val searchSuggestions by searchScreenViewModel.searchSuggestions.collectAsStateWithLifecycle()
+    val initialMovies = searchScreenViewModel.initialMovies.collectAsLazyPagingItems()
     
     // Focus requesters for navigation between suggestions and keyboard
     val suggestionsFocusRequester = remember { FocusRequester() }
@@ -249,7 +250,7 @@ fun UnifiedSearchResult(
                 isVisible = searchQuery.isNotEmpty(),
                 focusRequester = suggestionsFocusRequester,
                 downFocusRequester = null,
-                rightFocusRequester = if (hasSearched && !isEmpty) focusRequesters[0] else null
+                rightFocusRequester = if (hasSearched && !isEmpty) focusRequesters[0] else if (!hasSearched) focusRequesters[0] else null
             )
 
             TvVirtualKeyboard(
@@ -292,16 +293,69 @@ fun UnifiedSearchResult(
                 .fillMaxHeight()
         ) {
             if (!hasSearched) {
-                Box(
+                // Show initial/popular movies as default content
+                LazyVerticalGrid(
+                    state = gridState,
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    columns = GridCells.Fixed(3),
+                    contentPadding = PaddingValues(
+                        top = 16.dp,
+                        start = 16.dp,
+                        end = 16.dp,
+                        bottom = WilTvBottomListPadding
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = "Use the virtual keyboard to search",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    items(
+                        count = initialMovies.itemCount,
+                        key = { index ->
+                            val movie = initialMovies[index]
+                            "initial_movie_${movie?.id ?: index}"
+                        }
+                    ) { index ->
+                        val movie = initialMovies[index]
+                        if (movie != null) {
+                            val focusRequester =
+                                focusRequesters.getOrPut(index) { FocusRequester() }
+
+                            MovieCard(
+                                onClick = { onMovieClick(movie) },
+                                modifier = Modifier
+                                    .aspectRatio(1 / 1.5f)
+                                    .padding(6.dp)
+                                    .focusRequester(focusRequester)
+                                    .onFocusChanged { focusState ->
+                                        if (focusState.hasFocus) {
+                                            lastFocusedIndex = index
+                                            shouldRestoreFocus = false
+                                        }
+                                    }
+                            ) {
+                                if (movie.posterImageUrl == null) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = movie.title,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.White,
+                                            textAlign = TextAlign.Center,
+                                            maxLines = 3,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                } else {
+                                    PosterImage(
+                                        title = movie.title,
+                                        posterUrl = movie.posterImageUrl,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             } else {
                 val loadState = contentItems?.loadState?.refresh
