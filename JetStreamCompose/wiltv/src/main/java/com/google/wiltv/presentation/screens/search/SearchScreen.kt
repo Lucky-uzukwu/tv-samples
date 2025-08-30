@@ -219,6 +219,11 @@ fun UnifiedSearchResult(
                     searchQuery = ""
                     hasSearched = false
                 },
+                onDelete = {
+                    if (searchQuery.isNotEmpty()) {
+                        searchQuery = searchQuery.dropLast(1)
+                    }
+                },
                 onSpace = {
                     searchQuery += " "
                 },

@@ -19,6 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.*
+import kotlinx.coroutines.delay
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Backspace
 
 enum class KeyboardMode {
     ALPHABET, NUMBERS
@@ -33,8 +36,8 @@ data class KeyboardLayout(
                 listOf("A", "B", "C", "D", "E", "F", "G"),
                 listOf("H", "I", "J", "K", "L", "M", "N"),
                 listOf("O", "P", "Q", "R", "S", "T", "U"),
-                listOf("V", "W", "X", "Y", "Z"),
-                listOf("123", "SPACE", "CLEAR", "ENTER")
+                listOf("V", "W", "X", "Y", "Z", "ENTER"),
+                listOf("123", "SPACE", "BACKSPACE", "CLEAR")
             )
         )
         
@@ -43,8 +46,8 @@ data class KeyboardLayout(
                 listOf("1", "2", "3"),
                 listOf("4", "5", "6"),
                 listOf("7", "8", "9"),
-                listOf("0"),
-                listOf("ABC", "SPACE", "CLEAR", "ENTER")
+                listOf("0", "ENTER"),
+                listOf("ABC", "SPACE", "BACKSPACE", "CLEAR")
             )
         )
     }
@@ -55,6 +58,7 @@ data class KeyboardLayout(
 fun TvVirtualKeyboard(
     onKeyPress: (String) -> Unit,
     onClear: () -> Unit,
+    onDelete: () -> Unit,
     onSpace: () -> Unit,
     onEnter: () -> Unit,
     modifier: Modifier = Modifier,
@@ -75,8 +79,14 @@ fun TvVirtualKeyboard(
     }
 
     // Auto-focus the first key when keyboard loads
-    LaunchedEffect(initialFocus) {
+    LaunchedEffect(initialFocus, keyboardMode) {
         if (initialFocus && focusRequesters.isNotEmpty() && focusRequesters[0].isNotEmpty()) {
+            // Add small delay to ensure UI is ready
+            delay(100)
+            // Update state variables to match focus
+            focusedRow = 0
+            focusedCol = 0
+            // Request focus on first key (A)
             focusRequesters[0][0].requestFocus()
         }
     }
@@ -99,6 +109,7 @@ fun TvVirtualKeyboard(
                             onClick = {
                                 when (key) {
                                     "CLEAR" -> onClear()
+                                    "BACKSPACE" -> onDelete()
                                     "SPACE" -> onSpace()
                                     "ENTER" -> onEnter()
                                     "123" -> keyboardMode = KeyboardMode.NUMBERS
@@ -139,8 +150,11 @@ fun TvVirtualKeyboard(
                                                 if (colIndex > 0) {
                                                     focusedCol = colIndex - 1
                                                     focusRequesters[rowIndex][focusedCol].requestFocus()
+                                                    true
+                                                } else {
+                                                    // At leftmost position, allow navigation to escape keyboard
+                                                    false
                                                 }
-                                                true
                                             }
 
                                             KeyEvent.KEYCODE_DPAD_RIGHT -> {
@@ -196,9 +210,11 @@ fun KeyboardKey(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val focusedPurple = Color(0xFFA855F7)
     val keyWidth = when (key) {
         "SPACE" -> 80.dp
         "CLEAR", "ENTER" -> 70.dp
+        "BACKSPACE" -> 65.dp
         "123", "ABC" -> 60.dp
         else -> 45.dp
     }
@@ -210,14 +226,14 @@ fun KeyboardKey(
         shape = ClickableSurfaceDefaults.shape(MaterialTheme.shapes.small),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = MaterialTheme.colorScheme.surface,
-            focusedContainerColor = MaterialTheme.colorScheme.primary,
+            focusedContainerColor = focusedPurple,
             contentColor = MaterialTheme.colorScheme.onSurface,
-            focusedContentColor = MaterialTheme.colorScheme.onPrimary
+            focusedContentColor = Color.White
         ),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.05f),
         glow = ClickableSurfaceDefaults.glow(
             focusedGlow = Glow(
-                elevationColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                elevationColor = focusedPurple.copy(alpha = 0.6f),
                 elevation = 8.dp
             )
         ),
@@ -225,7 +241,7 @@ fun KeyboardKey(
             focusedBorder = androidx.tv.material3.Border(
                 border = BorderStroke(
                     width = 2.dp,
-                    color = MaterialTheme.colorScheme.primary
+                    color = focusedPurple
                 ),
                 shape = MaterialTheme.shapes.small
             )
@@ -235,13 +251,21 @@ fun KeyboardKey(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = key,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center,
-                maxLines = 1
-            )
+            if (key == "BACKSPACE") {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Backspace,
+                    contentDescription = "Delete",
+                    modifier = Modifier.size(20.dp)
+                )
+            } else {
+                Text(
+                    text = key,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1
+                )
+            }
         }
     }
 }
