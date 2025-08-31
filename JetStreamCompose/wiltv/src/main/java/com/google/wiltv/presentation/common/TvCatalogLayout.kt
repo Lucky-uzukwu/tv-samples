@@ -325,6 +325,7 @@ fun TvCatalogLayout(
                 tvShows = featuredTvShows,
                 goToMoreInfo = onTvShowClick,
                 setSelectedTvShow = { tvShow ->
+                    backgroundState.clear()
                     tvShow.backdropImageUrl?.let {
                         backgroundState.load(url = it)
                     }
@@ -412,6 +413,7 @@ fun TvCatalogLayout(
                     sectionTitle = catalogKey.name,
                     onTvShowClick = onTvShowClick,
                     setSelectedTvShow = { tvShow ->
+                        backgroundState.clear()
                         carouselScrollEnabled = false
                         val imageUrl = tvShow.backdropImageUrl
                         setSelectedTvShow(tvShow)
@@ -466,6 +468,7 @@ fun TvCatalogLayout(
                         sectionTitle = genreKey.name,
                         onTvShowClick = onTvShowClick,
                         setSelectedTvShow = { tvShow ->
+                            backgroundState.clear()
                             carouselScrollEnabled = false
                             val imageUrl = tvShow.backdropImageUrl
                             setSelectedTvShow(tvShow)

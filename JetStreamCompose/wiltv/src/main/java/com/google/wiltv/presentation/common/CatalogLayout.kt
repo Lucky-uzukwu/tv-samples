@@ -360,6 +360,7 @@ fun CatalogLayout(
                 goToVideoPlayer = goToVideoPlayer,
                 goToMoreInfo = onMovieClick,
                 setSelectedMovie = { movie ->
+                    backgroundState.clear()
                     movie.backdropImageUrl?.let { backgroundState.load(it) }
                     setSelectedMovie(movie)
                 },
@@ -464,6 +465,7 @@ fun CatalogLayout(
                     sectionTitle = catalogKey.name,
                     onMovieClick = onMovieClick,
                     setSelectedMovie = { movie ->
+                        backgroundState.clear()
                         carouselScrollEnabled = false
                         val imageUrl = movie.backdropImageUrl
                         setSelectedMovie(movie)
@@ -540,6 +542,7 @@ fun CatalogLayout(
                         sectionTitle = genreKey.name,
                         onMovieClick = onMovieClick,
                         setSelectedMovie = { movie ->
+                            backgroundState.clear()
                             carouselScrollEnabled = false
                             val imageUrl = movie.backdropImageUrl
                             setSelectedMovie(movie)

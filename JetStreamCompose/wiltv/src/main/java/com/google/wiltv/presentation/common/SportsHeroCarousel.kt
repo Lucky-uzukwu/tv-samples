@@ -128,6 +128,12 @@ fun GameHeroContent(
     game: CompetitionGame,
     modifier: Modifier = Modifier
 ) {
+
+    val patternUrl = sequenceOf(
+        game.competition.logoUrl,
+        game.competition.featuredImageUrl,
+        game.competition.coverImageUrl
+    ).firstOrNull { !it.isNullOrBlank() }
     Row(
         modifier = modifier.fillMaxSize()
     ) {
@@ -139,9 +145,9 @@ fun GameHeroContent(
             showLiveBadge = false
         )
 
-        if (!game.competition.logoUrl.isNullOrBlank()) {
+        if (patternUrl.isNullOrBlank().not()) {
             CompetitionPatternBackground(
-                logoUrl = game.competition.logoUrl,
+                logoUrl = patternUrl,
                 modifier = Modifier
                     .weight(0.4f)
                     .fillMaxHeight()

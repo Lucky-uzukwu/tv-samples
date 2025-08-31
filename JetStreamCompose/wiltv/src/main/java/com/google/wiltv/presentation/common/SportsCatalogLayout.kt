@@ -127,15 +127,6 @@ fun SportsCatalogLayout(
                     onGameClick = onGameClick,
                     setSelectedGame = { game ->
                         backgroundState.clear()
-//                        if (!game.competition.logoUrl.isNullOrBlank()) {
-//                            backgroundState.load(game.competition.logoUrl)
-//                        } else if (!game.competition.featuredImageUrl.isNullOrBlank()) {
-//                            backgroundState.load(game.competition.featuredImageUrl)
-//                        } else if (!game.competition.coverImageUrl.isNullOrBlank()) {
-//                            backgroundState.load(game.competition.coverImageUrl)
-//                        } else {
-//                            backgroundState.load(game.competition.coverImageUrl.toString())
-//                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
