@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Sports
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.google.wiltv.presentation.screens.categories.CategoryMovieListScreen
@@ -48,6 +49,7 @@ enum class Screens(
     Home(isTabItem = true, tabIcon = Icons.Default.Home),
     Movies(isTabItem = true, tabIcon = Icons.Default.Movie),
     Shows(isTabItem = true, tabIcon = Icons.Default.Tv),
+    Sports(isTabItem = true, tabIcon = Icons.Default.Sports),
     TvChannels(isTabItem = true, tabIcon = Icons.Default.LiveTv, displayName = "Live TV"),
     Watchlist(isTabItem = true, tabIcon = Icons.Default.BookmarkBorder),
     Profile(isTabItem = true, tabIcon = Icons.Default.Person),

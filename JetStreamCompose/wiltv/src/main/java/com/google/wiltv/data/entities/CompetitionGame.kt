@@ -1,0 +1,42 @@
+// ABOUTME: Data entity representing a competition game/match between two teams
+// ABOUTME: Contains game details, teams, competition info, and streaming links
+
+/*
+ * Copyright 2023 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.google.wiltv.data.entities
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class CompetitionGame(
+    val id: Int,
+    val description: String,
+    val coverImagePath: String?,
+    val featuredImagePath: String?,
+    val priority: Int,
+    val active: Boolean,
+    val showInHeroSection: Boolean,
+    val isLive: Boolean,
+    val gameDate: String,
+    val showInApp: Boolean,
+    val coverImageUrl: String?,
+    val featuredImageUrl: String?,
+    val streamingLinks: List<String>,
+    val competition: Competition,
+    val teamAData: Team,
+    val teamBData: Team
+)

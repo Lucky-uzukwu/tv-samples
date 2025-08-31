@@ -47,7 +47,7 @@ class BackgroundState(
                     drawable.value = (result as? BitmapDrawable)?.bitmap?.asImageBitmap()
                     lastLoadedUrl = url
                     onSuccess()
-                }, 
+                },
                 onError = { _ ->
                     onError()
                 }
@@ -56,13 +56,18 @@ class BackgroundState(
 
         job = coilImageLoader.enqueue(request).job
     }
+
+    fun clear() {
+        job?.cancel()
+        drawable.value = null
+    }
 }
 
 
 @Composable
 fun backgroundImageState(): BackgroundState {
     val context = LocalContext.current
-    
+
     val imageLoader = remember {
         ImageLoader.Builder(context)
             .memoryCache {

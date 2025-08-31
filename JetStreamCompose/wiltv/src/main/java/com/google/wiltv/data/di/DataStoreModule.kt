@@ -9,6 +9,8 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.google.gson.Gson
 import com.google.wiltv.data.repositories.ProfileRepository
 import com.google.wiltv.data.repositories.ProfileRepositoryImpl
+import com.google.wiltv.data.repositories.SportsRepository
+import com.google.wiltv.data.repositories.SportsRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -28,6 +30,12 @@ abstract class DataStoreModule {
     abstract fun bindProfileRepository(
         profileRepositoryImpl: ProfileRepositoryImpl
     ): ProfileRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSportsRepository(
+        sportsRepositoryImpl: SportsRepositoryImpl
+    ): SportsRepository
 
     companion object {
         @Provides

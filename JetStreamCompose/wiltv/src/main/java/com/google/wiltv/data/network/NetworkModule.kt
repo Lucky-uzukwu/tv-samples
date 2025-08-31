@@ -164,6 +164,12 @@ class NetworkModule {
 
     @Provides
     @Singleton
+    fun SportsService(retrofit: Retrofit): SportsService {
+        return retrofit.create(SportsService::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideAuthInterceptor(userTokenProvider: UserTokenProvider): AuthInterceptor {
         return AuthInterceptor(userTokenProvider)
     }

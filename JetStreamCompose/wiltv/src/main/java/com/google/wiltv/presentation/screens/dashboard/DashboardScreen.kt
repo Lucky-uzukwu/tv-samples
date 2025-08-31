@@ -30,6 +30,7 @@ import com.google.wiltv.presentation.screens.profile.ProfileScreen
 import com.google.wiltv.presentation.screens.search.SearchScreen
 import com.google.wiltv.presentation.screens.tvchannels.TvChannelScreen
 import com.google.wiltv.presentation.screens.tvshows.TVShowScreen
+import com.google.wiltv.presentation.screens.sports.SportsScreen
 import com.google.wiltv.presentation.utils.Padding
 
 val ParentPadding = PaddingValues(vertical = 8.dp, horizontal = 29.dp)
@@ -172,6 +173,17 @@ private fun Body(
                     },
                     setSelectedTvShow = setSelectedTvShow,
                     onStreamingProviderClick = openStreamingProvideShowList
+                )
+            }
+
+            composable(Screens.Sports()) {
+                SportsScreen(
+                    onGameClick = { game ->
+                        game.streamingLinks.firstOrNull()?.let { link ->
+                            openVideoPlayer(link, game.description)
+                        }
+                    },
+                    navController = navController
                 )
             }
 
