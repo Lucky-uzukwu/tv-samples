@@ -19,7 +19,6 @@
 
 package com.google.wiltv.presentation.common
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -45,18 +44,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.paging.PagingData
-import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.LazyPagingItems
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import com.google.wiltv.data.entities.CompetitionGame
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
-import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun GamesRow(
-    games: StateFlow<PagingData<CompetitionGame>>,
+    games: LazyPagingItems<CompetitionGame>,
     modifier: Modifier = Modifier,
     startPadding: Dp = rememberChildPadding().start,
     endPadding: Dp = rememberChildPadding().end,
@@ -85,43 +82,37 @@ fun GamesRow(
                     .padding(start = startPadding, top = 16.dp, bottom = 16.dp)
             )
         }
-        AnimatedContent(
-            targetState = games,
-            label = "",
-        ) { gameState ->
-            val gamesAsLazyItems = gameState.collectAsLazyPagingItems()
-            TvLazyRow(
-                state = lazyRowState ?: rememberTvLazyListState(),
-                contentPadding = PaddingValues(
-                    start = startPadding,
-                    end = endPadding,
-                ),
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(
-                    count = gamesAsLazyItems.itemCount,
-                    key = { index -> gamesAsLazyItems.peek(index)?.id ?: "game_$index" },
-                    contentType = { "GameItem" }
-                ) { index ->
-                    val game = gamesAsLazyItems[index]
-                    if (game != null) {
-                        val focusRequester = focusRequesters[index]
-                        GameCard(
-                            game = game,
-                            onClick = { 
-                                onGameSelected(game) 
-                                onItemFocused(game, index)
-                            },
-                            modifier = Modifier
-                                .width(168.dp)
-                                .height(100.dp)
-                                .then(
-                                    if (focusRequester != null) Modifier.focusRequester(focusRequester)
-                                    else Modifier
-                                )
-                        )
-                    }
+        TvLazyRow(
+            state = lazyRowState ?: rememberTvLazyListState(),
+            contentPadding = PaddingValues(
+                start = startPadding,
+                end = endPadding,
+            ),
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(
+                count = games.itemCount,
+                key = { index -> games.peek(index)?.id ?: "game_$index" },
+                contentType = { "GameItem" }
+            ) { index ->
+                val game = games[index]
+                if (game != null) {
+                    val focusRequester = focusRequesters[index]
+                    GameCard(
+                        game = game,
+                        onClick = { 
+                            onGameSelected(game) 
+                            onItemFocused(game, index)
+                        },
+                        modifier = Modifier
+                            .width(168.dp)
+                            .height(100.dp)
+                            .then(
+                                if (focusRequester != null) Modifier.focusRequester(focusRequester)
+                                else Modifier
+                            )
+                    )
                 }
             }
         }
