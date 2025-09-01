@@ -41,7 +41,13 @@ fun TvShowHeroSectionCarousel(
 ) {
 
     var isCarouselFocused by remember { mutableStateOf(false) }
-    val itemsPerPage = 5
+    val itemsPerPage = remember(tvShows.itemSnapshotList) {
+        when {
+            tvShows.itemCount == 0 -> 5 // Default fallback
+            tvShows.itemSnapshotList.size <= 5 -> tvShows.itemSnapshotList.size
+            else -> minOf(5, tvShows.itemSnapshotList.size) // Cap at 5 for UI consistency
+        }
+    }
     val activeItemIndex = carouselState.activeItemIndex
     val totalItems = tvShows.itemCount
     val currentPage = activeItemIndex / itemsPerPage

@@ -61,7 +61,13 @@ fun SportsHeroCarousel(
     firstLazyRowItemUnderCarouselRequester: FocusRequester
 ) {
     var isCarouselFocused by remember { mutableStateOf(false) }
-    val itemsPerPage = 5
+    val itemsPerPage = remember(games.itemSnapshotList) {
+        when {
+            games.itemCount == 0 -> 5 // Default fallback
+            games.itemSnapshotList.size <= 5 -> games.itemSnapshotList.size
+            else -> minOf(5, games.itemSnapshotList.size) // Cap at 5 for UI consistency
+        }
+    }
     val activeItemIndex = carouselState.activeItemIndex
     val totalItems = games.itemCount
     val currentPage = activeItemIndex / itemsPerPage
