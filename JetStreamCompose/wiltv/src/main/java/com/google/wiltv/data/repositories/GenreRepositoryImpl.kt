@@ -60,4 +60,18 @@ class GenreRepositoryImpl @Inject constructor(
         )
         return mapToResult(response)
     }
+
+    override suspend fun getAllGenres(): ApiResult<GenreResponse, DataError.Network> {
+        Logger.i { "Attempting to fetch all genres" }
+        val user = userRepository.getUser()
+            ?: return ApiResult.Error(DataError.Network.LOCAL_USER_NOT_FOUND)
+        val selectedProfile = profileRepository.getSelectedProfile().firstOrNull()
+        val contentParams = ProfileContentHelper.getContentFilterParams(selectedProfile)
+        val response = genreService.getGenres(
+            authToken = "Bearer ${user.token}",
+            isAdultGenre = contentParams.isAdultContent,
+            isKidsGenre = contentParams.isKidsContent
+        )
+        return mapToResult(response)
+    }
 }

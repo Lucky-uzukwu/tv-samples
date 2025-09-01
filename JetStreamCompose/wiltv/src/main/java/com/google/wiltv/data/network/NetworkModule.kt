@@ -146,7 +146,7 @@ class NetworkModule {
 
     @Provides
     @Singleton
-    fun GenreService(retrofit: Retrofit): GenreService {
+    fun genreService(retrofit: Retrofit): GenreService {
         return retrofit.create(GenreService::class.java)
     }
 

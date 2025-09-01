@@ -81,7 +81,8 @@ fun TvVirtualKeyboard(
     onEnter: () -> Unit,
     modifier: Modifier = Modifier,
     initialFocus: Boolean = true,
-    upFocusRequester: FocusRequester? = null
+    upFocusRequester: FocusRequester? = null,
+    downFocusRequester: FocusRequester? = null
 ) {
     var keyboardMode by remember { mutableStateOf(KeyboardMode.ALPHABET) }
     val keyboard = remember(keyboardMode) { 
@@ -174,8 +175,21 @@ fun TvVirtualKeyboard(
                                                         focusedCol = maxOf(0, targetRowSize - 1)
                                                     }
                                                     focusRequesters[focusedRow][focusedCol].requestFocus()
+                                                    true
+                                                } else {
+                                                    // At bottom row, try to navigate to external focus target
+                                                    if (downFocusRequester != null) {
+                                                        try {
+                                                            downFocusRequester.requestFocus()
+                                                            true
+                                                        } catch (e: IllegalStateException) {
+                                                            // FocusRequester not initialized - target not available
+                                                            false
+                                                        }
+                                                    } else {
+                                                        false
+                                                    }
                                                 }
-                                                true
                                             }
 
                                             KeyEvent.KEYCODE_DPAD_LEFT -> {
@@ -244,13 +258,13 @@ fun KeyboardKey(
 ) {
     val focusedPurple = Color(0xFFA855F7)
     val keyWidth = when (key) {
-        "SPACE" -> 80.dp
-        "CLEAR", "ENTER" -> 70.dp
-        "BACKSPACE" -> 65.dp
-        "123", "ABC" -> 60.dp
-        else -> 45.dp
+        "SPACE" -> 60.dp
+        "CLEAR", "ENTER" -> 52.dp
+        "BACKSPACE" -> 48.dp
+        "123", "ABC" -> 45.dp
+        else -> 34.dp
     }
-    val keyHeight = 40.dp
+    val keyHeight = 30.dp
 
     androidx.tv.material3.Surface(
         onClick = onClick,

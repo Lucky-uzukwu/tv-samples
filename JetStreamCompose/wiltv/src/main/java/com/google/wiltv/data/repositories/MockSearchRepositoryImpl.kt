@@ -14,7 +14,8 @@ class MockSearchRepositoryImpl : SearchRepository {
         query: String,
         itemsPerPage: Int,
         page: Int,
-        contentTypes: List<ContentType>?
+        contentTypes: List<ContentType>?,
+        genreId: Int?
     ): ApiResult<UnifiedSearchResponse, DataError.Network> {
         val mockMovies = MockData.getMovies().map { 
             SearchContent.MovieContent(it) 

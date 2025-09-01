@@ -23,9 +23,10 @@ class SearchRepositoryImpl @Inject constructor(
         query: String,
         itemsPerPage: Int,
         page: Int,
-        contentTypes: List<ContentType>?
+        contentTypes: List<ContentType>?,
+        genreId: Int?
     ): ApiResult<UnifiedSearchResponse, DataError.Network> {
-        Logger.i { "Searching content with query: $query, types: ${contentTypes?.map { it.apiValue }}" }
+        Logger.i { "Searching content with query: $query, types: ${contentTypes?.map { it.apiValue }}, genre: $genreId" }
         val user = userRepository.getUser()
             ?: return ApiResult.Error(DataError.Network.LOCAL_USER_NOT_FOUND)
         val selectedProfile = profileRepository.getSelectedProfile().firstOrNull()
@@ -35,6 +36,7 @@ class SearchRepositoryImpl @Inject constructor(
             authToken = "Bearer $token",
             search = query,
             types = contentTypes?.map { it.apiValue },
+            genres = genreId,
             itemsPerPage = itemsPerPage,
             page = page,
             isAdultContent = contentParams.isAdultContent,

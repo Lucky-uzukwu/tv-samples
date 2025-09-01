@@ -74,27 +74,12 @@ fun GameCard(
                 glow = glow,
                 content = {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        if (!game.featuredImageUrl.isNullOrBlank()) {
-                            AsyncImage(
-                                model = game.featuredImageUrl,
-                                contentDescription = game.description,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else if (!game.coverImageUrl.isNullOrBlank()) {
-                            AsyncImage(
-                                model = game.coverImageUrl,
-                                contentDescription = game.description,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            TeamVersusImage(
-                                game = game,
-                                modifier = Modifier.fillMaxSize(),
-                                showLiveBadge = false
-                            )
-                        }
+                        TeamVersusImage(
+                            game = game,
+                            modifier = Modifier.fillMaxSize(),
+                            showLiveBadge = false
+                        )
+
 
                         if (game.isLive) {
                             LiveBadge(

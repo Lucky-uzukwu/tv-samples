@@ -167,7 +167,7 @@ object CustomerRepositoryModule {
 object GenreRepositoryModule {
     @Provides
     @Singleton
-    fun provideMovieRepository(
+    fun provideGenreRepository(
         genreService: GenreService,
         userRepository: UserRepository,
         profileRepository: ProfileRepository,

@@ -12,6 +12,8 @@ import com.google.wiltv.data.paging.pagingsources.search.SearchPagingSources
 import com.google.wiltv.data.repositories.SearchRepository
 import com.google.wiltv.data.repositories.UserRepository
 import com.google.wiltv.data.repositories.MovieRepository
+import com.google.wiltv.data.repositories.GenreRepository
+import com.google.wiltv.data.models.Genre
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.paging.pagingsources.movie.MoviesHeroSectionPagingSource
 import com.google.wiltv.presentation.UiText
@@ -34,7 +36,8 @@ const val QUERY_LENGTH = 2
 class SearchScreenViewModel @Inject constructor(
     private val searchRepository: SearchRepository,
     private val userRepository: UserRepository,
-    private val movieRepository: MovieRepository
+    private val movieRepository: MovieRepository,
+    private val genreRepository: GenreRepository
 ) : ViewModel() {
 
     private val internalSearchState = MutableSharedFlow<SearchState>()
@@ -42,7 +45,17 @@ class SearchScreenViewModel @Inject constructor(
     private val _searchSuggestions = MutableStateFlow<List<String>>(emptyList())
     val searchSuggestions: StateFlow<List<String>> = _searchSuggestions.asStateFlow()
     
+    private val _genres = MutableStateFlow<List<Genre>>(emptyList())
+    val genres: StateFlow<List<Genre>> = _genres.asStateFlow()
+    
+    private val _selectedGenreId = MutableStateFlow<Int?>(null)
+    val selectedGenreId: StateFlow<Int?> = _selectedGenreId.asStateFlow()
+    
     private var suggestionsJob: Job? = null
+
+    init {
+        fetchGenres()
+    }
 
     // Initial content when user first arrives on search screen
     val initialMovies: StateFlow<PagingData<MovieNew>> = Pager(
@@ -104,6 +117,28 @@ class SearchScreenViewModel @Inject constructor(
 //        _searchSuggestions.value = emptyList()
 //    }
 
+    private fun fetchGenres() {
+        viewModelScope.launch {
+            try {
+                when (val result = genreRepository.getAllGenres()) {
+                    is com.google.wiltv.domain.ApiResult.Success -> {
+                        _genres.value = result.data.member
+                        Log.d("SearchViewModel", "Fetched ${result.data.member.size} genres")
+                    }
+                    is com.google.wiltv.domain.ApiResult.Error -> {
+                        Log.w("SearchViewModel", "Failed to fetch genres: ${result.error}")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("SearchViewModel", "Error fetching genres", e)
+            }
+        }
+    }
+
+    fun selectGenre(genreId: Int?) {
+        _selectedGenreId.value = genreId
+    }
+
     private suspend fun postQuery(queryString: String) {
         try {
             Log.d("SearchViewModel", "Starting search for: '$queryString'")
@@ -114,7 +149,8 @@ class SearchScreenViewModel @Inject constructor(
                 SearchPagingSources().searchUnified(
                     query = queryString,
                     searchRepository = searchRepository,
-                    userRepository = userRepository
+                    userRepository = userRepository,
+                    genreId = _selectedGenreId.value
                 ).cachedIn(viewModelScope).stateIn(
                     viewModelScope,
                     SharingStarted.WhileSubscribed(5_000),

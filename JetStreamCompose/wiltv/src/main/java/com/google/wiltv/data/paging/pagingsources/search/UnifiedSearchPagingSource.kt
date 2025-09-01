@@ -17,7 +17,8 @@ class UnifiedSearchPagingSource(
     private val searchRepository: SearchRepository,
     private val userRepository: UserRepository,
     private val query: String,
-    private val contentTypes: List<ContentType>? = null
+    private val contentTypes: List<ContentType>? = null,
+    private val genreId: Int? = null
 ) : PagingSource<Int, SearchContent>() {
 
     override fun getRefreshKey(state: PagingState<Int, SearchContent>): Int? {
@@ -47,13 +48,14 @@ class UnifiedSearchPagingSource(
             val currentPage = params.key ?: 1
             val pageSize = params.loadSize
 
-            Log.d("UnifiedSearchPaging", "Calling API - page: $currentPage, pageSize: $pageSize")
+            Log.d("UnifiedSearchPaging", "Calling API - page: $currentPage, pageSize: $pageSize, genre: $genreId")
             val searchResult = searchRepository.searchContent(
                 token = token,
                 query = query,
                 page = currentPage,
                 itemsPerPage = pageSize,
-                contentTypes = contentTypes
+                contentTypes = contentTypes,
+                genreId = genreId
             )
 
             val searchResponse = when (searchResult) {

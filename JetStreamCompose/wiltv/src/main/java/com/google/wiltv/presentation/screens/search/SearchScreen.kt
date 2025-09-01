@@ -7,12 +7,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -27,9 +32,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.platform.LocalFocusManager
+import android.view.KeyEvent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -41,9 +51,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.tv.material3.Button
+import androidx.tv.material3.ButtonDefaults
+import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.wiltv.data.entities.CompetitionGame
+import com.google.wiltv.data.models.Genre
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.SearchContent
 import com.google.wiltv.data.models.TvShow
@@ -206,9 +220,13 @@ fun UnifiedSearchResult(
     // Collect search suggestions and initial movies from ViewModel
     val searchSuggestions by searchScreenViewModel.searchSuggestions.collectAsStateWithLifecycle()
     val initialMovies = searchScreenViewModel.initialMovies.collectAsLazyPagingItems()
+    val genres by searchScreenViewModel.genres.collectAsStateWithLifecycle()
+    val selectedGenreId by searchScreenViewModel.selectedGenreId.collectAsStateWithLifecycle()
     
     // Focus requesters for navigation between suggestions and keyboard
     val suggestionsFocusRequester = remember { FocusRequester() }
+    val genreListFocusRequesters = remember { mutableMapOf<String, FocusRequester>() }
+    val focusManager = LocalFocusManager.current
 
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var lastSearchedQuery by rememberSaveable { mutableStateOf("") }
@@ -286,8 +304,40 @@ fun UnifiedSearchResult(
                     }
                 },
                 initialFocus = !hasSearched,
-                upFocusRequester = if (searchQuery.isNotEmpty()) suggestionsFocusRequester else null
+                upFocusRequester = if (searchQuery.isNotEmpty()) suggestionsFocusRequester else null,
+                downFocusRequester = if (genres.isNotEmpty()) genreListFocusRequesters["all"] else null
             )
+
+            if (genres.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                GenreFilterList(
+                    genres = genres,
+                    selectedGenreId = selectedGenreId,
+                    onGenreSelected = { genreId ->
+                        searchScreenViewModel.selectGenre(genreId)
+                        // Always trigger search when genre is selected
+                        if (genreId != null) {
+                            // Genre selected - search with genre (with or without text)
+                            val queryToUse = if (searchQuery.isNotBlank()) "\"$searchQuery\"" else ""
+                            searchScreenViewModel.query(queryToUse)
+                            lastSearchedQuery = queryToUse
+                            hasSearched = true
+                        } else if (searchQuery.isNotBlank()) {
+                            // "All" selected with text - search without genre filter
+                            val quotedQuery = "\"$searchQuery\""
+                            searchScreenViewModel.query(quotedQuery)
+                            lastSearchedQuery = quotedQuery
+                            hasSearched = true
+                        } else {
+                            // "All" selected with no text - show initial movies
+                            hasSearched = false
+                        }
+                    },
+                    focusRequesters = genreListFocusRequesters,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
 
         // Right side: Search results (60% width)
@@ -693,4 +743,95 @@ private fun GameSearchContent(
             .aspectRatio(1 / 1.5f)
             .padding(6.dp)
     )
+}
+
+@Composable
+private fun GenreFilterList(
+    genres: List<Genre>,
+    selectedGenreId: Int?,
+    onGenreSelected: (Int?) -> Unit,
+    focusRequesters: MutableMap<String, FocusRequester>,
+    modifier: Modifier = Modifier
+) {
+    val listState = rememberLazyListState()
+    val purpleColor = Color(0xFFA855F7)
+    
+    Column(modifier = modifier) {
+        Text(
+            text = "Genres",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        
+        LazyColumn(
+            state = listState,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.height(200.dp)
+        ) {
+            item {
+                val isAllSelected = selectedGenreId == null
+                val allFocusRequester = focusRequesters.getOrPut("all") { FocusRequester() }
+                Button(
+                    onClick = { onGenreSelected(null) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(allFocusRequester)
+                        .onKeyEvent { keyEvent ->
+                            if (keyEvent.nativeKeyEvent.action == KeyEvent.ACTION_DOWN &&
+                                (keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                                 keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)) {
+                                onGenreSelected(null)
+                                true
+                            } else {
+                                false
+                            }
+                        },
+                    colors = ButtonDefaults.colors(
+                        containerColor = if (isAllSelected) purpleColor else MaterialTheme.colorScheme.surface,
+                        contentColor = if (isAllSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                        focusedContainerColor = purpleColor,
+                        focusedContentColor = Color.White
+                    )
+                ) {
+                    Text(
+                        text = "All",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+            
+            items(genres) { genre ->
+                val isSelected = selectedGenreId == genre.id
+                val genreFocusRequester = focusRequesters.getOrPut("genre_${genre.id}") { FocusRequester() }
+                Button(
+                    onClick = { onGenreSelected(genre.id) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(genreFocusRequester)
+                        .onKeyEvent { keyEvent ->
+                            if (keyEvent.nativeKeyEvent.action == KeyEvent.ACTION_DOWN &&
+                                (keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                                 keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)) {
+                                onGenreSelected(genre.id)
+                                true
+                            } else {
+                                false
+                            }
+                        },
+                    colors = ButtonDefaults.colors(
+                        containerColor = if (isSelected) purpleColor else MaterialTheme.colorScheme.surface,
+                        contentColor = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                        focusedContainerColor = purpleColor,
+                        focusedContentColor = Color.White
+                    )
+                ) {
+                    Text(
+                        text = genre.name,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+    }
 }

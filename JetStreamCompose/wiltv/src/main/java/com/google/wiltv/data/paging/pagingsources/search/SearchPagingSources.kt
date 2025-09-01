@@ -17,7 +17,8 @@ class SearchPagingSources {
         query: String,
         searchRepository: SearchRepository,
         userRepository: UserRepository,
-        contentTypes: List<ContentType>? = null
+        contentTypes: List<ContentType>? = null,
+        genreId: Int? = null
     ): Flow<PagingData<SearchContent>> {
 
         return Pager(
@@ -31,7 +32,8 @@ class SearchPagingSources {
                 searchRepository,
                 userRepository,
                 query,
-                contentTypes
+                contentTypes,
+                genreId
             )
         }.flow
     }

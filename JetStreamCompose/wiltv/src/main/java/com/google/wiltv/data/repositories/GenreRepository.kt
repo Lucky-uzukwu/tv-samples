@@ -8,4 +8,5 @@ interface GenreRepository {
     suspend fun getMovieGenre(): ApiResult<GenreResponse, DataError.Network>
     suspend fun getTvShowsGenre(): ApiResult<GenreResponse, DataError.Network>
     suspend fun getTvChannelGenre(): ApiResult<GenreResponse, DataError.Network>
+    suspend fun getAllGenres(): ApiResult<GenreResponse, DataError.Network>
 }

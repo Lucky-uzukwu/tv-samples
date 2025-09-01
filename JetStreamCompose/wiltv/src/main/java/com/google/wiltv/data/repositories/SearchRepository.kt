@@ -12,7 +12,8 @@ interface SearchRepository {
         query: String,
         itemsPerPage: Int,
         page: Int,
-        contentTypes: List<ContentType>? = null
+        contentTypes: List<ContentType>? = null,
+        genreId: Int? = null
     ): ApiResult<UnifiedSearchResponse, DataError.Network>
 
     suspend fun getSearchSuggestions(
