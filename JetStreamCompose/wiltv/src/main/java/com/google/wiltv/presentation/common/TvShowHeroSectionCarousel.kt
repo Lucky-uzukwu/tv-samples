@@ -78,9 +78,7 @@ fun TvShowHeroSectionCarousel(
 
 
             LaunchedEffect(tvShow) {
-                if (carouselScrollEnabled) {
-                    setSelectedTvShow(tvShow)
-                }
+                setSelectedTvShow(tvShow)
             }
 
             val isActiveItem = idx == activeItemIndex

@@ -79,9 +79,7 @@ fun MovieHeroSectionCarousel(
             val movie = movies[idx] ?: return@Carousel
 
             LaunchedEffect(movie) {
-                if (carouselScrollEnabled) {
-                    setSelectedMovie(movie)
-                }
+                setSelectedMovie(movie)
             }
 
             val isActiveItem = idx == activeItemIndex

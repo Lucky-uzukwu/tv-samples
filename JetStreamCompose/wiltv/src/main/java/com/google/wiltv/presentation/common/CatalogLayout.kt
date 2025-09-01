@@ -368,7 +368,12 @@ fun CatalogLayout(
                 carouselScrollEnabled = carouselScrollEnabled,
                 modifier = Modifier
                     .height(340.dp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        if (focusState.hasFocus) {
+                            carouselScrollEnabled = true
+                        }
+                    },
                 firstLazyRowItemUnderCarouselRequester = targetStreamingProviderFocusRequester,
                 carouselFocusRequester = carouselFocusRequester
             )

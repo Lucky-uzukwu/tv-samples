@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -335,7 +336,12 @@ fun TvCatalogLayout(
                 carouselScrollEnabled = carouselScrollEnabled,
                 modifier = Modifier
                     .height(340.dp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        if (focusState.hasFocus) {
+                            carouselScrollEnabled = true
+                        }
+                    },
                 firstLazyRowItemUnderCarouselRequester = targetStreamingProviderFocusRequester,
                 carouselFocusRequester = carouselFocusRequester,
             )
