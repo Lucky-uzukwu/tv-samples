@@ -31,6 +31,7 @@ import com.google.wiltv.presentation.screens.streamingprovider.movie.StreamingPr
 import com.google.wiltv.presentation.screens.streamingprovider.show.StreamingProviderShowsListScreen
 import com.google.wiltv.presentation.screens.tvchannels.TvChannelScreenViewModel
 import com.google.wiltv.presentation.screens.tvshowsdetails.TvShowDetailsScreen
+import com.google.wiltv.presentation.screens.sports.details.SportGameDetailsScreen
 import com.google.wiltv.presentation.screens.videoPlayer.VideoPlayerScreen
 import com.google.wiltv.state.UserStateHolder
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -44,6 +45,7 @@ private data class DashboardCallbacks(
     val openStreamingProvideShowList: (com.google.wiltv.data.models.StreamingProvider) -> Unit,
     val openTvShowDetailsScreen: (String) -> Unit,
     val openMovieDetailsScreen: (String) -> Unit,
+    val openSportGameDetails: (String) -> Unit,
     val openVideoPlayer: (String, String?) -> Unit,
     val setSelectedMovie: (MovieNew) -> Unit,
     val setSelectedTvShow: (TvShow) -> Unit,
@@ -288,6 +290,11 @@ fun App(
                                     Screens.MovieDetails.withArgs(movieId)
                                 )
                             },
+                            openSportGameDetails = { gameData ->
+                                navController.navigate(
+                                    Screens.SportGameDetails.withArgs(gameData)
+                                )
+                            },
                             openVideoPlayer = { contentId, title ->
                                 // Check if this is a TV channel URL or a movie/show ID
                                 if (contentId.startsWith("http")) {
@@ -328,11 +335,32 @@ fun App(
                     openStreamingProvideShowList = dashboardCallbacks.openStreamingProvideShowList,
                     openTvShowDetailsScreen = dashboardCallbacks.openTvShowDetailsScreen,
                     openMovieDetailsScreen = dashboardCallbacks.openMovieDetailsScreen,
+                    openSportGameDetails = dashboardCallbacks.openSportGameDetails,
                     openVideoPlayer = dashboardCallbacks.openVideoPlayer,
                     setSelectedMovie = dashboardCallbacks.setSelectedMovie,
                     setSelectedTvShow = dashboardCallbacks.setSelectedTvShow,
                     onLogOutClick = dashboardCallbacks.onLogOutClick,
                     onNavigateToProfileSelection = dashboardCallbacks.onNavigateToProfileSelection
+                )
+            }
+            composable(
+                route = Screens.SportGameDetails(),
+                arguments = listOf(
+                    navArgument(SportGameDetailsScreen.GameIdBundleKey) {
+                        type = NavType.StringType
+                    }
+                )
+            ) {
+                SportGameDetailsScreen(
+                    onBackPressed = {
+                        if (navController.navigateUp()) {
+                            isComingBackFromDifferentScreen = true
+                        }
+                    },
+                    openVideoPlayer = { streamingLink, title ->
+                        val encodedUrl = URLEncoder.encode(streamingLink, "UTF-8")
+                        navController.navigate(Screens.VideoPlayer.withArgs(encodedUrl))
+                    }
                 )
             }
             composable(route = Screens.VideoPlayer()) {

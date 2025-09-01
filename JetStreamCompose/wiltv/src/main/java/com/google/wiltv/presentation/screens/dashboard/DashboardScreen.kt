@@ -34,6 +34,7 @@ import com.google.wiltv.presentation.screens.tvchannels.TvChannelScreen
 import com.google.wiltv.presentation.screens.tvshows.TVShowScreen
 import com.google.wiltv.presentation.screens.sports.SportsScreen
 import com.google.wiltv.presentation.utils.Padding
+import java.net.URLEncoder
 
 val ParentPadding = PaddingValues(vertical = 8.dp, horizontal = 29.dp)
 
@@ -56,6 +57,7 @@ fun DashboardScreen(
     openAllChannels: () -> Unit = {},
     openMovieDetailsScreen: (movieId: String) -> Unit = {},
     openTvShowDetailsScreen: (tvShowId: String) -> Unit = {},
+    openSportGameDetails: (gameData: String) -> Unit = {},
     openVideoPlayer: (contentId: String, title: String?) -> Unit = { _, _ -> },
     openStreamingProviderMovieList: (streamingProvider: StreamingProvider) -> Unit = {},
     openStreamingProvideShowList: (streamingProvider: StreamingProvider) -> Unit = {},
@@ -77,6 +79,7 @@ fun DashboardScreen(
                 openGenreTvChannelsList = openGenreTvChannelsList,
                 openAllChannels = openAllChannels,
                 openMovieDetailsScreen = openMovieDetailsScreen,
+                openSportGameDetails = openSportGameDetails,
                 openVideoPlayer = openVideoPlayer,
                 navController = navController,
                 modifier = Modifier
@@ -110,6 +113,7 @@ private fun Body(
     openStreamingProvideShowList: (streamingProvider: StreamingProvider) -> Unit,
     openMovieDetailsScreen: (movieId: String) -> Unit,
     openTvShowDetailsScreen: (tvShowId: String) -> Unit,
+    openSportGameDetails: (gameData: String) -> Unit,
     openVideoPlayer: (contentId: String, title: String?) -> Unit,
     setSelectedMovie: (movie: MovieNew) -> Unit,
     setSelectedTvShow: (tvShow: TvShow) -> Unit,
@@ -185,9 +189,12 @@ private fun Body(
             composable(Screens.Sports()) {
                 SportsScreen(
                     onGameClick = { game ->
-                        game.streamingLinks.firstOrNull()?.let { link ->
-                            openVideoPlayer(link, game.description)
-                        }
+                        val gameJson = kotlinx.serialization.json.Json.encodeToString(
+                            com.google.wiltv.data.entities.CompetitionGame.serializer(),
+                            game
+                        )
+                        val encodedGameData = URLEncoder.encode(gameJson, "UTF-8")
+                        openSportGameDetails(encodedGameData)
                     },
                     navController = navController
                 )

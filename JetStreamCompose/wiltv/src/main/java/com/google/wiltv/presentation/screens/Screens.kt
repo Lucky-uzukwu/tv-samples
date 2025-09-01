@@ -62,6 +62,7 @@ enum class Screens(
     StreamingProviderShowsList(listOf(StreamingProviderShowsListScreen.StreamingProviderIdBundleKey)),
     MovieDetails(listOf(MovieDetailsScreen.MovieIdBundleKey)),
     TvShowDetails(listOf(TvShowDetailsScreen.TvShowIdBundleKey)),
+    SportGameDetails(listOf("gameId")),
     Dashboard,
     VideoPlayer(listOf(VideoPlayerScreen.MovieIdBundleKey));
 
