@@ -63,7 +63,7 @@ class UserStateHolder @Inject constructor(
                     selectedProfile = userParams[12] as? Profile
                 )
             }.collect { newState ->
-                _userState.value = newState
+                _userState.value = newState.copy(isLoading = false)
             }
         }
     }

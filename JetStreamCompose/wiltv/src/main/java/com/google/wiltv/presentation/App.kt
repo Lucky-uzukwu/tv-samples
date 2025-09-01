@@ -5,6 +5,7 @@ import androidx.compose.runtime.Stable
 import java.net.URLEncoder
 import com.google.wiltv.presentation.screens.auth.AuthScreen
 import com.google.wiltv.presentation.screens.profileselection.ProfileSelectionScreen
+import com.google.wiltv.presentation.screens.LoadingScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -59,6 +60,13 @@ fun App(
     val navController = rememberNavController()
     var isComingBackFromDifferentScreen by remember { mutableStateOf(false) }
     val userState by userStateHolder.userState.collectAsState()
+    
+    // Show loading screen while authentication state is being determined
+    if (userState.isLoading) {
+        LoadingScreen()
+        return
+    }
+    
     val startDestination =
         if (userState.user?.token !== null) {
             // If authenticated, go directly to profile selection
