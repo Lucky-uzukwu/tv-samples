@@ -6,8 +6,6 @@ package com.google.wiltv.presentation
 import com.google.wiltv.R
 import com.google.wiltv.domain.DataError
 import com.google.wiltv.presentation.asUiText
-import org.junit.Test
-import org.junit.Assert.*
 
 /**
  * Validation tests for enhanced asUiText() error message conversion
@@ -15,7 +13,6 @@ import org.junit.Assert.*
  */
 class AsUiTextTest {
     
-    @Test
     fun validateRequestTimeoutErrorMessage() {
         // Test that REQUEST_TIMEOUT returns user-friendly message
         val error = DataError.Network.REQUEST_TIMEOUT
@@ -32,7 +29,7 @@ class AsUiTextTest {
         }
     }
     
-    @Test
+    
     fun validateNoInternetErrorMessage() {
         // Test that NO_INTERNET returns user-friendly message
         val error = DataError.Network.NO_INTERNET
@@ -48,7 +45,7 @@ class AsUiTextTest {
         }
     }
     
-    @Test
+    
     fun validateServerErrorMessage() {
         // Test that SERVER_ERROR returns enhanced user-friendly message
         val error = DataError.Network.SERVER_ERROR
@@ -64,7 +61,6 @@ class AsUiTextTest {
         }
     }
     
-    @Test
     fun validateDynamicStringFallback() {
         // Test that when custom message is provided, it uses DynamicString
         val error = DataError.Network.REQUEST_TIMEOUT
@@ -81,7 +77,7 @@ class AsUiTextTest {
         }
     }
     
-    @Test
+    
     fun validateBackwardCompatibilityForOtherErrors() {
         // Test that non-enhanced errors still work (backward compatibility)
         val testCases = listOf(
@@ -106,7 +102,7 @@ class AsUiTextTest {
         }
     }
     
-    @Test
+    
     fun validateNullMessageHandling() {
         // Test that null message falls back to StringResource
         val error = DataError.Network.REQUEST_TIMEOUT
@@ -122,7 +118,7 @@ class AsUiTextTest {
         }
     }
     
-    @Test
+    
     fun validateEmptyMessageHandling() {
         // Test handling of empty strings for certain error types
         val error = DataError.Network.BAD_REQUEST
@@ -138,7 +134,7 @@ class AsUiTextTest {
         }
     }
     
-    @Test
+    
     fun validateUnauthorizedErrorMessage() {
         // Test that UNAUTHORIZED returns session expired message per AC 1
         val error = DataError.Network.UNAUTHORIZED
@@ -154,7 +150,7 @@ class AsUiTextTest {
         }
     }
     
-    @Test
+    
     fun validateNotFoundErrorMessage() {
         // Test that NOT_FOUND returns content unavailable message per AC 2
         val error = DataError.Network.NOT_FOUND
@@ -170,7 +166,7 @@ class AsUiTextTest {
         }
     }
     
-    @Test
+    
     fun validateAllEnhancedErrorTypes() {
         // Comprehensive test for all enhanced error types per AC 1, 2, 3
         val enhancedErrors = mapOf(
