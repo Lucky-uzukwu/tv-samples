@@ -39,7 +39,7 @@ data class TvChannel(
     val priority: Int?,
     val logoPath: String,
     val active: Boolean,
-    val logoUrl: String,
+    val logoUrl: String?,
     val playLink: String,
     val language: String?,
     val genres: List<Genre>,

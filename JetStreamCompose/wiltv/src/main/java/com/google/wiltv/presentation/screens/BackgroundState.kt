@@ -29,13 +29,14 @@ class BackgroundState(
     private var lastLoadedUrl: String? = null
 
     fun load(url: String, onSuccess: () -> Unit = {}, onError: () -> Unit = {}) {
+        clear()
         // Skip loading if same URL is already loaded
-        if (lastLoadedUrl == url && drawable.value != null) {
-            onSuccess()
-            return
-        }
-
-        job?.cancel()
+//        if (lastLoadedUrl == url && drawable.value != null) {
+//            onSuccess()
+//            return
+//        }
+//
+//        job?.cancel()
 
         val request = coilBuilder
             .data(url)

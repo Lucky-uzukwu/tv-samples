@@ -197,12 +197,10 @@ fun TvChannelCatalogLayout(
                 firstLazyRowItemUnderCarouselRequester = targetGenreFocusRequester,
                 carouselFocusRequester = carouselFocusRequester,
                 setSelectedTvChannel = { channel ->
+                    backgroundState.clear()
                     val imageUrl = channel.logoUrl
                     // Channel background loading could be done here if needed
-                    imageUrl.let {
-                        backgroundState.load(url = it)
-                    }
-
+                    imageUrl?.let { backgroundState.load(url = it) }
                 },
             )
         }
