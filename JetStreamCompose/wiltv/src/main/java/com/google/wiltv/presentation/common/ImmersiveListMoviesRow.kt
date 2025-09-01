@@ -61,11 +61,7 @@ fun ImmersiveListMoviesRow(
     var isListFocused by remember { mutableStateOf(false) }
     var shouldShowDetails by remember { mutableStateOf(false) }
 
-    val selectedMovie by remember {
-        androidx.compose.runtime.derivedStateOf {
-            movies.itemSnapshotList.firstOrNull()
-        }
-    }
+    var selectedMovie by remember { mutableStateOf(movies.itemSnapshotList.firstOrNull()) }
 
     // Clear details when clearDetailsSignal is triggered
     LaunchedEffect(clearDetailsSignal) {
@@ -81,6 +77,7 @@ fun ImmersiveListMoviesRow(
         sectionTitle = sectionTitle,
         onMovieClick = onMovieClick,
         onMovieFocused = { movie, index ->
+            selectedMovie = movie
             setSelectedMovie(movie)
             onItemFocused(movie, index)
         },

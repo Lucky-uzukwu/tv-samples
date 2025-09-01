@@ -74,10 +74,10 @@ fun ImmersiveShowsList(
     var isListFocused by remember { mutableStateOf(false) }
     var shouldShowDetails by remember { mutableStateOf(false) }
 
-    val selectedTvShow by remember {
-        androidx.compose.runtime.derivedStateOf {
+    var selectedTvShow by remember {
+        mutableStateOf (
             tvShows.itemSnapshotList.firstOrNull()
-        }
+        )
     }
 
     // Clear details when clearDetailsSignal is triggered
@@ -94,6 +94,7 @@ fun ImmersiveShowsList(
         sectionTitle = sectionTitle,
         onTvShowClick = onTvShowClick,
         onTvShowFocused = { tvShow, index ->
+            selectedTvShow = tvShow
             setSelectedTvShow(tvShow)
             onItemFocused(tvShow, index)
         },
