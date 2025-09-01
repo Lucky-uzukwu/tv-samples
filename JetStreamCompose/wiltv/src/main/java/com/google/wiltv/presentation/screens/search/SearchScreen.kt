@@ -240,8 +240,9 @@ fun UnifiedSearchResult(
                 onSuggestionClick = { suggestion ->
                     searchQuery = suggestion
                     if (searchQuery.isNotBlank()) {
-                        searchScreenViewModel.query(searchQuery)
-                        lastSearchedQuery = searchQuery
+                        val quotedQuery = "\"$searchQuery\""
+                        searchScreenViewModel.query(quotedQuery)
+                        lastSearchedQuery = quotedQuery
                         hasSearched = true
                         // Focus stays on the suggestion - user decides where to navigate
                     }
@@ -274,10 +275,10 @@ fun UnifiedSearchResult(
                 },
                 onEnter = {
                     if (searchQuery.isNotBlank()) {
-                        val trimmedQuery = searchQuery.trim()
-                        Log.d("UnifiedSearchScreen", "Search triggered: '$trimmedQuery'")
-                        searchScreenViewModel.query(trimmedQuery)
-                        lastSearchedQuery = trimmedQuery
+                        val quotedQuery = "\"$searchQuery\""
+                        Log.d("UnifiedSearchScreen", "Search triggered: '$quotedQuery'")
+                        searchScreenViewModel.query(quotedQuery)
+                        lastSearchedQuery = quotedQuery
                         hasSearched = true
                     }
                 },
