@@ -3,17 +3,13 @@ package com.google.wiltv.presentation.screens.moviedetails
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.LaunchedEffect
@@ -28,15 +24,11 @@ import androidx.paging.PagingData
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.Person
 import com.google.wiltv.data.entities.WatchProgress
-import com.google.wiltv.data.util.StringConstants
 import com.google.wiltv.presentation.common.EnhancedBackdropImage
 import com.google.wiltv.presentation.common.Error
 import com.google.wiltv.presentation.common.Loading
 import com.google.wiltv.presentation.screens.movies.MovieDetails
-import com.google.wiltv.presentation.screens.movies.MovieLargeTitle
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
 object MovieDetailsScreen {
     const val MovieIdBundleKey = "movieId"
@@ -125,8 +117,9 @@ private fun Details(
                 .alpha(1f)
         ) {
             // Background image
-            MovieImageWithGradients(
-                movie = selectedMovie,
+            BackdropImageWithGradients(
+                title = selectedMovie.title,
+                backdropUrl = selectedMovie.backdropImageUrl ?: "",
                 modifier = Modifier.fillMaxSize()
             )
             Box(
@@ -184,14 +177,14 @@ private fun Details(
 }
 
 @Composable
-private fun MovieImageWithGradients(
-    movie: MovieNew,
+fun BackdropImageWithGradients(
+    title: String,
+    backdropUrl: String,
     modifier: Modifier = Modifier,
 ) {
-    val imageUrl = movie.backdropImageUrl
     EnhancedBackdropImage(
-        title = movie.title,
-        backdropUrl = imageUrl ?: "",
+        title = title,
+        backdropUrl = backdropUrl,
         modifier = modifier
     )
 }

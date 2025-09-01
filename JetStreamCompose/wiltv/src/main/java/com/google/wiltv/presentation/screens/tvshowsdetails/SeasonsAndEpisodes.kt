@@ -181,11 +181,6 @@ private fun EpisodeCard(
         },
         modifier = modifier
             .width(280.dp)
-            .border(
-                width = WilTvBorderWidth,
-                color = if (isFocused) Color.White else Color.Transparent,
-                shape = WilTvCardShape
-            )
             .onFocusChanged { isFocused = it.isFocused }
             .let { cardModifier ->
                 if (isFirstSeason && isFirstEpisode) {

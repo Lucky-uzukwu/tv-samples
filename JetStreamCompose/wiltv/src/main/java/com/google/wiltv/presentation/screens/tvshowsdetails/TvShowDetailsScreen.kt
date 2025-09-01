@@ -47,6 +47,7 @@ import com.google.wiltv.presentation.screens.tvshows.TvShowDetails
 import com.google.wiltv.presentation.screens.tvshowsdetails.SeasonsAndEpisodes
 import java.net.URLEncoder
 import android.util.Log
+import com.google.wiltv.presentation.screens.moviedetails.BackdropImageWithGradients
 
 object TvShowDetailsScreen {
     const val TvShowIdBundleKey = "tvShowId"
@@ -107,9 +108,9 @@ private fun Details(
     val episodesTabFocusRequester = remember { FocusRequester() }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        MovieImageWithGradients(
+        BackdropImageWithGradients(
             title = tvShow.title ?: tvShow.tagLine ?: "",
-            backdropImagePath = tvShow.backdropImagePath ?: "",
+            backdropUrl = tvShow.backdropImageUrl ?: "",
             modifier = Modifier.fillMaxSize()
         )
         Box(

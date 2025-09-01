@@ -385,11 +385,6 @@ private fun ShowsRowItem(
         onClick = { onTvShowSelected(tvShow) },
         isInWatchlist = isInWatchlist,
         modifier = Modifier
-            .border(
-                width = WilTvBorderWidth,
-                color = if (isFocused) Color.White else Color.Transparent,
-                shape = WilTvCardShape
-            )
             .onFocusChanged {
                 isFocused = it.isFocused
                 if (it.isFocused) {
