@@ -38,6 +38,19 @@ import com.google.wiltv.presentation.screens.Screens
 import com.google.wiltv.presentation.utils.handleDPadKeyEvents
 
 
+fun getTopBarTabs(profileType: com.google.wiltv.data.entities.ProfileType?): List<Screens> {
+    return Screens.entries.toList()
+        .filter { it.isTabItem }
+        .filter { screen ->
+            // Exclude Sports for Kids profiles
+            if (profileType == com.google.wiltv.data.entities.ProfileType.KIDS && screen == Screens.Sports) {
+                false
+            } else {
+                true
+            }
+        }
+}
+
 val TopBarTabs = Screens.entries.toList().filter { it.isTabItem }
 
 @OptIn(ExperimentalComposeUiApi::class)

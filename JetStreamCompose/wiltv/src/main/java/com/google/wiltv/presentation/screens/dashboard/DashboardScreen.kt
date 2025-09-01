@@ -17,6 +17,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.createGraph
 import com.google.wiltv.data.models.Genre
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.StreamingProvider
 import com.google.wiltv.data.models.TvShow
@@ -60,12 +62,15 @@ fun DashboardScreen(
     setSelectedMovie: (movie: MovieNew) -> Unit,
     setSelectedTvShow: (tvShow: TvShow) -> Unit,
     onLogOutClick: () -> Unit,
-    onNavigateToProfileSelection: () -> Unit = {}
+    onNavigateToProfileSelection: () -> Unit = {},
+    dashboardViewModel: DashboardViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
+    val selectedProfile = dashboardViewModel.selectedProfile.collectAsStateWithLifecycle().value
 
     HomeDrawer(
         navController = navController,
+        selectedProfile = selectedProfile,
         content = {
             Body(
                 openCategoryMovieList = openCategoryMovieList,
@@ -89,9 +94,10 @@ fun DashboardScreen(
                 }
             )
         },
-    ) { screen ->
-        navController.navigate(screen())
-    }
+        onScreenSelected = { screen ->
+            navController.navigate(screen())
+        }
+    )
 }
 
 @Composable

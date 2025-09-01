@@ -41,6 +41,7 @@ import androidx.tv.material3.Text
 import androidx.tv.material3.rememberDrawerState
 import com.google.wiltv.presentation.screens.Screens
 import com.google.wiltv.presentation.screens.dashboard.TopBarTabs
+import com.google.wiltv.presentation.screens.dashboard.getTopBarTabs
 import kotlinx.coroutines.launch
 
 
@@ -48,13 +49,15 @@ import kotlinx.coroutines.launch
 fun HomeDrawer(
     content: @Composable () -> Unit,
     navController: NavController = rememberNavController(),
-    onScreenSelected: ((screen: Screens) -> Unit)?
+    onScreenSelected: ((screen: Screens) -> Unit)?,
+    selectedProfile: com.google.wiltv.data.entities.Profile? = null
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     var (selectedTab, setSelectedTab) = remember { mutableStateOf<String?>(Screens.Home()) }
     val coroutineScope = rememberCoroutineScope()
-    val focusRequesters = remember {
-        List(TopBarTabs.size) { FocusRequester() }
+    val filteredTabs = getTopBarTabs(selectedProfile?.type)
+    val focusRequesters = remember(filteredTabs.size) {
+        List(filteredTabs.size) { FocusRequester() }
     }
     
     // Handle back button to close drawer when it's open
@@ -98,12 +101,12 @@ fun HomeDrawer(
                     .offset(x = 5.dp),
                 verticalArrangement = Arrangement.Center
             ) {
-                TopBarTabs.forEachIndexed { index, item ->
+                filteredTabs.forEachIndexed { index, item ->
                     NavigationRow(
                         item = item,
                         focusRequester = focusRequesters[index],
                         isFirstItemAfterOpen = drawerState.currentValue == DrawerValue.Open &&
-                                TopBarTabs.indexOfFirst { it.name == selectedTab } == index,
+                                filteredTabs.indexOfFirst { it.name == selectedTab } == index,
                         isSelected = selectedTab == item.name,
                         modifier = Modifier.focusRequester(focusRequesters[index]),
                         onScreenSelected = {
