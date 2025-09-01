@@ -6,7 +6,11 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesomeMotion
 import androidx.compose.material.icons.filled.ClosedCaption
@@ -28,6 +32,8 @@ import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import co.touchlab.kermit.Logger
 import com.google.wiltv.data.util.StringConstants
+import com.google.wiltv.presentation.UiText
+import com.google.wiltv.presentation.screens.ErrorScreen
 import com.google.wiltv.presentation.screens.videoPlayer.components.NextButton
 import com.google.wiltv.presentation.screens.videoPlayer.components.PreviousButton
 import com.google.wiltv.presentation.screens.videoPlayer.components.RepeatButton
@@ -50,16 +56,11 @@ fun TvChannelVideoPlayerScreenContent(
 ) {
     val context = LocalContext.current
     val exoPlayer = rememberPlayer(context)
+    var hasError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
     val videoPlayerState = rememberVideoPlayerState(
         hideSeconds = 15,
-    )
-
-    // Fallback URLs for testing when the primary URL fails
-    val fallbackUrls = listOf(
-        "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
-        "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
-        "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8"
     )
     
     LaunchedEffect(directUrl) {
@@ -70,43 +71,39 @@ fun TvChannelVideoPlayerScreenContent(
         exoPlayer.play()
     }
 
-    // Handle playback errors with fallback
+    // Handle playback errors by showing error screen
     LaunchedEffect(exoPlayer) {
-        var fallbackIndex = 0
-        
         val listener = object : Player.Listener {
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 Logger.e("Playback error for URL: ${exoPlayer.currentMediaItem?.mediaId ?: directUrl}", error)
-                when (error.errorCode) {
+                val errorText = when (error.errorCode) {
                     androidx.media3.common.PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> {
-                        Logger.e("HTTP error (likely 404) for URL: ${exoPlayer.currentMediaItem?.mediaId ?: directUrl}")
-                        
-                        // Try fallback URLs
-                        if (fallbackIndex < fallbackUrls.size) {
-                            val fallbackUrl = fallbackUrls[fallbackIndex]
-                            Logger.i("Trying fallback URL $fallbackIndex: $fallbackUrl")
-                            fallbackIndex++
-                            val fallbackMediaItem = MediaItem.fromUri(fallbackUrl)
-                            exoPlayer.setMediaItem(fallbackMediaItem)
-                            exoPlayer.prepare()
-                            exoPlayer.play()
-                        } else {
-                            Logger.e("All fallback URLs exhausted")
-                        }
+                        "This TV channel is currently unavailable. Please try again later."
                     }
                     androidx.media3.common.PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> {
-                        Logger.e("Network connection failed for URL: ${exoPlayer.currentMediaItem?.mediaId ?: directUrl}")
+                        "Network connection failed. Please check your internet connection and try again."
                     }
                     else -> {
-                        Logger.e("Other playback error: ${error.errorCode} for URL: ${exoPlayer.currentMediaItem?.mediaId ?: directUrl}")
+                        "Unable to play this TV channel. Please try again later."
                     }
                 }
+                hasError = true
+                errorMessage = errorText
             }
         }
         exoPlayer.addListener(listener)
     }
 
     BackHandler(onBack = onBackPressed)
+
+    if (hasError) {
+        ErrorScreen(
+            uiText = UiText.DynamicString(errorMessage),
+            onGoBack = onBackPressed,
+            modifier = Modifier.fillMaxSize()
+        )
+        return
+    }
 
     val pulseState = rememberVideoPlayerPulseState()
 
