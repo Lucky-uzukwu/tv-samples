@@ -43,10 +43,12 @@ import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
+import com.google.wiltv.data.entities.CompetitionGame
 import com.google.wiltv.data.models.MovieNew
 import com.google.wiltv.data.models.SearchContent
 import com.google.wiltv.data.models.TvShow
 import com.google.wiltv.data.network.TvChannel
+import com.google.wiltv.presentation.common.GameCard
 import com.google.wiltv.presentation.common.MovieCard
 import com.google.wiltv.presentation.common.PosterImage
 import com.google.wiltv.presentation.common.SearchErrorSuggestions
@@ -59,8 +61,6 @@ import com.google.wiltv.presentation.common.TvVirtualKeyboard
 import com.google.wiltv.presentation.screens.ErrorScreen
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
 import com.google.wiltv.presentation.theme.WilTvBottomListPadding
-import com.google.wiltv.presentation.utils.createInitialFocusRestorerModifiers
-import com.google.wiltv.presentation.utils.focusOnInitialVisibility
 import kotlinx.coroutines.flow.StateFlow
 
 
@@ -112,6 +112,7 @@ fun SearchScreen(
     onMovieClick: (movie: MovieNew) -> Unit,
     onShowClick: (show: TvShow) -> Unit,
     onChannelClick: (channel: TvChannel) -> Unit,
+    onGameClick: (game: CompetitionGame) -> Unit,
     onScroll: (isTopBarVisible: Boolean) -> Unit,
     onBrowseCategoriesClick: () -> Unit = {},
     onTrendingContentClick: () -> Unit = {},
@@ -173,6 +174,7 @@ fun SearchScreen(
                 onMovieClick = onMovieClick,
                 onShowClick = onShowClick,
                 onChannelClick = onChannelClick,
+                onGameClick = onGameClick,
                 searchScreenViewModel = searchScreenViewModel
             )
         }
@@ -188,6 +190,7 @@ fun UnifiedSearchResult(
     onMovieClick: (movie: MovieNew) -> Unit,
     onShowClick: (show: TvShow) -> Unit,
     onChannelClick: (channel: TvChannel) -> Unit,
+    onGameClick: (game: CompetitionGame) -> Unit,
     searchScreenViewModel: SearchScreenViewModel,
     modifier: Modifier = Modifier
 ) {
@@ -406,6 +409,7 @@ fun UnifiedSearchResult(
                                             is SearchContent.MovieContent -> "movie_${item.movie.id}"
                                             is SearchContent.TvShowContent -> "show_${item.tvShow.id}"
                                             is SearchContent.TvChannelContent -> "channel_${item.tvChannel.id}"
+                                            is SearchContent.CompetitionGameContent -> "game_${item.game.id}"
                                             null -> "loading_$index"
                                         }
                                     }
@@ -455,6 +459,17 @@ fun UnifiedSearchResult(
                                                     onChannelClick = { channel ->
                                                         shouldRestoreFocus = true
                                                         onChannelClick(channel)
+                                                    },
+                                                    modifier = itemModifier
+                                                )
+                                            }
+
+                                            is SearchContent.CompetitionGameContent -> {
+                                                GameSearchContent(
+                                                    searchContent = searchContent,
+                                                    onGameClick = { game ->
+                                                        shouldRestoreFocus = true
+                                                        onGameClick(game)
                                                     },
                                                     modifier = itemModifier
                                                 )
@@ -662,4 +677,20 @@ private fun MovieSearchContent(
             )
         }
     }
+}
+
+@Composable
+private fun GameSearchContent(
+    searchContent: SearchContent.CompetitionGameContent,
+    onGameClick: (CompetitionGame) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val game = searchContent.game
+    GameCard(
+        game = game,
+        onClick = { onGameClick(game) },
+        modifier = modifier
+            .aspectRatio(1 / 1.5f)
+            .padding(6.dp)
+    )
 }

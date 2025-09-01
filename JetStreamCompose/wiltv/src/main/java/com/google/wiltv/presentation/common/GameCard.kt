@@ -74,7 +74,14 @@ fun GameCard(
                 glow = glow,
                 content = {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        if (!game.coverImageUrl.isNullOrBlank()) {
+                        if (!game.featuredImageUrl.isNullOrBlank()) {
+                            AsyncImage(
+                                model = game.featuredImageUrl,
+                                contentDescription = game.description,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else if (!game.coverImageUrl.isNullOrBlank()) {
                             AsyncImage(
                                 model = game.coverImageUrl,
                                 contentDescription = game.description,
@@ -88,7 +95,7 @@ fun GameCard(
                                 showLiveBadge = false
                             )
                         }
-                        
+
                         if (game.isLive) {
                             LiveBadge(
                                 modifier = Modifier

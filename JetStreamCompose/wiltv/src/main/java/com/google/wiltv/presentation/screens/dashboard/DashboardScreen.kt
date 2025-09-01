@@ -209,6 +209,11 @@ private fun Body(
                     onScroll = { },
                     onShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) },
                     onChannelClick = { channel -> openVideoPlayer(channel.playLink, channel.name) },
+                    onGameClick = { game ->
+                        game.streamingLinks.firstOrNull()?.let { link ->
+                            openVideoPlayer(link, game.description)
+                        }
+                    },
                     onBrowseCategoriesClick = { onNavigateToScreen(Screens.Watchlist) },
                     onTrendingContentClick = { onNavigateToScreen(Screens.Home) }
                 )

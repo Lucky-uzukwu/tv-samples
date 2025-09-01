@@ -9,6 +9,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonParseException
 import com.google.gson.annotations.SerializedName
 import com.google.wiltv.data.network.TvChannel
+import com.google.wiltv.data.entities.CompetitionGame
 import java.lang.reflect.Type
 
 data class UnifiedSearchResponse(
@@ -60,6 +61,10 @@ class SearchContentDeserializer : JsonDeserializer<SearchContent> {
             "App\\Models\\TvChannel" -> {
                 val tvChannel = context.deserialize<TvChannel>(json, TvChannel::class.java)
                 SearchContent.TvChannelContent(tvChannel)
+            }
+            "App\\Models\\CompetitionGame" -> {
+                val game = context.deserialize<CompetitionGame>(json, CompetitionGame::class.java)
+                SearchContent.CompetitionGameContent(game)
             }
             else -> throw JsonParseException("Unknown content type: $contentType")
         }

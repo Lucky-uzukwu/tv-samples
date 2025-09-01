@@ -4,9 +4,11 @@
 package com.google.wiltv.data.models
 
 import com.google.wiltv.data.network.TvChannel
+import com.google.wiltv.data.entities.CompetitionGame
 
 sealed interface SearchContent {
     data class MovieContent(val movie: MovieNew) : SearchContent
     data class TvShowContent(val tvShow: TvShow) : SearchContent
     data class TvChannelContent(val tvChannel: TvChannel) : SearchContent
+    data class CompetitionGameContent(val game: CompetitionGame) : SearchContent
 }
