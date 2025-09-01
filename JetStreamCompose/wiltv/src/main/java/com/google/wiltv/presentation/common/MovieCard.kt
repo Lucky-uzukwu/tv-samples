@@ -51,6 +51,7 @@ fun MovieCard(
             elevation = 8.dp
         )
     ),
+    colors: androidx.tv.material3.ClickableSurfaceColors = ClickableSurfaceDefaults.colors(),
     image: @Composable BoxScope.() -> Unit,
 ) {
     StandardCardContainer(
@@ -69,6 +70,7 @@ fun MovieCard(
                         shape = WilTvCardShape
                     )
                 ),
+                colors = colors,
                 scale = scale,
                 glow = glow,
                 content = {

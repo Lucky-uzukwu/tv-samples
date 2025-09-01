@@ -46,6 +46,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.wiltv.R
@@ -179,6 +180,10 @@ private fun EpisodeCard(
             Log.d("EpisodeCard", "MovieCard clicked for episode: ${episode.title}")
             onEpisodeClick(episode)
         },
+        colors = ClickableSurfaceDefaults.colors(
+            containerColor = Color.Black.copy(alpha = 0.8f),
+            focusedContainerColor = Color.Black.copy(alpha = 0.9f)
+        ),
         modifier = modifier
             .width(280.dp)
             .onFocusChanged { isFocused = it.isFocused }
