@@ -216,13 +216,13 @@ fun UnifiedSearchResult(
         mutableMapOf<Int, FocusRequester>()
     }
     var shouldRestoreFocus by remember { mutableStateOf(true) }
-    
+
     // Collect search suggestions and initial movies from ViewModel
     val searchSuggestions by searchScreenViewModel.searchSuggestions.collectAsStateWithLifecycle()
     val initialMovies = searchScreenViewModel.initialMovies.collectAsLazyPagingItems()
     val genres by searchScreenViewModel.genres.collectAsStateWithLifecycle()
     val selectedGenreId by searchScreenViewModel.selectedGenreId.collectAsStateWithLifecycle()
-    
+
     // Focus requesters for navigation between suggestions and keyboard
     val suggestionsFocusRequester = remember { FocusRequester() }
     val genreListFocusRequesters = remember { mutableMapOf<String, FocusRequester>() }
@@ -249,7 +249,7 @@ fun UnifiedSearchResult(
             modifier = Modifier
                 .weight(0.4f)
                 .fillMaxHeight()
-                .padding(16.dp)
+                .padding(28.dp)
         ) {
             SearchQueryDisplay(
                 query = searchQuery,
@@ -310,7 +310,7 @@ fun UnifiedSearchResult(
 
             if (genres.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 GenreFilterList(
                     genres = genres,
                     selectedGenreId = selectedGenreId,
@@ -319,7 +319,8 @@ fun UnifiedSearchResult(
                         // Always trigger search when genre is selected
                         if (genreId != null) {
                             // Genre selected - search with genre (with or without text)
-                            val queryToUse = if (searchQuery.isNotBlank()) "\"$searchQuery\"" else ""
+                            val queryToUse =
+                                if (searchQuery.isNotBlank()) "\"$searchQuery\"" else ""
                             searchScreenViewModel.query(queryToUse)
                             lastSearchedQuery = queryToUse
                             hasSearched = true
@@ -755,7 +756,7 @@ private fun GenreFilterList(
 ) {
     val listState = rememberLazyListState()
     val purpleColor = Color(0xFFA855F7)
-    
+
     Column(modifier = modifier) {
         Text(
             text = "Genres",
@@ -763,7 +764,7 @@ private fun GenreFilterList(
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        
+
         LazyColumn(
             state = listState,
             verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -775,12 +776,13 @@ private fun GenreFilterList(
                 Button(
                     onClick = { onGenreSelected(null) },
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .width(150.dp)
                         .focusRequester(allFocusRequester)
                         .onKeyEvent { keyEvent ->
                             if (keyEvent.nativeKeyEvent.action == KeyEvent.ACTION_DOWN &&
                                 (keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
-                                 keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)) {
+                                        keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)
+                            ) {
                                 onGenreSelected(null)
                                 true
                             } else {
@@ -800,19 +802,21 @@ private fun GenreFilterList(
                     )
                 }
             }
-            
+
             items(genres) { genre ->
                 val isSelected = selectedGenreId == genre.id
-                val genreFocusRequester = focusRequesters.getOrPut("genre_${genre.id}") { FocusRequester() }
+                val genreFocusRequester =
+                    focusRequesters.getOrPut("genre_${genre.id}") { FocusRequester() }
                 Button(
                     onClick = { onGenreSelected(genre.id) },
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .width(150.dp)
                         .focusRequester(genreFocusRequester)
                         .onKeyEvent { keyEvent ->
                             if (keyEvent.nativeKeyEvent.action == KeyEvent.ACTION_DOWN &&
                                 (keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
-                                 keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)) {
+                                        keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)
+                            ) {
                                 onGenreSelected(genre.id)
                                 true
                             } else {

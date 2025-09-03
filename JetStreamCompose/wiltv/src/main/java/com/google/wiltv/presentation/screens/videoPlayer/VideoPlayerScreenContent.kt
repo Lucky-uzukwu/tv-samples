@@ -79,6 +79,7 @@ fun VideoPlayerScreenContent(
         exoPlayer.addMediaItem(MediaItem.fromUri(selectedMovie.video?.hlsPlaylistUrl.toString()))
         exoPlayer.setMediaItem(MediaItem.fromUri(selectedMovie.video?.hlsPlaylistUrl.toString()))
         exoPlayer.prepare()
+        exoPlayer.playWhenReady = true
     }
 
     BackHandler(onBack = onBackPressed)
