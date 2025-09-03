@@ -62,13 +62,14 @@ import android.util.Log
 
 @Composable
 fun SeasonsAndEpisodes(
-    seasons: List<Season>,
+    seasonsToEpisodes: SeasonsToEpisodes,
     playButtonFocusRequester: FocusRequester,
     episodesTabFocusRequester: FocusRequester,
     onEpisodeClick: (Episode) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val childPadding = rememberChildPadding()
+    val seasons = seasonsToEpisodes.map { it.first }
 
     if (seasons.isEmpty()) {
         Box(
@@ -92,9 +93,12 @@ fun SeasonsAndEpisodes(
             .focusGroup()
             .focusRequester(episodesTabFocusRequester)
     ) {
-        seasons.forEachIndexed { seasonIndex, season ->
+        seasonsToEpisodes.forEachIndexed { seasonIndex, seasonToEpisodes ->
+            val season = seasonToEpisodes.first
+            val episodes = seasonToEpisodes.second
             SeasonWithEpisodes(
                 season = season,
+                episodes = episodes,
                 seasonIndex = seasonIndex,
                 playButtonFocusRequester = playButtonFocusRequester,
                 onEpisodeClick = onEpisodeClick,
@@ -107,6 +111,7 @@ fun SeasonsAndEpisodes(
 @Composable
 private fun SeasonWithEpisodes(
     season: Season,
+    episodes: List<Episode>,
     seasonIndex: Int,
     playButtonFocusRequester: FocusRequester,
     onEpisodeClick: (Episode) -> Unit,
@@ -126,8 +131,6 @@ private fun SeasonWithEpisodes(
                 bottom = 16.dp
             )
         )
-
-        val episodes = season.episodes ?: emptyList()
 
         if (episodes.isEmpty()) {
             Text(
@@ -208,8 +211,7 @@ private fun EpisodeCard(
                 Box(
                     modifier = Modifier
                         .aspectRatio(ItemDirection.Horizontal.aspectRatio)
-                        .background(Color.Gray.copy(alpha = 0.3f))
-                    ,
+                        .background(Color.Gray.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(

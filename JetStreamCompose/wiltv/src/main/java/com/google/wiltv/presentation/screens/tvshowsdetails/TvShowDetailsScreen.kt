@@ -19,11 +19,9 @@ package com.google.wiltv.presentation.screens.tvshowsdetails
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -38,15 +36,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.wiltv.presentation.common.EnhancedBackdropImage
 import com.google.wiltv.data.models.TvShow
-import com.google.wiltv.data.models.Season
-import com.google.wiltv.data.util.StringConstants
 import com.google.wiltv.presentation.common.Error
 import com.google.wiltv.presentation.common.Loading
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
 import com.google.wiltv.presentation.screens.tvshows.TvShowDetails
-import com.google.wiltv.presentation.screens.tvshowsdetails.SeasonsAndEpisodes
 import java.net.URLEncoder
 import android.util.Log
+import com.google.wiltv.data.models.Episode
 import com.google.wiltv.presentation.screens.moviedetails.BackdropImageWithGradients
 
 object TvShowDetailsScreen {
@@ -76,7 +72,7 @@ fun TvShowDetailsScreen(
         is TvShowDetailsScreenUiState.Done -> {
             Details(
                 tvShow = s.tvShow,
-                seasons = s.seasons,
+                seasonsToEpisodes = s.seasonsToEpisodes,
                 openVideoPlayer = openVideoPlayer,
                 onBackPressed = onBackPressed,
                 isInWatchlist = isInWatchlist,
@@ -93,7 +89,7 @@ fun TvShowDetailsScreen(
 @Composable
 private fun Details(
     tvShow: TvShow,
-    seasons: List<Season>,
+    seasonsToEpisodes: SeasonsToEpisodes,
     openVideoPlayer: (tvShowId: String) -> Unit,
     onBackPressed: () -> Unit,
     isInWatchlist: Boolean,
@@ -106,6 +102,22 @@ private fun Details(
     val playButtonFocusRequester = remember { FocusRequester() }
     val watchlistButtonFocusRequester = remember { FocusRequester() }
     val episodesTabFocusRequester = remember { FocusRequester() }
+
+    fun onEpisodeClick(episode: Episode) {
+        Log.d("TvShowDetails", "Episode clicked: ${episode.title}")
+        Log.d("TvShowDetails", "Episode video: ${episode.video}")
+        Log.d("TvShowDetails", "HLS URL: ${episode.video?.hlsPlaylistUrl}")
+
+        episode.video?.hlsPlaylistUrl?.let { url ->
+            Log.d("TvShowDetails", "Navigating to video player with URL: $url")
+            // Encode URL for navigation routing (not for auth - preserves pre-signed params)
+            val encodedUrl = URLEncoder.encode(url, "UTF-8")
+            Log.d("TvShowDetails", "URL-encoded for navigation: $encodedUrl")
+            openVideoPlayer(encodedUrl)
+        } ?: run {
+            Log.d("TvShowDetails", "No video available for episode: ${episode.title}")
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         BackdropImageWithGradients(
@@ -129,7 +141,7 @@ private fun Details(
     ) {
         item {
             TvShowDetails(
-                openVideoPlayer = openVideoPlayer,
+                onEpisodeClick = { episode -> onEpisodeClick(episode) },
                 id = tvShow.id,
                 title = tvShow.title,
                 releaseDate = tvShow.releaseDate,
@@ -137,7 +149,7 @@ private fun Details(
                 duration = tvShow.duration,
                 plot = tvShow.plot,
                 streamingProviders = tvShow.streamingProviders,
-                seasons = tvShow.seasons,
+                seasonsToEpisodes = seasonsToEpisodes,
                 playButtonFocusRequester = playButtonFocusRequester,
                 watchlistButtonFocusRequester = watchlistButtonFocusRequester,
                 episodesTabFocusRequester = episodesTabFocusRequester,
@@ -150,24 +162,10 @@ private fun Details(
 
         item {
             SeasonsAndEpisodes(
-                seasons = seasons.ifEmpty { tvShow.seasons ?: emptyList() },
+                seasonsToEpisodes = seasonsToEpisodes,
                 playButtonFocusRequester = playButtonFocusRequester,
                 episodesTabFocusRequester = episodesTabFocusRequester,
-                onEpisodeClick = { episode ->
-                    Log.d("TvShowDetails", "Episode clicked: ${episode.title}")
-                    Log.d("TvShowDetails", "Episode video: ${episode.video}")
-                    Log.d("TvShowDetails", "HLS URL: ${episode.video?.hlsPlaylistUrl}")
-                    
-                    episode.video?.hlsPlaylistUrl?.let { url ->
-                        Log.d("TvShowDetails", "Navigating to video player with URL: $url")
-                        // Encode URL for navigation routing (not for auth - preserves pre-signed params)
-                        val encodedUrl = URLEncoder.encode(url, "UTF-8")
-                        Log.d("TvShowDetails", "URL-encoded for navigation: $encodedUrl")
-                        openVideoPlayer(encodedUrl)
-                    } ?: run {
-                        Log.d("TvShowDetails", "No video available for episode: ${episode.title}")
-                    }
-                },
+                onEpisodeClick = { episode -> onEpisodeClick(episode) },
                 modifier = Modifier.padding(top = 24.dp)
             )
         }

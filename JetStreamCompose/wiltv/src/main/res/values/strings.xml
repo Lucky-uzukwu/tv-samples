@@ -49,6 +49,7 @@ https://www.apache.org/licenses/LICENSE-2.0
     <string name="message_error">Wops, something went wrong…</string>
     <string name="play">Play</string>
     <string name="coming_soon">Coming Soon</string>
+    <string name="watch_episode">Watch S%1$d EP%2$d</string>
     <string name="watchlist">Watchlist</string>
     <string name="in_watchlist">In Watchlist</string>
     <string name="no_episodes_available">No episodes available</string>

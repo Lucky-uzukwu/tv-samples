@@ -133,3 +133,40 @@ fun ResumePlayButton(
         )
     }
 }
+
+@Composable
+fun WatchEpisodeButton(
+    modifier: Modifier = Modifier,
+    seasonNumber: Int = 1,
+    episodeNumber: Int = 1,
+    isEnabled: Boolean,
+    onClick: () -> Unit,
+    focusRequester: FocusRequester,
+) {
+    Button(
+        onClick = if (isEnabled) onClick else { {} },
+        modifier = Modifier
+            .height(40.dp)
+            .focusRequester(focusRequester)
+            .then(modifier),
+        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+        shape = ButtonDefaults.shape(shape = WilTvButtonShape),
+        colors = ButtonDefaults.colors(
+            containerColor = if (isEnabled) md_theme_light_outline else Color(0xFF6B7280),
+            contentColor = if (isEnabled) md_theme_light_onTertiary else Color.White.copy(alpha = 0.8f),
+            focusedContainerColor = if (isEnabled) Color(0xFFA855F7) else Color(0xFF9CA3AF),
+            focusedContentColor = if (isEnabled) md_theme_light_shadow else Color.White,
+        ),
+        scale = ButtonDefaults.scale(scale = 1f)
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.PlayArrow,
+            contentDescription = null,
+        )
+        Spacer(Modifier.size(8.dp))
+        Text(
+            text = stringResource(R.string.watch_episode, seasonNumber, episodeNumber),
+            style = MaterialTheme.typography.titleSmall
+        )
+    }
+}

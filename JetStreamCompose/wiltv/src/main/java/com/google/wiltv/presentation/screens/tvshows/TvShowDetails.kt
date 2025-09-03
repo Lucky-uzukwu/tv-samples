@@ -25,14 +25,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
+import com.google.wiltv.data.models.Episode
 import com.google.wiltv.data.models.Genre
 import com.google.wiltv.data.models.Season
 import com.google.wiltv.data.models.StreamingProvider
 import com.google.wiltv.presentation.common.StreamingProviderIcon
 import com.google.wiltv.presentation.screens.dashboard.rememberChildPadding
-import com.google.wiltv.presentation.screens.movies.ComingSoonButton
-import com.google.wiltv.presentation.screens.movies.PlayButton
+import com.google.wiltv.presentation.screens.movies.WatchEpisodeButton
 import com.google.wiltv.presentation.screens.movies.WatchlistButton
+import com.google.wiltv.presentation.screens.tvshowsdetails.SeasonsToEpisodes
 import com.google.wiltv.presentation.utils.formatDuration
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -45,8 +46,8 @@ fun TvShowDetails(
     duration: Int?,
     plot: String?,
     streamingProviders: List<StreamingProvider>?,
-    seasons: List<Season>?,
-    openVideoPlayer: (tvShowId: String) -> Unit,
+    seasonsToEpisodes: SeasonsToEpisodes,
+    onEpisodeClick: (Episode) -> Unit,
     playButtonFocusRequester: FocusRequester,
     watchlistButtonFocusRequester: FocusRequester,
     episodesTabFocusRequester: FocusRequester,
@@ -56,13 +57,13 @@ fun TvShowDetails(
     onToggleWatchlist: (() -> Unit)
 ) {
     val childPadding = rememberChildPadding()
+    val seasons = seasonsToEpisodes.map { it.first }
 
-    // Check if any episodes have videos available
-    val firstAvailableVideo = seasons?.flatMap { season ->
-        season.episodes ?: emptyList()
-    }?.firstOrNull { episode ->
-        episode.video != null
-    }?.video
+    // Find the next episode to watch based on user's progress
+    // For now, this defaults to S1E1, but in the future it will check watch progress
+    val (targetSeason, targetEpisode, targetEpisodeData) = findNextEpisodeToWatch(seasons)
+
+    val hasTargetEpisodeVideo = targetEpisodeData?.video != null
 
     Box(
         modifier = Modifier
@@ -123,48 +124,32 @@ fun TvShowDetails(
                     .padding(top = 16.dp)
                     .padding(horizontal = childPadding.start)
             ) {
-                if (firstAvailableVideo != null) {
-                    PlayButton(
-                        modifier = Modifier
-                            .focusProperties {
-                                canFocus = true
-                                left = FocusRequester.Cancel
-                                right = watchlistButtonFocusRequester
-                            }
-                            .onFocusChanged { focusState ->
-                                try {
-                                    if (focusState.hasFocus) {
-                                        onPlayButtonFocused?.invoke()
-                                    }
-                                } catch (e: Exception) {
-                                    // Handle any focus-related exceptions gracefully
-                                }
-                            },
-                        focusRequester = playButtonFocusRequester,
-                        onClick = {
-                            openVideoPlayer(id.toString())
+                WatchEpisodeButton(
+                    modifier = Modifier
+                        .focusProperties {
+                            canFocus = true
+                            left = FocusRequester.Cancel
+                            right = watchlistButtonFocusRequester
                         }
-                    )
-                } else {
-                    ComingSoonButton(
-                        modifier = Modifier
-                            .focusProperties {
-                                canFocus = true
-                                left = FocusRequester.Cancel
-                                right = watchlistButtonFocusRequester
-                            }
-                            .onFocusChanged { focusState ->
-                                try {
-                                    if (focusState.hasFocus) {
-                                        onPlayButtonFocused?.invoke()
-                                    }
-                                } catch (e: Exception) {
-                                    // Handle any focus-related exceptions gracefully
+                        .onFocusChanged { focusState ->
+                            try {
+                                if (focusState.hasFocus) {
+                                    onPlayButtonFocused?.invoke()
                                 }
-                            },
-                        focusRequester = playButtonFocusRequester
-                    )
-                }
+                            } catch (e: Exception) {
+                                // Handle any focus-related exceptions gracefully
+                            }
+                        },
+                    focusRequester = playButtonFocusRequester,
+                    seasonNumber = targetSeason,
+                    episodeNumber = targetEpisode,
+                    isEnabled = hasTargetEpisodeVideo,
+                    onClick = {
+                        if (hasTargetEpisodeVideo) {
+                            onEpisodeClick(targetEpisodeData)
+                        }
+                    }
+                )
 
                 // Watchlist button - only show if toggle function is available
                 WatchlistButton(
@@ -240,4 +225,40 @@ private fun TvShowDotSeparatedRow(
             }
         }
     }
+}
+
+/**
+ * Finds the next episode the user should watch based on their progress.
+ * Currently defaults to S1E1, but can be enhanced to track actual watch progress.
+ *
+ * @param seasons List of seasons with episodes
+ * @return Triple of (seasonNumber, episodeNumber, episodeData)
+ */
+private fun findNextEpisodeToWatch(seasons: List<Season>?): Triple<Int, Int, Episode?> {
+    if (seasons.isNullOrEmpty()) {
+        return Triple(1, 1, null)
+    }
+
+    // TODO: In the future, implement actual watch progress tracking:
+    // 1. Check user's watch history from database/preferences
+    // 2. Find last watched episode
+    // 3. Return next unwatched episode
+    // 4. If all episodes watched, return first episode of next season
+
+    // For now, find the first available episode starting from S1E1
+    val sortedSeasons = seasons.sortedBy { it.number ?: 0 }.filter { it.number!! > 0 }
+
+    for (season in sortedSeasons) {
+        val seasonNumber = season.number ?: continue
+        val sortedEpisodes = season.episodes?.sortedBy { it.tvShowSeasonPriority ?: 0 }
+
+        if (!sortedEpisodes.isNullOrEmpty()) {
+            val firstEpisode = sortedEpisodes.first()
+            val episodeNumber = firstEpisode.tvShowSeasonPriority ?: 1
+            return Triple(seasonNumber, episodeNumber, firstEpisode)
+        }
+    }
+
+    // Fallback if no episodes found
+    return Triple(1, 1, null)
 }
