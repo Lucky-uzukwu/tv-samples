@@ -1,5 +1,6 @@
 package com.google.wiltv.presentation.screens.auth
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
@@ -20,8 +21,8 @@ import com.pusher.client.connection.ConnectionEventListener
 import com.pusher.client.connection.ConnectionState
 import com.pusher.client.connection.ConnectionStateChange
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -48,9 +49,9 @@ sealed class AuthScreenUiState {
     data class LoginWithTvError(val message: UiText) : AuthScreenUiState()
 }
 
-sealed class AuthScreenUiEvent {
-    object NavigateToLogin : AuthScreenUiEvent()
-    object NavigateToRegister : AuthScreenUiEvent()
+sealed class AuthNavigationState {
+    object None : AuthNavigationState()
+    data class NavigateToDashboard(val user: UserResponse) : AuthNavigationState()
 }
 
 
@@ -65,6 +66,10 @@ class AuthScreenViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<AuthScreenUiState>(Idle)
     val uiState: StateFlow<AuthScreenUiState> = _uiState
 
+    // Navigation state - separate from UI feedback state
+    private val _navigationState = MutableStateFlow<AuthNavigationState>(AuthNavigationState.None)
+    val navigationState: StateFlow<AuthNavigationState> = _navigationState
+
     private val _connectionStatus = MutableStateFlow("Connecting...")
     val connectionStatus: StateFlow<String> = _connectionStatus.asStateFlow()
 
@@ -73,10 +78,6 @@ class AuthScreenViewModel @Inject constructor(
     private val gson = Gson()
     private var connectionStartTime: Long = 0
     private var isConnected = false
-
-    // Expose screen UI events
-    private val _uiEvent = MutableStateFlow<AuthScreenUiEvent?>(null)
-    val uiEvent: StateFlow<AuthScreenUiEvent?> = _uiEvent
 
 
     fun initializeActivation(
@@ -386,7 +387,6 @@ class AuthScreenViewModel @Inject constructor(
                             )
                         }
                         userRepository.saveUserToken(userToken)
-                        _uiEvent.update { AuthScreenUiEvent.NavigateToLogin }
                     }
 
 
@@ -428,7 +428,6 @@ class AuthScreenViewModel @Inject constructor(
                     body = responseData,
                     message = "Login with tv successful"
                 )
-                _uiEvent.update { AuthScreenUiEvent.NavigateToLogin }
             }
 
             is ApiResult.Error -> {
@@ -463,7 +462,6 @@ class AuthScreenViewModel @Inject constructor(
                     body = responseData,
                     message = "Login successful"
                 )
-                _uiEvent.update { AuthScreenUiEvent.NavigateToLogin }
             }
 
             is ApiResult.Error -> {
@@ -491,7 +489,12 @@ class AuthScreenViewModel @Inject constructor(
                 clientIp = clientIp,
                 deviceName = deviceName
             ).collect { tokenResponse ->
-                tokenResponse?.token?.let { token -> onTokenReceived(token) }
+                tokenResponse?.token?.let { token -> 
+                    onTokenReceived(token)
+                    // Wait a bit for token to be saved, then complete authentication
+                    delay(100) 
+                    completeAuthentication(identifier)
+                }
             }
         }
     }
@@ -510,14 +513,20 @@ class AuthScreenViewModel @Inject constructor(
                 clientIp = clientIp,
                 deviceName = deviceName
             ).collect { tokenResponse ->
-                tokenResponse?.token?.let { token -> onTokenReceived(token) }
+                tokenResponse?.token?.let { token -> 
+                    onTokenReceived(token)
+                    // Wait a bit for token to be saved, then complete authentication
+                    delay(100) 
+                    completeAuthentication(accessCode)
+                }
             }
         }
     }
 
     fun getUser(identifier: String): Flow<UserResponse?> = flow {
         _uiState.update { AuthScreenUiState.Loading }
-        delay(2000)
+        Log.d("AuthScreenViewModel", "getUser called with identifier: $identifier")
+//        delay(2000)
         val token = userRepository.userToken.firstOrNull() ?: return@flow emit(null)
         val response = authRepository.getUser(
             token = token,
@@ -548,8 +557,52 @@ class AuthScreenViewModel @Inject constructor(
 
     }
 
-    fun clearEvent() {
-        _uiEvent.value = null
+    /**
+     * Completes the authentication flow by fetching user data and triggering navigation.
+     * This ensures user data is fully loaded before navigation occurs.
+     */
+    fun completeAuthentication(identifier: String) {
+        viewModelScope.launch {
+            try {
+                val token = userRepository.userToken.firstOrNull()
+                if (token == null) {
+                    Logger.e { "❌ AuthScreenViewModel: No token available for user fetch" }
+                    return@launch
+                }
+
+                // Fetch user data without setting UI state (to avoid double Success states)
+                val response = authRepository.getUser(
+                    token = token,
+                    identifier = identifier
+                )
+
+                when (response) {
+                    is ApiResult.Success -> {
+                        Logger.d { "✅ AuthScreenViewModel: User data fetched successfully for: $identifier" }
+                        _navigationState.value = AuthNavigationState.NavigateToDashboard(response.data)
+                    }
+                    is ApiResult.Error -> {
+                        Logger.e { "❌ AuthScreenViewModel: Failed to fetch user data: ${response.message}" }
+                        // Still try to navigate even if user fetch fails
+                        _navigationState.value = AuthNavigationState.NavigateToDashboard(
+                            UserResponse(
+                                identifier = identifier,
+                                username = identifier,
+                                name = identifier,
+                                email = identifier,
+                                deviceAllowed = 1,
+                                profilePhotoPath = null,
+                                profilePhotoUrl = null,
+                                registrationRequired = false,
+                                registrationRequiredMessage = null
+                            )
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                Logger.e { "❌ AuthScreenViewModel: Exception during authentication completion: ${e.message}" }
+            }
+        }
     }
 }
 

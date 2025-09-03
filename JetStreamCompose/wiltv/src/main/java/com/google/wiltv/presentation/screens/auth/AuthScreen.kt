@@ -16,10 +16,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.wiltv.data.entities.User
+import com.google.wiltv.presentation.screens.auth.AuthNavigationState
 import com.google.wiltv.state.UserStateHolder
 import com.google.wiltv.util.DeviceNetworkInfo
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.firstOrNull
 
 @Composable
 fun AuthScreen(
@@ -33,7 +34,7 @@ fun AuthScreen(
     val clientIp = remember { DeviceNetworkInfo.getIPAddress() }
 
     val uiState by authScreenViewModel.uiState.collectAsState()
-    val uiEvent by authScreenViewModel.uiEvent.collectAsState()
+    val navigationState by authScreenViewModel.navigationState.collectAsState()
 
     var identifierOrEmail by remember { mutableStateOf("") }
 
@@ -71,39 +72,38 @@ fun AuthScreen(
         )
     }
 
-    // Effect to handle navigation based on UI events
-    LaunchedEffect(uiEvent) {
-        if (uiEvent is AuthScreenUiEvent.NavigateToLogin && uiState is AuthScreenUiState.Success<*>) {
-            val identifier = when {
-                registrationCode.isNotBlank() && identifierOrEmail.isBlank() && loginRequestCode.isBlank() -> registrationCode
-                loginRequestCode.isNotBlank() && identifierOrEmail.isBlank() && registrationCode.isBlank() -> loginRequestCode
-                identifierOrEmail.isNotBlank() -> identifierOrEmail
-                else -> null
-            }
+    // Effect to handle navigation based on navigation state
+    LaunchedEffect(navigationState) {
+        when (val navState = navigationState) {
+            is AuthNavigationState.NavigateToDashboard -> {
+                try {
+                    val user = navState.user
+                    // Update user state and wait for completion
+                    userStateHolder.updateUser(
+                        User(
+                            id = user.identifier, // Use identifier as consistent user ID
+                            identifier = user.identifier,
+                            name = user.name,
+                            email = user.email,
+                            profilePhotoPath = user.profilePhotoPath,
+                            profilePhotoUrl = user.profilePhotoUrl,
+                            clientIp = clientIp,
+                            deviceName = deviceName,
+                            deviceMacAddress = macAddress,
+                        )
+                    )
 
-            identifier?.let { id ->
-                authScreenViewModel.getUser(identifier = id)
-                    .collectLatest { user ->
-                        user?.let {
-                            userStateHolder.updateUser(
-                                User(
-                                    id = user.identifier, // Use identifier as consistent user ID
-                                    identifier = user.identifier,
-                                    name = user.name,
-                                    email = user.email,
-                                    profilePhotoPath = user.profilePhotoPath,
-                                    profilePhotoUrl = user.profilePhotoUrl,
-                                    clientIp = clientIp,
-                                    deviceName = deviceName,
-                                    deviceMacAddress = macAddress,
-                                )
-                            )
-                        }
-                    }
+                    // Navigate only after user state is successfully updated
+                    onNavigateToDashboard()
+                } catch (_: Exception) {
+                    // Handle any exceptions during user update
+                    // For now, still navigate but could show error
+                    onNavigateToDashboard()
+                }
             }
-
-            onNavigateToDashboard()
-            authScreenViewModel.clearEvent()
+            AuthNavigationState.None -> {
+                // Do nothing
+            }
         }
     }
 
