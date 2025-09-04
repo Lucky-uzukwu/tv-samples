@@ -87,43 +87,60 @@ class AuthScreenViewModel @Inject constructor(
         isNewCustomer: Boolean = true
     ) {
         viewModelScope.launch {
-            _uiState.value = AuthScreenUiState.Loading
+            try {
+                _uiState.value = AuthScreenUiState.Loading
 
-            if (isNewCustomer) {
-                val registrationResult = authRepository.requestTokenForNewCustomer(
-                    deviceMacAddress = deviceMacAddress,
-                    clientIp = clientIp,
-                    deviceName = deviceName
-                )
-                when (registrationResult) {
-                    is ApiResult.Success -> {
-                        Logger.d { "API Success (New Customer): ${registrationResult.data}" }
-                        val registrationTokenResponse = registrationResult.data
-                        setupPusherConnection(
-                            registrationTokenResponse.identifier,
-                            deviceMacAddress,
-                            clientIp,
-                            deviceName
-                        )
-
-                        _uiState.value = AuthScreenUiState.RegistrationCode(
-                            code = registrationTokenResponse.identifier,
+                if (isNewCustomer) {
+                    // Use withTimeoutOrNull to handle API timeout
+                    val registrationResult = kotlinx.coroutines.withTimeoutOrNull(10000) {
+                        authRepository.requestTokenForNewCustomer(
+                            deviceMacAddress = deviceMacAddress,
+                            clientIp = clientIp,
+                            deviceName = deviceName
                         )
                     }
 
-                    is ApiResult.Error -> {
-                        Logger.e { "API Error (New Customer): ${registrationResult.message}" }
-                        _uiState.value = AuthScreenUiState.RegistrationError(
-                            registrationResult.error.asUiText(registrationResult.message)
-                        )
+                    when (registrationResult) {
+                        is ApiResult.Success -> {
+                            Logger.d { "API Success (New Customer): ${registrationResult.data}" }
+                            val registrationTokenResponse = registrationResult.data
+                            setupPusherConnection(
+                                registrationTokenResponse.identifier,
+                                deviceMacAddress,
+                                clientIp,
+                                deviceName
+                            )
+
+                            _uiState.value = AuthScreenUiState.RegistrationCode(
+                                code = registrationTokenResponse.identifier,
+                            )
+                        }
+
+                        is ApiResult.Error -> {
+                            Logger.e { "API Error (New Customer): ${registrationResult.message}" }
+                            _uiState.value = AuthScreenUiState.RegistrationError(
+                                registrationResult.error.asUiText(registrationResult.message)
+                            )
+                        }
+
+                        null -> {
+                            // Timeout occurred
+                            Logger.w { "API Timeout (New Customer): Request timed out after 10 seconds" }
+                            _uiState.value = AuthScreenUiState.RegistrationError(
+                                UiText.DynamicString("Connection timeout. Please check your network.")
+                            )
+                        }
                     }
-                }
             } else {
-                val loginResult = authRepository.requestTokenForExistingCustomer(
-                    deviceMacAddress = deviceMacAddress,
-                    clientIp = clientIp,
-                    deviceName = deviceName
-                )
+                // Use withTimeoutOrNull to handle API timeout for existing customer
+                val loginResult = kotlinx.coroutines.withTimeoutOrNull(10000) {
+                    authRepository.requestTokenForExistingCustomer(
+                        deviceMacAddress = deviceMacAddress,
+                        clientIp = clientIp,
+                        deviceName = deviceName
+                    )
+                }
+
                 when (loginResult) {
                     is ApiResult.Success -> {
                         Logger.d { "API Success (Login ): ${loginResult.data}" }
@@ -146,8 +163,23 @@ class AuthScreenViewModel @Inject constructor(
                             loginResult.error.asUiText(loginResult.message)
                         )
                     }
+
+                    null -> {
+                        // Timeout occurred
+                        Logger.w { "API Timeout (Existing Customer): Request timed out after 10 seconds" }
+                        _uiState.value = AuthScreenUiState.LoginWithSmartphoneError(
+                            UiText.DynamicString("Connection timeout. Please check your network.")
+                        )
+                    }
                 }
             }
+        } catch (e: Exception) {
+            // Handle any unexpected errors
+            Logger.e(e) { "Unexpected error in initializeActivation" }
+            _uiState.value = AuthScreenUiState.Error(
+                UiText.DynamicString("Unexpected error occurred. Please try again.")
+            )
+        }
         }
     }
 

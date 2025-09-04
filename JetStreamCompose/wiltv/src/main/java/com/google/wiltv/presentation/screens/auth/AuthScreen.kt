@@ -54,22 +54,38 @@ fun AuthScreen(
     val tvLoginFirstFieldFocusRequester = remember { FocusRequester() }
 
 
-    // Effect to initialize activation
+    // Effect to initialize activation with timeout handling
     LaunchedEffect(Unit) {
-        authScreenViewModel.initializeActivation(
-            deviceMacAddress = macAddress,
-            clientIp = clientIp,
-            deviceName = deviceName,
-            isNewCustomer = true
-        )
-        delay(1000)
+        try {
+            // Initialize for new customer with timeout
+            kotlinx.coroutines.withTimeoutOrNull(15000) { // 15 second timeout
+                authScreenViewModel.initializeActivation(
+                    deviceMacAddress = macAddress,
+                    clientIp = clientIp,
+                    deviceName = deviceName,
+                    isNewCustomer = true
+                )
+            } ?: run {
+                android.util.Log.w("AuthScreen", "New customer initialization timed out after 15 seconds")
+            }
 
-        authScreenViewModel.initializeActivation(
-            deviceMacAddress = macAddress,
-            clientIp = clientIp,
-            deviceName = deviceName,
-            isNewCustomer = false
-        )
+            delay(3000) // Increased delay to prevent rapid API calls
+
+            // Initialize for existing customer with timeout
+            kotlinx.coroutines.withTimeoutOrNull(15000) { // 15 second timeout
+                authScreenViewModel.initializeActivation(
+                    deviceMacAddress = macAddress,
+                    clientIp = clientIp,
+                    deviceName = deviceName,
+                    isNewCustomer = false
+                )
+            } ?: run {
+                android.util.Log.w("AuthScreen", "Existing customer initialization timed out after 15 seconds")
+            }
+        } catch (e: Exception) {
+            // Handle initialization errors gracefully
+            android.util.Log.e("AuthScreen", "Failed to initialize activation", e)
+        }
     }
 
     // Effect to handle navigation based on navigation state

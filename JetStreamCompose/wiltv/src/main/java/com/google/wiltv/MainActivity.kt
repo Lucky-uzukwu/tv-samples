@@ -17,6 +17,7 @@
 package com.google.wiltv
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -34,25 +35,30 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
-        super.onCreate(savedInstanceState)
+        try {
+            super.onCreate(savedInstanceState)
+            installSplashScreen()
 
-        setContent {
-            ComposeTvTheme {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surface)
-                ) {
-                    CompositionLocalProvider(
-                        LocalContentColor provides MaterialTheme.colorScheme.onSurface
+            setContent {
+                ComposeTvTheme {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surface)
                     ) {
-                        App(
-                            onBackPressed = onBackPressedDispatcher::onBackPressed,
-                        )
+                        CompositionLocalProvider(
+                            LocalContentColor provides MaterialTheme.colorScheme.onSurface
+                        ) {
+                            App(
+                                onBackPressed = onBackPressedDispatcher::onBackPressed,
+                            )
+                        }
                     }
                 }
             }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Failed to initialize MainActivity", e)
+            finish()
         }
     }
 }

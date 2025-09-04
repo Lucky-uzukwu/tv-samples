@@ -20,7 +20,8 @@
       "Bash(md-tree:*)",
       "Bash(npm install:*)",
       "Bash(git restore:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(adb shell:*)"
     ],
     "deny": []
   }
