@@ -69,12 +69,13 @@ fun TvShowDetails(
     )
 
     val hasTargetEpisodeVideo = targetEpisodeData?.video != null
-    
+
     // Calculate watch progress for the target episode
     val targetEpisodeProgress = targetEpisodeData?.let { episode ->
         episodeWatchProgress[episode.id]
     }
-    val hasProgress = targetEpisodeProgress != null && !targetEpisodeProgress.completed && targetEpisodeProgress.progressMs > 0
+    val hasProgress =
+        targetEpisodeProgress != null && !targetEpisodeProgress.completed && targetEpisodeProgress.progressMs > 0
     val progressPercentage = if (hasProgress && targetEpisodeProgress!!.durationMs > 0) {
         targetEpisodeProgress.progressMs.toFloat() / targetEpisodeProgress.durationMs.toFloat()
     } else 0f
@@ -282,12 +283,12 @@ private fun findNextEpisodeToWatch(
 
         // Sort by tvShowSeasonPriority (episode number) first, fallback to id
         val sortedEpisodes = episodesList.sortedBy { episode ->
-            episode.tvShowSeasonPriority ?: episode.id
+            episode.title.toInt()
         }
 
         for ((index, episode) in sortedEpisodes.withIndex()) {
             // Use tvShowSeasonPriority as episode number, fallback to 1-based index
-            val episodeNumber = (index + 1)
+            val episodeNumber = episode.title.toInt()
             Log.d(
                 "TvShowDetails",
                 "findNextEpisodeToWatch: Episode ${episode.title} - S${seasonNumber}E${episodeNumber} (ID: ${episode.id})"
