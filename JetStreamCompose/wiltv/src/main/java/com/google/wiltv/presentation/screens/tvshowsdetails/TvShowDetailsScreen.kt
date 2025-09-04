@@ -59,6 +59,7 @@ fun TvShowDetailsScreen(
     val uiState by tvShowDetailsScreenViewModel.uiState.collectAsStateWithLifecycle()
     val isInWatchlist by tvShowDetailsScreenViewModel.isInWatchlist.collectAsStateWithLifecycle()
     val watchlistLoading by tvShowDetailsScreenViewModel.watchlistLoading.collectAsStateWithLifecycle()
+    val episodeWatchProgress by tvShowDetailsScreenViewModel.episodeWatchProgress.collectAsStateWithLifecycle()
 
     when (val s = uiState) {
         is TvShowDetailsScreenUiState.Loading -> {
@@ -78,6 +79,7 @@ fun TvShowDetailsScreen(
                 isInWatchlist = isInWatchlist,
                 watchlistLoading = watchlistLoading,
                 onToggleWatchlist = tvShowDetailsScreenViewModel::toggleWatchlist,
+                episodeWatchProgress = episodeWatchProgress,
                 modifier = Modifier
                     .fillMaxSize()
                     .animateContentSize()
@@ -95,6 +97,7 @@ private fun Details(
     isInWatchlist: Boolean,
     watchlistLoading: Boolean,
     onToggleWatchlist: () -> Unit,
+    episodeWatchProgress: Map<Int, com.google.wiltv.data.entities.WatchProgress>,
     modifier: Modifier = Modifier,
 ) {
     val childPadding = rememberChildPadding()
@@ -156,7 +159,8 @@ private fun Details(
                 onPlayButtonFocused = null,
                 isInWatchlist = isInWatchlist,
                 watchlistLoading = watchlistLoading,
-                onToggleWatchlist = onToggleWatchlist
+                onToggleWatchlist = onToggleWatchlist,
+                episodeWatchProgress = episodeWatchProgress
             )
         }
 

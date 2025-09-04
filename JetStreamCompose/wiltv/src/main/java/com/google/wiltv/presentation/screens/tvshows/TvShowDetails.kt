@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
+import android.util.Log
+import com.google.wiltv.data.entities.WatchProgress
 import com.google.wiltv.data.models.Episode
 import com.google.wiltv.data.models.Genre
 import com.google.wiltv.data.models.Season
@@ -54,14 +56,17 @@ fun TvShowDetails(
     onPlayButtonFocused: (() -> Unit)? = null,
     isInWatchlist: Boolean = false,
     watchlistLoading: Boolean = false,
-    onToggleWatchlist: (() -> Unit)
+    onToggleWatchlist: (() -> Unit),
+    episodeWatchProgress: Map<Int, WatchProgress> = emptyMap()
 ) {
     val childPadding = rememberChildPadding()
     val seasons = seasonsToEpisodes.map { it.first }
 
     // Find the next episode to watch based on user's progress
-    // For now, this defaults to S1E1, but in the future it will check watch progress
-    val (targetSeason, targetEpisode, targetEpisodeData) = findNextEpisodeToWatch(seasons)
+    val (targetSeason, targetEpisode, targetEpisodeData) = findNextEpisodeToWatch(
+        seasonsToEpisodes,
+        episodeWatchProgress
+    )
 
     val hasTargetEpisodeVideo = targetEpisodeData?.video != null
 
@@ -229,36 +234,184 @@ private fun TvShowDotSeparatedRow(
 
 /**
  * Finds the next episode the user should watch based on their progress.
- * Currently defaults to S1E1, but can be enhanced to track actual watch progress.
+ * Uses watch progress data to determine where the user should resume watching.
  *
- * @param seasons List of seasons with episodes
+ * @param seasonsToEpisodes List of seasons with episodes
+ * @param watchProgress Map of episode IDs to their watch progress
  * @return Triple of (seasonNumber, episodeNumber, episodeData)
  */
-private fun findNextEpisodeToWatch(seasons: List<Season>?): Triple<Int, Int, Episode?> {
-    if (seasons.isNullOrEmpty()) {
+private fun findNextEpisodeToWatch(
+    seasonsToEpisodes: SeasonsToEpisodes, watchProgress: Map<Int, WatchProgress>
+): Triple<Int, Int, Episode?> {
+    Log.d(
+        "TvShowDetails",
+        "findNextEpisodeToWatch: Starting with ${seasonsToEpisodes.size} seasons"
+    )
+    Log.d(
+        "TvShowDetails",
+        "findNextEpisodeToWatch: Watch progress has ${watchProgress.size} entries"
+    )
+
+    val seasons = seasonsToEpisodes.map { it.first }
+    if (seasons.isEmpty()) {
+        Log.d("TvShowDetails", "findNextEpisodeToWatch: No seasons found, returning default")
         return Triple(1, 1, null)
     }
 
-    // TODO: In the future, implement actual watch progress tracking:
-    // 1. Check user's watch history from database/preferences
-    // 2. Find last watched episode
-    // 3. Return next unwatched episode
-    // 4. If all episodes watched, return first episode of next season
+    // Get all episodes across all seasons, sorted by season then episode number
+    val allEpisodes = mutableListOf<Pair<Episode, Pair<Int, Int>>>()
 
-    // For now, find the first available episode starting from S1E1
-    val sortedSeasons = seasons.sortedBy { it.number ?: 0 }.filter { it.number!! > 0 }
-
-    for (season in sortedSeasons) {
+    // Use the explicit episodes from seasonsToEpisodes instead of season.episodes
+    for ((season, episodesList) in seasonsToEpisodes) {
         val seasonNumber = season.number ?: continue
-        val sortedEpisodes = season.episodes?.sortedBy { it.tvShowSeasonPriority ?: 0 }
+        Log.d(
+            "TvShowDetails",
+            "findNextEpisodeToWatch: Processing season $seasonNumber with ${episodesList.size} episodes"
+        )
 
-        if (!sortedEpisodes.isNullOrEmpty()) {
-            val firstEpisode = sortedEpisodes.first()
-            val episodeNumber = firstEpisode.tvShowSeasonPriority ?: 1
-            return Triple(seasonNumber, episodeNumber, firstEpisode)
+        // Sort by tvShowSeasonPriority (episode number) first, fallback to id
+        val sortedEpisodes = episodesList.sortedBy { episode ->
+            episode.tvShowSeasonPriority ?: episode.id
+        }
+
+        for ((index, episode) in sortedEpisodes.withIndex()) {
+            // Use tvShowSeasonPriority as episode number, fallback to 1-based index
+            val episodeNumber = (index + 1)
+            Log.d(
+                "TvShowDetails",
+                "findNextEpisodeToWatch: Episode ${episode.title} - S${seasonNumber}E${episodeNumber} (ID: ${episode.id})"
+            )
+            allEpisodes.add(Pair(episode, Pair(seasonNumber, episodeNumber)))
         }
     }
 
-    // Fallback if no episodes found
-    return Triple(1, 1, null)
+    if (allEpisodes.isEmpty()) {
+        Log.d("TvShowDetails", "findNextEpisodeToWatch: No episodes found, returning default")
+        return Triple(1, 1, null)
+    }
+
+    Log.d("TvShowDetails", "findNextEpisodeToWatch: Total ${allEpisodes.size} episodes collected")
+
+    // If no watch progress, return first episode with video
+    if (watchProgress.isEmpty()) {
+        Log.d(
+            "TvShowDetails",
+            "findNextEpisodeToWatch: No watch progress, finding first playable episode"
+        )
+        val firstPlayableEpisode = allEpisodes.firstOrNull { (episode, _) -> episode.video != null }
+        if (firstPlayableEpisode != null) {
+            val (episode, seasonEpisodePair) = firstPlayableEpisode
+            Log.d(
+                "TvShowDetails",
+                "findNextEpisodeToWatch: Selected first playable episode: ${episode.title} - S${seasonEpisodePair.first}E${seasonEpisodePair.second}"
+            )
+            return Triple(seasonEpisodePair.first, seasonEpisodePair.second, episode)
+        } else {
+            Log.d(
+                "TvShowDetails",
+                "findNextEpisodeToWatch: No playable episodes found, returning first anyway"
+            )
+            val (firstEpisode, seasonEpisodePair) = allEpisodes.first()
+            return Triple(seasonEpisodePair.first, seasonEpisodePair.second, firstEpisode)
+        }
+    }
+
+    // Find episodes with watch progress, sorted by last watched time
+    Log.d("TvShowDetails", "findNextEpisodeToWatch: Checking for watched episodes...")
+    val watchedEpisodes = allEpisodes.filter { (episode, _) ->
+        val hasProgress = watchProgress.containsKey(episode.id)
+        Log.d(
+            "TvShowDetails",
+            "findNextEpisodeToWatch: Episode ${episode.title} (ID: ${episode.id}) has progress: $hasProgress"
+        )
+        hasProgress
+    }.sortedBy { (episode, _) ->
+        watchProgress[episode.id]?.lastWatched ?: 0
+    }
+
+    Log.d("TvShowDetails", "findNextEpisodeToWatch: Found ${watchedEpisodes.size} watched episodes")
+
+    if (watchedEpisodes.isEmpty()) {
+        // No episodes watched yet, return first episode with video
+        Log.d(
+            "TvShowDetails",
+            "findNextEpisodeToWatch: No watched episodes, finding first playable episode"
+        )
+        val firstPlayableEpisode = allEpisodes.firstOrNull { (episode, _) -> episode.video != null }
+        if (firstPlayableEpisode != null) {
+            val (episode, seasonEpisodePair) = firstPlayableEpisode
+            Log.d(
+                "TvShowDetails",
+                "findNextEpisodeToWatch: Selected first playable episode: ${episode.title} - S${seasonEpisodePair.first}E${seasonEpisodePair.second}"
+            )
+            return Triple(seasonEpisodePair.first, seasonEpisodePair.second, episode)
+        } else {
+            Log.d(
+                "TvShowDetails",
+                "findNextEpisodeToWatch: No playable episodes found, returning first anyway"
+            )
+            val (firstEpisode, seasonEpisodePair) = allEpisodes.first()
+            return Triple(seasonEpisodePair.first, seasonEpisodePair.second, firstEpisode)
+        }
+    }
+
+    // Find last watched episode
+    val (lastWatchedEpisode, lastWatchedPair) = watchedEpisodes.last()
+    val lastProgress = watchProgress[lastWatchedEpisode.id]!!
+
+    Log.d(
+        "TvShowDetails",
+        "findNextEpisodeToWatch: Last watched episode: ${lastWatchedEpisode.title} - S${lastWatchedPair.first}E${lastWatchedPair.second}"
+    )
+    Log.d(
+        "TvShowDetails",
+        "findNextEpisodeToWatch: Last progress - completed: ${lastProgress.completed}, progressMs: ${lastProgress.progressMs}"
+    )
+
+    // If last watched episode is not completed, resume it
+    if (!lastProgress.completed && lastProgress.progressMs > 0) {
+        Log.d(
+            "TvShowDetails",
+            "findNextEpisodeToWatch: Resuming incomplete episode: ${lastWatchedEpisode.title}"
+        )
+        return Triple(lastWatchedPair.first, lastWatchedPair.second, lastWatchedEpisode)
+    }
+
+    // Last episode was completed, find next episode
+    val lastWatchedIndex = allEpisodes.indexOfFirst { it.first.id == lastWatchedEpisode.id }
+    Log.d(
+        "TvShowDetails",
+        "findNextEpisodeToWatch: Last watched episode index: $lastWatchedIndex out of ${allEpisodes.size}"
+    )
+
+    if (lastWatchedIndex != -1 && lastWatchedIndex + 1 < allEpisodes.size) {
+        val (nextEpisode, nextPair) = allEpisodes[lastWatchedIndex + 1]
+        Log.d(
+            "TvShowDetails",
+            "findNextEpisodeToWatch: Next episode: ${nextEpisode.title} - S${nextPair.first}E${nextPair.second}"
+        )
+        return Triple(nextPair.first, nextPair.second, nextEpisode)
+    }
+
+    // All episodes watched, return first episode with video
+    Log.d(
+        "TvShowDetails",
+        "findNextEpisodeToWatch: All episodes watched, finding first playable episode"
+    )
+    val firstPlayableEpisode = allEpisodes.firstOrNull { (episode, _) -> episode.video != null }
+    if (firstPlayableEpisode != null) {
+        val (episode, firstPair) = firstPlayableEpisode
+        Log.d(
+            "TvShowDetails",
+            "findNextEpisodeToWatch: Selected first playable episode: ${episode.title} - S${firstPair.first}E${firstPair.second}"
+        )
+        return Triple(firstPair.first, firstPair.second, episode)
+    } else {
+        Log.d(
+            "TvShowDetails",
+            "findNextEpisodeToWatch: No playable episodes found, returning first episode"
+        )
+        val (firstEpisode, firstPair) = allEpisodes.first()
+        return Triple(firstPair.first, firstPair.second, firstEpisode)
+    }
 }

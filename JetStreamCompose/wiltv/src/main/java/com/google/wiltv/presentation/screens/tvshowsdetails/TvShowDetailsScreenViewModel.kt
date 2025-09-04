@@ -27,15 +27,18 @@ import com.google.wiltv.data.paging.pagingsources.tvshow.TvShowPagingSources
 import com.google.wiltv.data.repositories.TvShowsRepository
 import com.google.wiltv.data.repositories.UserRepository
 import com.google.wiltv.data.repositories.WatchlistRepository
+import com.google.wiltv.data.repositories.WatchProgressRepository
 import com.google.wiltv.domain.ApiResult
 import co.touchlab.kermit.Logger
 import com.google.wiltv.data.models.Episode
+import com.google.wiltv.data.entities.WatchProgress
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.launch
@@ -49,6 +52,7 @@ class TvShowDetailsScreenViewModel @Inject constructor(
     private val tvShowRepository: TvShowsRepository,
     private val userRepository: UserRepository,
     private val watchlistRepository: WatchlistRepository,
+    private val watchProgressRepository: WatchProgressRepository,
 ) : ViewModel() {
 
     private val tvShowId: String? =
@@ -81,6 +85,34 @@ class TvShowDetailsScreenViewModel @Inject constructor(
 
     private val _watchlistLoading = MutableStateFlow(false)
     val watchlistLoading: StateFlow<Boolean> = _watchlistLoading
+
+    // Watch progress for all episodes of this TV show
+    val episodeWatchProgress: StateFlow<Map<Int, WatchProgress>> = combine(
+        userRepository.userId,
+        savedStateHandle.getStateFlow<String?>(TvShowDetailsScreen.TvShowIdBundleKey, null)
+    ) { userId, tvShowId ->
+        val effectiveUserId = userId ?: "default_user_id"
+        val currentTvShowId = tvShowId?.toIntOrNull()
+        
+        if (currentTvShowId != null) {
+            try {
+                // Get recent watch progress and filter for this show's episodes
+                watchProgressRepository.getRecentWatchProgress(effectiveUserId, 100)
+            } catch (e: Exception) {
+                Logger.e { "❌ Failed to fetch watch progress: ${e.message}" }
+                kotlinx.coroutines.flow.flowOf(emptyList())
+            }
+        } else {
+            kotlinx.coroutines.flow.flowOf(emptyList())
+        }
+    }.flattenMerge(concurrency = 1).map { progressList ->
+        progressList.filter { it.contentType == "tvshow" }
+            .associateBy { it.contentId }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyMap()
+    )
 
     fun toggleWatchlist() {
         viewModelScope.launch {
