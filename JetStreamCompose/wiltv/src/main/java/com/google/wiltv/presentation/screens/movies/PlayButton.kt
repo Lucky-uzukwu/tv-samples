@@ -142,6 +142,8 @@ fun WatchEpisodeButton(
     isEnabled: Boolean,
     onClick: () -> Unit,
     focusRequester: FocusRequester,
+    hasProgress: Boolean = false,
+    progressPercentage: Float = 0f
 ) {
     Button(
         onClick = if (isEnabled) onClick else { {} },
@@ -160,12 +162,16 @@ fun WatchEpisodeButton(
         scale = ButtonDefaults.scale(scale = 1f)
     ) {
         Icon(
-            imageVector = Icons.Outlined.PlayArrow,
+            imageVector = if (hasProgress) Icons.Outlined.Replay else Icons.Outlined.PlayArrow,
             contentDescription = null,
         )
         Spacer(Modifier.size(8.dp))
         Text(
-            text = stringResource(R.string.watch_episode, seasonNumber, episodeNumber),
+            text = if (hasProgress) {
+                "Resume S${seasonNumber} E${episodeNumber} (${(progressPercentage * 100).toInt()}%)"
+            } else {
+                stringResource(R.string.watch_episode, seasonNumber, episodeNumber)
+            },
             style = MaterialTheme.typography.titleSmall
         )
     }

@@ -5,8 +5,10 @@ import androidx.annotation.OptIn
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -23,6 +25,11 @@ import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import co.touchlab.kermit.Logger
+import androidx.lifecycle.ViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import com.google.wiltv.presentation.screens.videoPlayer.components.WatchProgressManager
+import javax.inject.Inject
 import com.google.wiltv.presentation.screens.videoPlayer.components.VideoPlayerOverlay
 import com.google.wiltv.presentation.screens.videoPlayer.components.VideoPlayerPulse
 import com.google.wiltv.presentation.screens.videoPlayer.components.rememberPlayer
@@ -30,15 +37,23 @@ import com.google.wiltv.presentation.screens.videoPlayer.components.rememberVide
 import com.google.wiltv.presentation.screens.videoPlayer.components.rememberVideoPlayerState
 
 @OptIn(UnstableApi::class)
+@HiltViewModel
+class TvShowEpisodeProgressViewModel @Inject constructor(
+    val watchProgressManager: WatchProgressManager
+) : ViewModel()
+
 @Composable
 fun TvShowEpisodeVideoPlayerScreenContent(
     directUrl: String,
     title: String?,
     token: String?,
-    onBackPressed: () -> Unit
+    episodeId: Int?,
+    onBackPressed: () -> Unit,
+    progressViewModel: TvShowEpisodeProgressViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val exoPlayer = rememberPlayer(context)
+    val coroutineScope = rememberCoroutineScope()
 
     val videoPlayerState = rememberVideoPlayerState(
         hideSeconds = 15,
@@ -82,8 +97,31 @@ fun TvShowEpisodeVideoPlayerScreenContent(
             exoPlayer.prepare()
             exoPlayer.play()
             Logger.i("TvShowEpisodePlayer - Started playback")
+            
+            // Start progress tracking if episodeId is available
+            episodeId?.let { epId ->
+                Logger.i("TvShowEpisodePlayer - Starting progress tracking for episode ID: $epId")
+                progressViewModel.watchProgressManager.startTracking(
+                    player = exoPlayer,
+                    contentId = epId,
+                    contentType = "tvshow",
+                    scope = coroutineScope
+                )
+            } ?: run {
+                Logger.w("TvShowEpisodePlayer - No episode ID available, skipping progress tracking")
+            }
         } catch (e: Exception) {
             Logger.e("TvShowEpisodePlayer - Error setting up authenticated playback", e)
+        }
+    }
+
+    // Stop progress tracking when composable is disposed
+    DisposableEffect(episodeId) {
+        onDispose {
+            if (episodeId != null) {
+                Logger.i("TvShowEpisodePlayer - Stopping progress tracking for episode ID: $episodeId")
+                progressViewModel.watchProgressManager.stopTracking(exoPlayer)
+            }
         }
     }
 

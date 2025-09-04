@@ -114,7 +114,9 @@ private fun Details(
         episode.video?.hlsPlaylistUrl?.let { url ->
             Log.d("TvShowDetails", "Navigating to video player with URL: $url")
             // Encode URL for navigation routing (not for auth - preserves pre-signed params)
-            val encodedUrl = URLEncoder.encode(url, "UTF-8")
+            // Add episodeId as a query parameter for progress tracking
+            val urlWithEpisodeId = "$url&episodeId=${episode.id}"
+            val encodedUrl = URLEncoder.encode(urlWithEpisodeId, "UTF-8")
             Log.d("TvShowDetails", "URL-encoded for navigation: $encodedUrl")
             openVideoPlayer(encodedUrl)
         } ?: run {

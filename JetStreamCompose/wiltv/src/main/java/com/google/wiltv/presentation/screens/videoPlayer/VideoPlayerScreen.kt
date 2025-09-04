@@ -40,6 +40,7 @@ import androidx.media3.exoplayer.ExoPlayer
 
 object VideoPlayerScreen {
     const val MovieIdBundleKey = "movieId"
+    const val EpisodeIdBundleKey = "episodeId"
 }
 
 /**
@@ -87,6 +88,7 @@ fun VideoPlayerScreen(
                 directUrl = s.directUrl,
                 title = s.title,
                 token = s.token,
+                episodeId = s.episodeId,
                 onBackPressed = onBackPressed
             )
         }

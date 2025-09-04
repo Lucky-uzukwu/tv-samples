@@ -71,6 +71,18 @@ class VideoPlayerScreenViewModel @Inject constructor(
                 userToken?.let { Logger.i("VideoPlayerViewModel - Token first 10 chars: ${it.take(10)}...") }
                 
                 if (actualUrl.startsWith("http")) {
+                    // Extract episodeId from URL if present
+                    val episodeId = try {
+                        val uri = java.net.URI(actualUrl)
+                        val query = uri.query
+                        query?.split("&")?.find { it.startsWith("episodeId=") }?.substringAfter("=")?.toIntOrNull()
+                    } catch (e: Exception) {
+                        Logger.w("VideoPlayerViewModel - Could not parse episodeId from URL: ${e.message}")
+                        null
+                    }
+                    
+                    Logger.i("VideoPlayerViewModel - Extracted episodeId: $episodeId")
+                    
                     // Check if this is a TV channel or episode URL
                     if (actualUrl.contains("live-tv") || actualUrl.contains("livetv")) {
                         // This is a TV channel URL - create a simple state for direct playback
@@ -84,9 +96,12 @@ class VideoPlayerScreenViewModel @Inject constructor(
                             VideoPlayerScreenUiState.Error(UiText.DynamicString("Authentication required for episode playback"))
                         } else {
                             Logger.i("VideoPlayerViewModel - Token available for episode: ${userToken.take(10)}...")
+                            // Clean the URL by removing the episodeId parameter
+                            val cleanedUrl = actualUrl.replace(Regex("[?&]episodeId=\\d+"), "")
                             VideoPlayerScreenUiState.TvShowEpisodeDirect(
-                                directUrl = actualUrl,
-                                token = userToken
+                                directUrl = cleanedUrl,
+                                token = userToken,
+                                episodeId = episodeId
                             )
                         }
                     }
@@ -161,6 +176,7 @@ sealed class VideoPlayerScreenUiState {
     data class TvShowEpisodeDirect(
         val directUrl: String,
         val title: String? = "Episode",
-        val token: String? = null
+        val token: String? = null,
+        val episodeId: Int? = null
     ) : VideoPlayerScreenUiState()
 }

@@ -69,6 +69,15 @@ fun TvShowDetails(
     )
 
     val hasTargetEpisodeVideo = targetEpisodeData?.video != null
+    
+    // Calculate watch progress for the target episode
+    val targetEpisodeProgress = targetEpisodeData?.let { episode ->
+        episodeWatchProgress[episode.id]
+    }
+    val hasProgress = targetEpisodeProgress != null && !targetEpisodeProgress.completed && targetEpisodeProgress.progressMs > 0
+    val progressPercentage = if (hasProgress && targetEpisodeProgress!!.durationMs > 0) {
+        targetEpisodeProgress.progressMs.toFloat() / targetEpisodeProgress.durationMs.toFloat()
+    } else 0f
 
     Box(
         modifier = Modifier
@@ -149,6 +158,8 @@ fun TvShowDetails(
                     seasonNumber = targetSeason,
                     episodeNumber = targetEpisode,
                     isEnabled = hasTargetEpisodeVideo,
+                    hasProgress = hasProgress,
+                    progressPercentage = progressPercentage,
                     onClick = {
                         if (hasTargetEpisodeVideo) {
                             onEpisodeClick(targetEpisodeData)
