@@ -86,7 +86,8 @@ class HomeScreeViewModel @Inject constructor(
     val watchlistItemIds: StateFlow<Set<String>> = userRepository.userId.map { userId ->
         if (userId != null) {
             try {
-                watchlistRepository.getUserWatchlist(userId).stateIn(viewModelScope).value
+                watchlistRepository.getUserWatchlist(userId)
+                    .stateIn(viewModelScope).value
                     .map { it.contentId.toString() }
                     .toSet()
             } catch (e: Exception) {

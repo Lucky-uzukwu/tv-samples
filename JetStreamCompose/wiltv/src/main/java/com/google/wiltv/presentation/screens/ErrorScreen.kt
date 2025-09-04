@@ -30,11 +30,11 @@ import com.google.wiltv.presentation.UiText
 
 @Composable
 fun ErrorScreen(
+    modifier: Modifier = Modifier,
     uiText: UiText,
     onRetry: (() -> Unit)? = null,
     onGoBack: (() -> Unit)? = null,
     onGoHome: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
 ) {
     val retryFocusRequester = remember { FocusRequester() }
 

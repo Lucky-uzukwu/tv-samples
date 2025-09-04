@@ -95,7 +95,7 @@ class MovieDetailsScreenViewModel @Inject constructor(
         viewModelScope.launch {
             val currentMovieId = movieId?.toIntOrNull()
 
-            val effectiveUserId = userRepository.userId.firstOrNull() ?: "default_user_id"
+            val effectiveUserId = userRepository.userId.firstOrNull() ?: throw Exception("User ID not found")
 
             if (currentMovieId != null) {
                 try {
