@@ -33,6 +33,7 @@ import com.google.wiltv.presentation.screens.videoPlayer.components.rememberPlay
 import com.google.wiltv.presentation.screens.videoPlayer.components.rememberPlayerWithProgressTracking
 import com.google.wiltv.presentation.screens.videoPlayer.components.rememberVideoPlayerPulseState
 import com.google.wiltv.presentation.screens.videoPlayer.components.rememberVideoPlayerState
+import com.google.wiltv.presentation.utils.KeepScreenOn
 import kotlinx.coroutines.flow.StateFlow
 
 @EntryPoint
@@ -83,6 +84,9 @@ fun VideoPlayerScreenContent(
     }
 
     BackHandler(onBack = onBackPressed)
+    
+    // Keep screen on during playback
+    KeepScreenOn(player = exoPlayer)
 
     val pulseState = rememberVideoPlayerPulseState()
 

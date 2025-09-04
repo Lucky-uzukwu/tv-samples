@@ -46,6 +46,7 @@ import com.google.wiltv.presentation.screens.videoPlayer.components.VideoPlayerS
 import com.google.wiltv.presentation.screens.videoPlayer.components.rememberPlayer
 import com.google.wiltv.presentation.screens.videoPlayer.components.rememberVideoPlayerPulseState
 import com.google.wiltv.presentation.screens.videoPlayer.components.rememberVideoPlayerState
+import com.google.wiltv.presentation.utils.KeepScreenOn
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -95,6 +96,9 @@ fun TvChannelVideoPlayerScreenContent(
     }
 
     BackHandler(onBack = onBackPressed)
+    
+    // Keep screen on during playback
+    KeepScreenOn(player = exoPlayer)
 
     if (hasError) {
         ErrorScreen(

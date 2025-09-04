@@ -35,6 +35,7 @@ import com.google.wiltv.presentation.screens.videoPlayer.components.VideoPlayerP
 import com.google.wiltv.presentation.screens.videoPlayer.components.rememberPlayer
 import com.google.wiltv.presentation.screens.videoPlayer.components.rememberVideoPlayerPulseState
 import com.google.wiltv.presentation.screens.videoPlayer.components.rememberVideoPlayerState
+import com.google.wiltv.presentation.utils.KeepScreenOn
 
 @OptIn(UnstableApi::class)
 @HiltViewModel
@@ -159,6 +160,9 @@ fun TvShowEpisodeVideoPlayerScreenContent(
     }
 
     BackHandler(onBack = onBackPressed)
+    
+    // Keep screen on during playback
+    KeepScreenOn(player = exoPlayer)
 
     val pulseState = rememberVideoPlayerPulseState()
 
