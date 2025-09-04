@@ -39,15 +39,15 @@ fun HomeScreen(
     navController: NavController
 ) {
     val uiState by homeScreeViewModel.uiState.collectAsStateWithLifecycle()
-    val featuredMovies = homeScreeViewModel.heroSectionMovies.collectAsLazyPagingItems()
+    val heroSectionMovies = homeScreeViewModel.heroSectionMovies.collectAsLazyPagingItems()
     val watchlistItemIds by homeScreeViewModel.watchlistItemIds.collectAsStateWithLifecycle()
     val continueWatchingItems by homeScreeViewModel.continueWatchingItems.collectAsStateWithLifecycle()
     val carouselState = rememberSaveable(saver = carouselSaver) { CarouselState(0) }
 
     // Monitor paging errors and propagate to ViewModel
-    LaunchedEffect(featuredMovies.hasError()) {
-        if (featuredMovies.hasError()) {
-            featuredMovies.getErrorState()?.let { errorText ->
+    LaunchedEffect(heroSectionMovies.hasError()) {
+        if (heroSectionMovies.hasError()) {
+            heroSectionMovies.getErrorState()?.let { errorText ->
                 homeScreeViewModel.handlePagingError(errorText)
             }
         }
@@ -57,7 +57,7 @@ fun HomeScreen(
         is HomeScreenUiState.Ready -> {
             val backgroundState = backgroundImageState()
             CatalogLayout(
-                featuredMovies = featuredMovies,
+                featuredMovies = heroSectionMovies,
                 catalogToMovies = currentState.catalogToMovies,
                 genreToMovies = null,
                 onMovieClick = onMovieClick,
