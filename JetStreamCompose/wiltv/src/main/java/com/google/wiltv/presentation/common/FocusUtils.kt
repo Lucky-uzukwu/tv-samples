@@ -101,20 +101,20 @@ fun rememberTvShowRowFocusRequesters(
 
 @Composable
 fun rememberCompetitionGameRowFocusRequesters(
-    tvShows: LazyPagingItems<CompetitionGame>?,
+    games: LazyPagingItems<CompetitionGame>?,
     rowIndex: Int,
     focusRequesters: MutableMap<Pair<Int, Int>, FocusRequester>,
     focusManagementConfig: FocusManagementConfig?
 ): Map<Int, FocusRequester> {
-    return remember(tvShows?.itemCount, rowIndex) {
-        if (tvShows == null || tvShows.itemCount == 0) {
+    return remember(games?.itemCount, rowIndex) {
+        if (games == null || games.itemCount == 0) {
             emptyMap()
         } else {
             val startTime = System.currentTimeMillis()
 
             // Use cached values to avoid multiple data access
-            val itemCount = tvShows.itemCount
-            val snapshotSize = tvShows.itemSnapshotList.items.size
+            val itemCount = games.itemCount
+            val snapshotSize = games.itemSnapshotList.items.size
             val actualItemCount = minOf(itemCount, snapshotSize)
             val maxFocusItems = focusManagementConfig?.maxFocusRequestersPerRow ?: 50
             val limitedItemCount = minOf(actualItemCount, maxFocusItems)

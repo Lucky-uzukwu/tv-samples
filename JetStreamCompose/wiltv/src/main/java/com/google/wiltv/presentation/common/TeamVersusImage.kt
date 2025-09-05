@@ -35,7 +35,8 @@ import java.time.format.DateTimeFormatter
 fun TeamVersusImage(
     modifier: Modifier = Modifier,
     game: CompetitionGame,
-    showLiveBadge: Boolean = true
+    showLiveBadge: Boolean = true,
+    isFocused: Boolean = false
 ) {
     Box(
         modifier = modifier
@@ -63,7 +64,7 @@ fun TeamVersusImage(
                     text = "VS",
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = if (isFocused) Color.Black else MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(horizontal = 6.dp)
                 )
 
@@ -85,7 +86,7 @@ fun TeamVersusImage(
             Text(
                 text = gameTime,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (isFocused) Color.Black else MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
 
@@ -100,7 +101,7 @@ fun TeamVersusImage(
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = if (isFocused) Color.Black else MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -108,7 +109,7 @@ fun TeamVersusImage(
                     text = "VS",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = if (isFocused) Color.Black else MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
 
@@ -119,7 +120,7 @@ fun TeamVersusImage(
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = if (isFocused) Color.Black else MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -127,7 +128,7 @@ fun TeamVersusImage(
             Text(
                 text = game.competition.name,
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (isFocused) Color.Black else MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

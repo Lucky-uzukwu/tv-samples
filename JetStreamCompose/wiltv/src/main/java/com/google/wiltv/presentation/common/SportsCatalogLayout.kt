@@ -39,7 +39,6 @@ import com.google.wiltv.data.entities.CompetitionGame
 import com.google.wiltv.data.entities.SportType
 import com.google.wiltv.presentation.UiText
 import com.google.wiltv.presentation.screens.BackgroundState
-import com.google.wiltv.presentation.utils.getErrorState
 import com.google.wiltv.presentation.utils.hasError
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.delay
@@ -80,15 +79,141 @@ fun SportsCatalogLayout(
     }
     var lastFocusedItem by rememberSaveable { mutableStateOf(Pair(0, 0)) }
     var shouldRestoreFocus by remember { mutableStateOf(true) }
-    var carouselTargetSportTypeIcon by rememberSaveable { mutableIntStateOf(0) }  // Persist across config changes
+    var carouselTargetSportTypeProvider by rememberSaveable { mutableIntStateOf(0) }  // Persist across config changes
 
-    LaunchedEffect(featuredGames.itemCount) {
-        if (featuredGames.itemCount > 0) {
-            carouselScrollEnabled = true
-            if (shouldRestoreFocus && lastFocusedItem == Pair(0, 0)) {
-                delay(20)
-                carouselFocusRequester.requestFocus()
-                shouldRestoreFocus = false
+    LaunchedEffect(
+        lastFocusedItem, sportTypes.size, shouldRestoreFocus,
+        sportTypeToLazyPagingItems.size,
+    ) {
+        // Initialize carousel target from focus restoration state
+        if (lastFocusedItem.first == 1 &&
+            lastFocusedItem.second >= 0 &&
+            lastFocusedItem.second < sportTypes.size
+        ) {
+            carouselTargetSportTypeProvider = lastFocusedItem.second
+        }
+
+        // Focus restoration with viewport safety - single coroutine prevents races
+        if (shouldRestoreFocus &&
+            lastFocusedItem.first >= 0 && lastFocusedItem.second >= 0 &&
+            lastFocusedItem != Pair(-1, -1)
+        ) {
+
+            // Short initial delay to beat drawer focus request
+            delay(50)
+            Logger.d { "Starting focus restoration for position: $lastFocusedItem" }
+
+            val sportTypesCount = sportTypes.size
+
+            if (lastFocusedItem.first == 1 &&
+                lastFocusedItem.second >= 0 &&
+                lastFocusedItem.second < sportTypesCount
+            ) {
+                // Restore streaming provider focus with bounds checking
+                val sportTypeRowState = rowStates["row_sport_type"]
+                if (sportTypeRowState != null) {
+                    try {
+                        // Ensure index is within bounds before scrolling
+                        if (lastFocusedItem.second < sportTypesCount) {
+                            sportTypeRowState.scrollToItem(lastFocusedItem.second)
+                            delay(100) // Quick delay for scroll to complete
+
+                            val focusRequester = focusRequesters[lastFocusedItem]
+                            if (focusRequester != null) {
+                                // Try to request focus with retry logic
+                                var focusSuccess = false
+                                repeat(3) { attempt ->
+                                    if (!focusSuccess) {
+                                        try {
+                                            focusRequester.requestFocus()
+                                            focusSuccess = true
+                                            shouldRestoreFocus = false
+                                            Logger.i { "Focus restoration successful on attempt ${attempt + 1}" }
+                                        } catch (e: Exception) {
+                                            if (attempt < 2) {
+                                                delay(50) // Small delay before retry
+                                                Logger.d { "Focus restoration attempt ${attempt + 1} failed, retrying..." }
+                                            } else {
+                                                Logger.w(e) { "Failed to restore focus after 3 attempts" }
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                Logger.w { "FocusRequester not found for streaming provider at $lastFocusedItem" }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Logger.w(e) { "Failed to restore streaming provider focus at index ${lastFocusedItem.second}" }
+                        shouldRestoreFocus = false
+                    }
+                }
+            } else if (lastFocusedItem.first >= 2) {
+                // Determine if this is a catalog or genre row
+                val streamingRowOffset = 1
+                val adjustedRowIndex = lastFocusedItem.first - 1 - streamingRowOffset
+                val sportTypes = sportTypeToLazyPagingItems.keys.toList()
+
+                if (adjustedRowIndex < sportTypes.size) {
+                    // It's a catalog row
+                    val sportType = sportTypes[adjustedRowIndex]
+                    val sportTypeRowId = "sport_${sportType.name}"
+                    val sportTypeRowState = rowStates[sportTypeRowId]
+                    val sportTypePagingItems = sportTypeToLazyPagingItems[sportType]
+
+                    if (sportTypeRowState != null && sportTypePagingItems != null) {
+                        try {
+                            // Check bounds before scrolling - with configurable performance limit
+                            val maxFocusItems =
+                                focusManagementConfig?.maxFocusRequestersPerRow ?: 50
+                            val maxScrollIndex =
+                                minOf(sportTypePagingItems.itemCount - 1, maxFocusItems - 1)
+                            val safeScrollIndex = minOf(lastFocusedItem.second, maxScrollIndex)
+
+                            if (safeScrollIndex >= 0 && safeScrollIndex < sportTypePagingItems.itemCount) {
+                                sportTypeRowState.scrollToItem(safeScrollIndex)
+                                delay(100) // Quick delay for scroll
+
+                                // Only request focus if focus requester exists within our limit
+                                val focusRequester =
+                                    if (lastFocusedItem.second < maxFocusItems) {
+                                        focusRequesters[lastFocusedItem]
+                                    } else {
+                                        null
+                                    }
+
+                                if (focusRequester != null) {
+                                    // Try to request focus with retry logic
+                                    var focusSuccess = false
+                                    repeat(3) { attempt ->
+                                        if (!focusSuccess) {
+                                            try {
+                                                focusRequester.requestFocus()
+                                                focusSuccess = true
+                                                shouldRestoreFocus = false
+                                                Logger.i { "Catalog focus restoration successful on attempt ${attempt + 1}" }
+                                            } catch (e: Exception) {
+                                                if (attempt < 2) {
+                                                    delay(50)
+                                                    Logger.d { "Catalog focus attempt ${attempt + 1} failed, retrying..." }
+                                                } else {
+                                                    Logger.w(e) { "Failed to restore catalog focus after 3 attempts" }
+                                                    shouldRestoreFocus = false
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    Logger.d { "No focus requester available for item at $lastFocusedItem" }
+                                    shouldRestoreFocus = false
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Logger.w(e) { "Failed to restore catalog focus at row $adjustedRowIndex, item ${lastFocusedItem.second}" }
+                            shouldRestoreFocus = false
+                        }
+                    }
+                }
             }
         }
     }
@@ -113,10 +238,10 @@ fun SportsCatalogLayout(
         item(contentType = "SportsHeroCarousel") {
             val targetSportTypeIconFocusRequester =
                 if (sportTypes.isNotEmpty()) {
-                    val targetIndex = if (carouselTargetSportTypeIcon >= 0 &&
-                        carouselTargetSportTypeIcon < sportTypes.size
+                    val targetIndex = if (carouselTargetSportTypeProvider >= 0 &&
+                        carouselTargetSportTypeProvider < sportTypes.size
                     ) {
-                        carouselTargetSportTypeIcon
+                        carouselTargetSportTypeProvider
                     } else {
                         0
                     }
@@ -178,7 +303,7 @@ fun SportsCatalogLayout(
                     shouldRestoreFocus = false
 
                     if (itemIndex >= 0 && itemIndex < (sportTypes.size)) {
-                        carouselTargetSportTypeIcon = itemIndex
+                        carouselTargetSportTypeProvider = itemIndex
                     }
                 }
             )
@@ -196,23 +321,6 @@ fun SportsCatalogLayout(
                 sportTypeToLazyPagingItems.keys.elementAtOrNull(sportIndex) ?: return@items
             val games = sportTypeToLazyPagingItems[sportType]
 
-            LaunchedEffect(games?.hasError()) {
-                val sportName = sportType.name
-                val hasError = games?.hasError() == true
-                Logger.d { "🏈 LaunchedEffect triggered for sport '$sportName' - hasError: $hasError, games != null: ${games != null}" }
-
-                if (hasError) {
-                    games?.getErrorState()?.let { errorText ->
-                        Logger.e { "🚨 Sport row error detected for '$sportName': $errorText" }
-                        Logger.e { "🚨 Calling onRowError callback for sport '$sportName'" }
-                        onRowError?.invoke(errorText)
-                    } ?: run {
-                        Logger.w { "🚨 hasError=true but getErrorState() returned null for sport '$sportName'" }
-                    }
-                } else {
-                    Logger.v { "🏈 No error for sport '$sportName'" }
-                }
-            }
 
             val shouldRenderRow = games != null && (games.itemCount > 0 || games.hasError())
             Logger.d { "🏈 Sport '${sportType.name}' render check - games!=null: ${games != null}, itemCount: ${games?.itemCount ?: 0}, hasError: ${games?.hasError() ?: false}, shouldRender: $shouldRenderRow" }
@@ -224,19 +332,12 @@ fun SportsCatalogLayout(
 
                 Logger.d { "🏈 Rendering sport row '${sportType.name}' at index $rowIndex" }
 
-                val sportRowFocusRequesters = remember(games?.itemCount, rowIndex) {
-                    if (games == null || games.itemCount == 0) {
-                        emptyMap()
-                    } else {
-                        val maxFocusItems = focusManagementConfig?.maxFocusRequestersPerRow ?: 50
-                        val limitedItemCount = minOf(games.itemCount, maxFocusItems)
-                        (0 until limitedItemCount).associate { itemIndex ->
-                            itemIndex to focusRequesters.getOrPut(
-                                Pair(rowIndex, itemIndex)
-                            ) { FocusRequester() }
-                        }
-                    }
-                }
+                val sportRowFocusRequesters = rememberCompetitionGameRowFocusRequesters(
+                    games = games,
+                    rowIndex = sportIndex,
+                    focusRequesters = focusRequesters,
+                    focusManagementConfig = focusManagementConfig
+                )
 
                 GamesRow(
                     games = games,
