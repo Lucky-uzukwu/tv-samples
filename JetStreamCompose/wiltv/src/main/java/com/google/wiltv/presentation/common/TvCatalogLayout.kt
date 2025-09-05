@@ -52,8 +52,6 @@ fun TvCatalogLayout(
     catalogToTvShows: Map<Catalog, StateFlow<PagingData<TvShow>>>,
     genreToTvShows: Map<Genre, StateFlow<PagingData<TvShow>>>? = null,
     onTvShowClick: (tvShow: TvShow) -> Unit,
-    goToVideoPlayer: (tvShow: TvShow) -> Unit,
-    setSelectedTvShow: (tvShow: TvShow) -> Unit,
     carouselState: CarouselState,
     backgroundState: BackgroundState,
     contentDescription: String = "TV Shows Catalog Screen",
@@ -85,7 +83,6 @@ fun TvCatalogLayout(
                 for (i in 0 until streamingProviders.size) {
                     put(Pair(1, i), FocusRequester())
                 }
-                // Note: Catalog and genre focus requesters are created on-demand in rememberRowFocusRequesters
             }
         }
     var lastFocusedItem by rememberSaveable { mutableStateOf(Pair(0, 0)) }
@@ -330,10 +327,8 @@ fun TvCatalogLayout(
                     tvShow.backdropImageUrl?.let {
                         backgroundState.load(url = it)
                     }
-                    setSelectedTvShow(tvShow)
                 },
                 carouselState = carouselState,
-                carouselScrollEnabled = carouselScrollEnabled,
                 modifier = Modifier
                     .height(340.dp)
                     .fillMaxWidth()
@@ -422,7 +417,6 @@ fun TvCatalogLayout(
                         backgroundState.clear()
                         carouselScrollEnabled = false
                         val imageUrl = tvShow.backdropImageUrl
-                        setSelectedTvShow(tvShow)
                         imageUrl?.let {
                             backgroundState.load(url = it)
                         }
@@ -477,7 +471,6 @@ fun TvCatalogLayout(
                             backgroundState.clear()
                             carouselScrollEnabled = false
                             val imageUrl = tvShow.backdropImageUrl
-                            setSelectedTvShow(tvShow)
                             imageUrl?.let {
                                 backgroundState.load(url = it)
                             }

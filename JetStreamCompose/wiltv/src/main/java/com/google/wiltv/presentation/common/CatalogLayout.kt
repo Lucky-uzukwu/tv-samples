@@ -7,13 +7,11 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,15 +23,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -70,7 +63,6 @@ fun CatalogLayout(
     genreToMovies: Map<Genre, StateFlow<PagingData<MovieNew>>>? = null,
     onMovieClick: (movie: MovieNew) -> Unit,
     goToVideoPlayer: (movie: MovieNew) -> Unit,
-    setSelectedMovie: (movie: MovieNew) -> Unit,
     carouselState: CarouselState,
     backgroundState: BackgroundState,
     contentDescription: String = "Catalog Screen",
@@ -362,7 +354,6 @@ fun CatalogLayout(
                 setSelectedMovie = { movie ->
                     backgroundState.clear()
                     movie.backdropImageUrl?.let { backgroundState.load(it) }
-                    setSelectedMovie(movie)
                 },
                 carouselState = carouselState,
                 carouselScrollEnabled = carouselScrollEnabled,
@@ -458,7 +449,7 @@ fun CatalogLayout(
                 val catalogRowId = "catalog_${catalogKey.name}"
                 val catalogRowState = rowStates.getOrPut(catalogRowId) { TvLazyListState() }
 
-                val catalogFocusRequesters = rememberRowFocusRequesters(
+                val catalogFocusRequesters = rememberMovieRowFocusRequesters(
                     movies = movies,
                     rowIndex = catalogRowIndex,
                     focusRequesters = focusRequesters,
@@ -473,7 +464,6 @@ fun CatalogLayout(
                         backgroundState.clear()
                         carouselScrollEnabled = false
                         val imageUrl = movie.backdropImageUrl
-                        setSelectedMovie(movie)
                         imageUrl?.let {
                             backgroundState.load(url = it)
                         }
@@ -535,7 +525,7 @@ fun CatalogLayout(
 
                     Logger.d { "🎬 Rendering genre row '${genreKey.name}' at index $genreRowIndex" }
 
-                    val genreFocusRequesters = rememberRowFocusRequesters(
+                    val genreFocusRequesters = rememberMovieRowFocusRequesters(
                         movies = movies,
                         rowIndex = genreRowIndex,
                         focusRequesters = focusRequesters,
@@ -550,7 +540,6 @@ fun CatalogLayout(
                             backgroundState.clear()
                             carouselScrollEnabled = false
                             val imageUrl = movie.backdropImageUrl
-                            setSelectedMovie(movie)
                             imageUrl?.let {
                                 backgroundState.load(url = it)
                             }

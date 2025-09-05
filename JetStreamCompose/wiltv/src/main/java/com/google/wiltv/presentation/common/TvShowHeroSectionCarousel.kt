@@ -35,7 +35,6 @@ fun TvShowHeroSectionCarousel(
     setSelectedTvShow: (TvShow) -> Unit,
     modifier: Modifier = Modifier,
     carouselState: CarouselState,
-    carouselScrollEnabled: Boolean,
     carouselFocusRequester: FocusRequester,
     firstLazyRowItemUnderCarouselRequester: FocusRequester,
 ) {

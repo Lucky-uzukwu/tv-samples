@@ -3,10 +3,8 @@
 
 package com.google.wiltv.presentation.common
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,12 +20,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -39,14 +35,10 @@ import androidx.tv.foundation.lazy.list.TvLazyListState
 import androidx.tv.foundation.lazy.list.rememberTvLazyListState
 import androidx.tv.material3.CarouselState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
-import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
-import coil.compose.AsyncImage
 import com.google.wiltv.data.entities.CompetitionGame
 import com.google.wiltv.data.entities.SportType
 import com.google.wiltv.presentation.UiText
 import com.google.wiltv.presentation.screens.BackgroundState
-import com.google.wiltv.presentation.screens.dashboard.ParentPadding
 import com.google.wiltv.presentation.utils.getErrorState
 import com.google.wiltv.presentation.utils.hasError
 import co.touchlab.kermit.Logger
@@ -59,6 +51,7 @@ fun SportsCatalogLayout(
     modifier: Modifier = Modifier,
     featuredGames: LazyPagingItems<CompetitionGame>,
     sportTypeToGames: Map<SportType, StateFlow<PagingData<CompetitionGame>>>,
+    sportTypes: List<SportType>,
     onGameClick: (game: CompetitionGame) -> Unit,
     carouselState: CarouselState,
     backgroundState: BackgroundState,
@@ -68,31 +61,26 @@ fun SportsCatalogLayout(
 ) {
     val tvLazyColumnState = rememberTvLazyListState()
     val rowStates = remember { mutableStateMapOf<String, TvLazyListState>() }
-    
+
     val sportTypeToLazyPagingItems = sportTypeToGames.mapValues { (sportType, flow) ->
-        Logger.d { "Collecting paging items for sport type: ${sportType.name}" }
         flow.collectAsLazyPagingItems()
     }
 
     val (carouselFocusRequester, firstLazyRowItemUnderCarouselRequester) = remember { FocusRequester.createRefs() }
+
     var carouselScrollEnabled by remember { mutableStateOf(true) }
 
-    val focusRequesters = remember(sportTypeToGames.size) {
-        mutableMapOf<Pair<Int, Int>, FocusRequester>().apply {
+    val focusRequesters = remember(sportTypes.size, sportTypeToGames.size) {
+        mutableMapOf<ItemPosition, FocusRequester>().apply {
             // Pre-create focus requesters for first sport row that carousel needs
-            if (sportTypeToLazyPagingItems.isNotEmpty()) {
-                val firstSportType = sportTypeToLazyPagingItems.keys.first()
-                val firstRowGames = sportTypeToLazyPagingItems[firstSportType]
-                if (firstRowGames != null && firstRowGames.itemCount > 0) {
-                    // Create focus requester for first item of first sport row (row index 1)
-                    put(Pair(1, 0), FocusRequester())
-                    Logger.d { "Pre-created focus requester for first sport row item" }
-                }
+            for (i in 0 until sportTypes.size) {
+                put(Pair(1, i), FocusRequester())
             }
         }
     }
     var lastFocusedItem by rememberSaveable { mutableStateOf(Pair(0, 0)) }
     var shouldRestoreFocus by remember { mutableStateOf(true) }
+    var carouselTargetSportTypeIcon by rememberSaveable { mutableIntStateOf(0) }  // Persist across config changes
 
     LaunchedEffect(featuredGames.itemCount) {
         if (featuredGames.itemCount > 0) {
@@ -122,68 +110,92 @@ fun SportsCatalogLayout(
         verticalArrangement = Arrangement.spacedBy(30.dp),
         contentPadding = PaddingValues(vertical = 40.dp)
     ) {
-        item {
-            if (featuredGames.itemCount > 0) {
-                val targetSportRowFocusRequester = 
-                    if (sportTypeToLazyPagingItems.isNotEmpty()) {
-                        val firstSportType = sportTypeToLazyPagingItems.keys.first()
-                        val firstRowGames = sportTypeToLazyPagingItems[firstSportType]
-                        if (firstRowGames != null && firstRowGames.itemCount > 0) {
-                            focusRequesters[Pair(1, 0)] ?: firstLazyRowItemUnderCarouselRequester
-                        } else {
-                            firstLazyRowItemUnderCarouselRequester
-                        }
-                    } else {
-                        firstLazyRowItemUnderCarouselRequester
-                    }
-
-                SportsHeroCarousel(
-                    games = featuredGames,
-                    onGameClick = onGameClick,
-                    setSelectedGame = { game ->
-                        backgroundState.clear()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(432.dp),
-                    carouselState = carouselState,
-                    carouselScrollEnabled = carouselScrollEnabled,
-                    carouselFocusRequester = carouselFocusRequester,
-                    firstLazyRowItemUnderCarouselRequester = targetSportRowFocusRequester
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(432.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+        item(contentType = "SportsHeroCarousel") {
+            val targetSportTypeIconFocusRequester =
+                if (sportTypes.isNotEmpty()) {
+                    val targetIndex = if (carouselTargetSportTypeIcon >= 0 &&
+                        carouselTargetSportTypeIcon < sportTypes.size
                     ) {
-                        Text(
-                            text = "Loading Sports...",
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.Medium
-                        )
+                        carouselTargetSportTypeIcon
+                    } else {
+                        0
+                    }
+                    focusRequesters[Pair(1, targetIndex)] ?: firstLazyRowItemUnderCarouselRequester
+                } else {
+                    firstLazyRowItemUnderCarouselRequester
+                }
+
+            SportsHeroCarousel(
+                games = featuredGames,
+                onGameClick = onGameClick,
+                setSelectedGame = { game ->
+                    setSelectedGame(backgroundState, game)
+                },
+                carouselState = carouselState,
+                modifier = Modifier
+                    .height(340.dp)
+                    .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        if (focusState.hasFocus) {
+                            carouselScrollEnabled = true
+                        }
+                    },
+                firstLazyRowItemUnderCarouselRequester = targetSportTypeIconFocusRequester,
+                carouselFocusRequester = carouselFocusRequester,
+            )
+        }
+
+        item(
+            contentType = "SportTypeRow",
+            key = "SportTypeRow"
+        ) {
+            val rowId = "row_sport_type"
+            val rowState = rowStates.getOrPut(rowId) { TvLazyListState() }
+            val sportTypeRowIndex = 1
+
+            val sportTypeFocusRequesters =
+                remember(sportTypes.size) {
+                    sportTypes.mapIndexed { index, _ ->
+                        index to (focusRequesters.getOrPut(
+                            Pair(
+                                sportTypeRowIndex,
+                                index
+                            )
+                        ) { FocusRequester() })
+                    }.toMap()
+                }
+
+            SportTypeRow(
+                sportTypes = sportTypes,
+                onClick = { streamingProvider, itemIndex -> },
+                modifier = Modifier,
+                aboveFocusRequester = carouselFocusRequester,
+                lazyRowState = rowState,
+                focusRequesters = sportTypeFocusRequesters,
+                downFocusRequester = null,
+                onItemFocused = { itemIndex ->
+                    lastFocusedItem = Pair(sportTypeRowIndex, itemIndex)
+                    shouldRestoreFocus = false
+
+                    if (itemIndex >= 0 && itemIndex < (sportTypes.size)) {
+                        carouselTargetSportTypeIcon = itemIndex
                     }
                 }
-            }
+            )
         }
 
         items(
             count = sportTypeToLazyPagingItems.size,
             key = { sportIndex ->
-                sportTypeToLazyPagingItems.keys.elementAtOrNull(sportIndex)?.hashCode() ?: sportIndex
+                sportTypeToLazyPagingItems.keys.elementAtOrNull(sportIndex)?.hashCode()
+                    ?: sportIndex
             },
             contentType = { "GamesRow" }
         ) { sportIndex ->
-            val sportType = sportTypeToLazyPagingItems.keys.elementAtOrNull(sportIndex) ?: return@items
+            val sportType =
+                sportTypeToLazyPagingItems.keys.elementAtOrNull(sportIndex) ?: return@items
             val games = sportTypeToLazyPagingItems[sportType]
-            
+
             LaunchedEffect(games?.hasError()) {
                 val sportName = sportType.name
                 val hasError = games?.hasError() == true
@@ -259,4 +271,18 @@ fun SportsCatalogLayout(
             }
         }
     }
+}
+
+private fun setSelectedGame(
+    backgroundState: BackgroundState,
+    game: CompetitionGame
+) {
+    backgroundState.clear()
+    val patternUrl = sequenceOf(
+        game.competition.logoUrl,
+        game.competition.featuredImageUrl,
+        game.competition.coverImageUrl
+    ).firstOrNull { !it.isNullOrBlank() }
+
+    patternUrl?.let { backgroundState.load(url = it) }
 }

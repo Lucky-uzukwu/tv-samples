@@ -61,8 +61,6 @@ fun DashboardScreen(
     openVideoPlayer: (contentId: String, title: String?) -> Unit = { _, _ -> },
     openStreamingProviderMovieList: (streamingProvider: StreamingProvider) -> Unit = {},
     openStreamingProvideShowList: (streamingProvider: StreamingProvider) -> Unit = {},
-    setSelectedMovie: (movie: MovieNew) -> Unit,
-    setSelectedTvShow: (tvShow: TvShow) -> Unit,
     onLogOutClick: () -> Unit,
     onNavigateToProfileSelection: () -> Unit = {},
     dashboardViewModel: DashboardViewModel = hiltViewModel()
@@ -84,14 +82,12 @@ fun DashboardScreen(
                 navController = navController,
                 modifier = Modifier
                     .fillMaxSize(),
-                setSelectedMovie = setSelectedMovie,
-                setSelectedTvShow = setSelectedTvShow,
                 openTvShowDetailsScreen = openTvShowDetailsScreen,
                 onLogOutClick = onLogOutClick,
                 openStreamingProviderMovieList = openStreamingProviderMovieList,
                 openStreamingProvideShowList = openStreamingProvideShowList,
                 onNavigateToProfileSelection = onNavigateToProfileSelection,
-                onNavigateToScreen = { screen -> 
+                onNavigateToScreen = { screen ->
                     // Navigate and let drawer know about the change
                     navController.navigate(screen())
                 }
@@ -115,8 +111,6 @@ private fun Body(
     openTvShowDetailsScreen: (tvShowId: String) -> Unit,
     openSportGameDetails: (gameData: String) -> Unit,
     openVideoPlayer: (contentId: String, title: String?) -> Unit,
-    setSelectedMovie: (movie: MovieNew) -> Unit,
-    setSelectedTvShow: (tvShow: TvShow) -> Unit,
     navController: NavHostController = rememberNavController(),
     onLogOutClick: () -> Unit,
     onNavigateToProfileSelection: () -> Unit = {},
@@ -128,8 +122,6 @@ private fun Body(
         openTvShowDetailsScreen,
         openCategoryMovieList,
         openGenreTvChannelsList,
-        setSelectedMovie,
-        setSelectedTvShow,
         openStreamingProviderMovieList,
         openStreamingProvideShowList,
         onLogOutClick
@@ -155,7 +147,6 @@ private fun Body(
                     goToVideoPlayer = { selectedMovie ->
                         openVideoPlayer(selectedMovie.id.toString(), selectedMovie.title)
                     },
-                    setSelectedMovie = setSelectedMovie,
                     onStreamingProviderClick = openStreamingProviderMovieList,
                     navController = navController
                 )
@@ -169,7 +160,6 @@ private fun Body(
                     goToVideoPlayer = { selectedMovie ->
                         openVideoPlayer(selectedMovie.id.toString(), selectedMovie.title)
                     },
-                    setSelectedMovie = setSelectedMovie,
                     onStreamingProviderClick = openStreamingProviderMovieList,
                     navController = navController
                 )
@@ -178,10 +168,6 @@ private fun Body(
             composable(Screens.Shows()) {
                 TVShowScreen(
                     onTVShowClick = { show -> openTvShowDetailsScreen(show.id.toString()) },
-                    goToVideoPlayer = { selectedMovie ->
-                        openVideoPlayer(selectedMovie.id.toString(), selectedMovie.title)
-                    },
-                    setSelectedTvShow = setSelectedTvShow,
                     onStreamingProviderClick = openStreamingProvideShowList
                 )
             }
@@ -244,8 +230,6 @@ fun DashboardScreenNewPreview() {
         openMovieDetailsScreen = { },
         openTvShowDetailsScreen = { },
         openVideoPlayer = { _, _ -> },
-        setSelectedMovie = { },
-        setSelectedTvShow = { },
         onLogOutClick = { },
         onNavigateToProfileSelection = { }
     )

@@ -40,10 +40,6 @@ class NetworkModule {
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.SECONDS) // Reduced connection timeout
-            .readTimeout(15, TimeUnit.SECONDS) // Reduced read timeout
-            .writeTimeout(15, TimeUnit.SECONDS) // Reduced write timeout
-            .callTimeout(20, TimeUnit.SECONDS) // Overall call timeout
             .build()
     }
 
@@ -190,19 +186,6 @@ class NetworkModule {
             .okHttpClient {
                 OkHttpClient.Builder()
                     .addInterceptor(authInterceptor)
-                    .build()
-            }
-            .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
-            .diskCachePolicy(coil.request.CachePolicy.ENABLED)
-            .memoryCache {
-                coil.memory.MemoryCache.Builder(context)
-                    .maxSizePercent(0.20) // Use 20% of available memory
-                    .build()
-            }
-            .diskCache {
-                coil.disk.DiskCache.Builder()
-                    .directory(context.cacheDir.resolve("image_cache"))
-                    .maxSizePercent(0.02) // Use 2% of available disk space
                     .build()
             }
             .build()

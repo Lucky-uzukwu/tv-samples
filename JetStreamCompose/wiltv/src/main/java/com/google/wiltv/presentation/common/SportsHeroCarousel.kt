@@ -56,7 +56,6 @@ fun SportsHeroCarousel(
     setSelectedGame: (CompetitionGame) -> Unit,
     modifier: Modifier = Modifier,
     carouselState: CarouselState,
-    carouselScrollEnabled: Boolean,
     carouselFocusRequester: FocusRequester,
     firstLazyRowItemUnderCarouselRequester: FocusRequester
 ) {
@@ -93,105 +92,22 @@ fun SportsHeroCarousel(
         contentTransformStartToEnd = fadeIn(tween(1000)).togetherWith(fadeOut(tween(1000))),
         contentTransformEndToStart = fadeIn(tween(1000)).togetherWith(fadeOut(tween(1000))),
     ) { idx ->
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
             val game = games[idx] ?: return@Carousel
 
             LaunchedEffect(game) {
-                if (carouselScrollEnabled) {
-                    setSelectedGame(game)
-                }
+                setSelectedGame(game)
             }
 
             val isActiveItem = idx == activeItemIndex
 
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                GameHeroContent(
-                    game = game,
-                    modifier = Modifier.weight(1f)
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                GameCarouselItemForeground(
-                    game = game,
-                    onWatchNowClick = {
-                        onGameClick(game)
-                    },
-                    isCarouselFocused = isCarouselFocused && isActiveItem
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun GameHeroContent(
-    game: CompetitionGame,
-    modifier: Modifier = Modifier
-) {
-
-    val patternUrl = sequenceOf(
-        game.competition.logoUrl,
-        game.competition.featuredImageUrl,
-        game.competition.coverImageUrl
-    ).firstOrNull { !it.isNullOrBlank() }
-    Row(
-        modifier = modifier.fillMaxSize()
-    ) {
-        TeamVersusImage(
-            game = game,
-            modifier = Modifier
-                .weight(0.6f)
-                .fillMaxHeight(),
-            showLiveBadge = false
-        )
-
-        if (patternUrl.isNullOrBlank().not()) {
-            CompetitionPatternBackground(
-                logoUrl = patternUrl,
-                modifier = Modifier
-                    .weight(0.4f)
-                    .fillMaxHeight()
+            GameCarouselItemForeground(
+                game = game,
+                onMoreInfoClick = {
+                    onGameClick(game)
+                },
+                isCarouselFocused = isCarouselFocused && isActiveItem
             )
-        }
-    }
-}
-
-@Composable
-fun CompetitionPatternBackground(
-    logoUrl: String,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(0.dp)
-        ) {
-            repeat(8) { rowIndex ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(0.dp)
-                ) {
-                    repeat(4) {
-                        AsyncImage(
-                            model = logoUrl,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .alpha(0.35f)
-                                .height(40.dp)
-                                .weight(1f),
-                            contentScale = ContentScale.Fit
-                        )
-                    }
-                }
-            }
         }
     }
 }

@@ -75,7 +75,7 @@ fun ImmersiveShowsList(
     var shouldShowDetails by remember { mutableStateOf(false) }
 
     var selectedTvShow by remember {
-        mutableStateOf (
+        mutableStateOf(
             tvShows.itemSnapshotList.firstOrNull()
         )
     }
@@ -410,40 +410,6 @@ private fun ShowsRowItem(
                 movieUri = imageUrl,
                 index = index
             )
-        }
-    }
-}
-
-@Composable
-fun rememberTvShowRowFocusRequesters(
-    tvShows: LazyPagingItems<TvShow>?,
-    rowIndex: Int,
-    focusRequesters: MutableMap<Pair<Int, Int>, FocusRequester>,
-    focusManagementConfig: FocusManagementConfig?
-): Map<Int, FocusRequester> {
-    return remember(tvShows?.itemCount, rowIndex) {
-        if (tvShows == null || tvShows.itemCount == 0) {
-            emptyMap()
-        } else {
-            val startTime = System.currentTimeMillis()
-
-            // Use cached values to avoid multiple data access
-            val itemCount = tvShows.itemCount
-            val snapshotSize = tvShows.itemSnapshotList.items.size
-            val actualItemCount = minOf(itemCount, snapshotSize)
-            val maxFocusItems = focusManagementConfig?.maxFocusRequestersPerRow ?: 50
-            val limitedItemCount = minOf(actualItemCount, maxFocusItems)
-
-            // Simple range creation without expensive null checks
-            // Focus requesters will be created lazily when actually needed
-            val result = (0 until limitedItemCount).associate { index ->
-                index to focusRequesters.getOrPut(Pair(rowIndex, index)) { FocusRequester() }
-            }
-
-            val endTime = System.currentTimeMillis()
-            Logger.d { "TV Show Row $rowIndex focus requesters created in ${endTime - startTime}ms (${result.size} items)" }
-
-            result
         }
     }
 }

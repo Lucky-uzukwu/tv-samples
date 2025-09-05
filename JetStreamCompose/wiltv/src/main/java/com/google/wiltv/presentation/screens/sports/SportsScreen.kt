@@ -50,6 +50,7 @@ fun SportsScreen(
             SportsCatalogLayout(
                 featuredGames = featuredGames,
                 sportTypeToGames = currentState.sportTypeToGames,
+                sportTypes = currentState.sportTypes,
                 onGameClick = onGameClick,
                 carouselState = carouselState,
                 backgroundState = backgroundState,

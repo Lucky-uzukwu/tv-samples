@@ -88,7 +88,7 @@ fun TeamInitialsPlaceholder(
     ) {
         Text(
             text = initials,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            color = Color.Black,
             fontSize = fontSize,
             fontWeight = FontWeight.Bold
         )

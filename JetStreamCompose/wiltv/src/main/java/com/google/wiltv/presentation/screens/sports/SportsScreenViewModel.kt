@@ -1,22 +1,6 @@
 // ABOUTME: ViewModel for Sports screen managing game data and sport types
 // ABOUTME: Handles hero section games and sport type-specific game rows with paging
 
-/*
- * Copyright 2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.google.wiltv.presentation.screens.sports
 
 import androidx.lifecycle.ViewModel
@@ -86,6 +70,7 @@ class SportsScreenViewModel @Inject constructor(
                         Logger.d { "Successfully fetched ${sportTypesResult.data.member.size} sport types" }
                         sportTypesResult.data.member.filter { it.active }
                     }
+
                     is ApiResult.Error -> {
                         Logger.e { "Failed to fetch sport types: ${sportTypesResult.message}" }
                         _uiState.value = SportsScreenUiState.Error(
@@ -96,24 +81,29 @@ class SportsScreenViewModel @Inject constructor(
                 }
 
                 Logger.d { "Creating paging sources for ${sportTypes.size} active sport types" }
-                val sportTypeToGames = sportTypes.sortedBy { it.priority }.associateWith { sportType ->
-                    Pager(
-                        PagingConfig(pageSize = 20, initialLoadSize = 20)
-                    ) {
-                        SportTypePagingSource(sportsRepository, userRepository, sportType.id)
-                    }.flow.cachedIn(viewModelScope).stateIn(
-                        viewModelScope,
-                        SharingStarted.WhileSubscribed(5_000),
-                        PagingData.empty()
-                    )
-                }
+                val sportTypeToGames =
+                    sportTypes.sortedBy { it.priority }.associateWith { sportType ->
+                        Pager(
+                            PagingConfig(pageSize = 20, initialLoadSize = 20)
+                        ) {
+                            SportTypePagingSource(sportsRepository, userRepository, sportType.id)
+                        }.flow.cachedIn(viewModelScope).stateIn(
+                            viewModelScope,
+                            SharingStarted.WhileSubscribed(5_000),
+                            PagingData.empty()
+                        )
+                    }
 
                 Logger.d { "Sports screen UI state set to Ready" }
-                _uiState.value = SportsScreenUiState.Ready(sportTypeToGames)
+                _uiState.value = SportsScreenUiState.Ready(
+                    sportTypeToGames = sportTypeToGames,
+                    sportTypes = sportTypes
+                )
 
             } catch (e: Exception) {
                 Logger.e(e) { "Error fetching sports data" }
-                _uiState.value = SportsScreenUiState.Error(UiText.DynamicString(e.message ?: "Unknown error"))
+                _uiState.value =
+                    SportsScreenUiState.Error(UiText.DynamicString(e.message ?: "Unknown error"))
             }
         }
     }

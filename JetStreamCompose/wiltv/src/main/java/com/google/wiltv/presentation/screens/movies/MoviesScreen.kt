@@ -29,7 +29,6 @@ fun MoviesScreen(
     onMovieClick: (movie: MovieNew) -> Unit,
     goToVideoPlayer: (movie: MovieNew) -> Unit,
     onStreamingProviderClick: (streamingProvider: StreamingProvider) -> Unit,
-    setSelectedMovie: (movie: MovieNew) -> Unit,
     navController: NavController,
     moviesScreenViewModel: MoviesScreenViewModel = hiltViewModel(),
 ) {
@@ -56,7 +55,6 @@ fun MoviesScreen(
                 genreToMovies = currentState.genreToMovies,
                 onMovieClick = onMovieClick,
                 goToVideoPlayer = goToVideoPlayer,
-                setSelectedMovie = setSelectedMovie,
                 carouselState = carouselState,
                 backgroundState = backgroundState,
                 modifier = Modifier.fillMaxSize(),

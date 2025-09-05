@@ -26,9 +26,7 @@ import com.google.wiltv.presentation.utils.hasError
 @OptIn(ExperimentalTvMaterial3Api::class)
 fun TVShowScreen(
     onTVShowClick: (tvShow: TvShow) -> Unit,
-    goToVideoPlayer: (tvShow: TvShow) -> Unit,
     onStreamingProviderClick: (streamingProvider: StreamingProvider) -> Unit,
-    setSelectedTvShow: (tvShow: TvShow) -> Unit,
     tvShowScreenViewModel: TvShowScreenViewModel = hiltViewModel(),
 ) {
     val uiState by tvShowScreenViewModel.uiState.collectAsStateWithLifecycle()
@@ -53,8 +51,6 @@ fun TVShowScreen(
                 catalogToTvShows = currentState.catalogToTvShows,
                 genreToTvShows = currentState.genreToTvShows,
                 onTvShowClick = onTVShowClick,
-                goToVideoPlayer = goToVideoPlayer,
-                setSelectedTvShow = setSelectedTvShow,
                 carouselState = carouselState,
                 backgroundState = backgroundState,
                 modifier = Modifier.fillMaxSize(),

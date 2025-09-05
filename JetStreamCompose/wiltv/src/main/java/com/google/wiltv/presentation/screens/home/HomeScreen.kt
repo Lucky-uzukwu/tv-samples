@@ -1,6 +1,6 @@
 package com.google.wiltv.presentation.screens.home
 
- import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,7 +34,6 @@ fun HomeScreen(
     onMovieClick: (movie: MovieNew) -> Unit,
     goToVideoPlayer: (movie: MovieNew) -> Unit,
     onStreamingProviderClick: (streamingProvider: StreamingProvider) -> Unit,
-    setSelectedMovie: (movie: MovieNew) -> Unit,
     homeScreeViewModel: HomeScreeViewModel = hiltViewModel(),
     navController: NavController
 ) {
@@ -62,7 +61,6 @@ fun HomeScreen(
                 genreToMovies = null,
                 onMovieClick = onMovieClick,
                 goToVideoPlayer = goToVideoPlayer,
-                setSelectedMovie = setSelectedMovie,
                 carouselState = carouselState,
                 backgroundState = backgroundState,
                 modifier = Modifier.fillMaxSize(),

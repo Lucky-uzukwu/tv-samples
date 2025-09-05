@@ -47,8 +47,6 @@ private data class DashboardCallbacks(
     val openMovieDetailsScreen: (String) -> Unit,
     val openSportGameDetails: (String) -> Unit,
     val openVideoPlayer: (String, String?) -> Unit,
-    val setSelectedMovie: (MovieNew) -> Unit,
-    val setSelectedTvShow: (TvShow) -> Unit,
     val onLogOutClick: () -> Unit,
     val onNavigateToProfileSelection: () -> Unit
 )
@@ -62,13 +60,13 @@ fun App(
     val navController = rememberNavController()
     var isComingBackFromDifferentScreen by remember { mutableStateOf(false) }
     val userState by userStateHolder.userState.collectAsState()
-    
+
     // Show loading screen while authentication state is being determined
     if (userState.isLoading) {
         LoadingScreen()
         return
     }
-    
+
     val startDestination =
         if (userState.user?.token !== null) {
             // If authenticated, go directly to profile selection
@@ -77,9 +75,6 @@ fun App(
             // If not authenticated, start with auth screen
             Screens.AuthScreen()
         }
-
-    val selectedMovie = remember { mutableStateOf<MovieNew?>(null) }
-    val selectedTvShow = remember { mutableStateOf<TvShow?>(null) }
 
     NavHost(
         navController = navController,
@@ -255,7 +250,7 @@ fun App(
             }
             composable(route = Screens.Dashboard()) {
                 val dashboardCallbacks =
-                    remember(navController, selectedMovie, selectedTvShow, userStateHolder) {
+                    remember(navController, userStateHolder) {
                         DashboardCallbacks(
                             openCategoryMovieList = { categoryId ->
                                 navController.navigate(
@@ -306,14 +301,6 @@ fun App(
                                     navController.navigate(Screens.VideoPlayer.withArgs(contentId))
                                 }
                             },
-                            setSelectedMovie = {
-                                selectedMovie.value = it
-                                selectedTvShow.value = null
-                            },
-                            setSelectedTvShow = {
-                                selectedTvShow.value = it
-                                selectedMovie.value = null
-                            },
                             onLogOutClick = {
                                 userStateHolder.clearUser()
                                 navController.navigate(Screens.AuthScreen())
@@ -337,8 +324,6 @@ fun App(
                     openMovieDetailsScreen = dashboardCallbacks.openMovieDetailsScreen,
                     openSportGameDetails = dashboardCallbacks.openSportGameDetails,
                     openVideoPlayer = dashboardCallbacks.openVideoPlayer,
-                    setSelectedMovie = dashboardCallbacks.setSelectedMovie,
-                    setSelectedTvShow = dashboardCallbacks.setSelectedTvShow,
                     onLogOutClick = dashboardCallbacks.onLogOutClick,
                     onNavigateToProfileSelection = dashboardCallbacks.onNavigateToProfileSelection
                 )
