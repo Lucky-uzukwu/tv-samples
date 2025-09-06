@@ -175,11 +175,8 @@ private fun Body(
             composable(Screens.Sports()) {
                 SportsScreen(
                     onGameClick = { game ->
-                        val gameJson = kotlinx.serialization.json.Json.encodeToString(
-                            com.google.wiltv.data.entities.CompetitionGame.serializer(),
-                            game
-                        )
-                        val encodedGameData = URLEncoder.encode(gameJson, "UTF-8")
+
+                        val encodedGameData = URLEncoder.encode(game.toString(), "UTF-8")
                         openSportGameDetails(encodedGameData)
                     },
                     navController = navController

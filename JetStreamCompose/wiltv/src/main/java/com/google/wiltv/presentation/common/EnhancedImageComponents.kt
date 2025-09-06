@@ -31,7 +31,7 @@ fun EnhancedPosterImage(
 ) {
     var retryKey by remember { mutableStateOf(0) }
     var isError by remember { mutableStateOf(false) }
-    
+
     if (isError) {
         MoviePosterPlaceholder(
             title = title,
@@ -71,7 +71,7 @@ fun EnhancedBackdropImage(
 ) {
     var retryKey by remember { mutableStateOf(0) }
     var isError by remember { mutableStateOf(false) }
-    
+
     if (isError) {
         BackdropPlaceholder(
             title = title,
@@ -111,7 +111,7 @@ fun EnhancedProfileImage(
 ) {
     var retryKey by remember { mutableStateOf(0) }
     var isError by remember { mutableStateOf(false) }
-    
+
     if (isError) {
         GenericImagePlaceholder(
             onRetry = {
@@ -139,7 +139,7 @@ fun EnhancedProfileImage(
 
 @Composable
 fun EnhancedAsyncImage(
-    model: Any?,
+    model: String?,
     contentDescription: String?,
     modifier: Modifier = Modifier,
     placeholder: Painter? = null,
@@ -155,7 +155,7 @@ fun EnhancedAsyncImage(
 ) {
     var retryKey by remember { mutableStateOf(0) }
     var isError by remember { mutableStateOf(false) }
-    
+
     if (isError && showRetryOnError && onRetry != null) {
         GenericImagePlaceholder(
             onRetry = {

@@ -47,7 +47,7 @@ fun TeamVersusImage(
             modifier = Modifier
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceEvenly
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
                 horizontalArrangement = Arrangement.Center,
@@ -91,7 +91,7 @@ fun TeamVersusImage(
             )
 
             Row(
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.spacedBy(0.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -102,7 +102,6 @@ fun TeamVersusImage(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     color = if (isFocused) Color.Black else MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
                 )
 
                 Text(
@@ -121,7 +120,6 @@ fun TeamVersusImage(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     color = if (isFocused) Color.Black else MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
                 )
             }
 

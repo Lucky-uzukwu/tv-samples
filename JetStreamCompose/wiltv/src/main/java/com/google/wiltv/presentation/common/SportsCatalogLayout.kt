@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusProperties
@@ -379,11 +381,12 @@ private fun setSelectedGame(
     game: CompetitionGame
 ) {
     backgroundState.clear()
-    val patternUrl = sequenceOf(
-        game.competition.logoUrl,
-        game.competition.featuredImageUrl,
-        game.competition.coverImageUrl
-    ).firstOrNull { !it.isNullOrBlank() }
+//    val patternUrl = sequenceOf(
+////        game.coverImageUrl,
+//        game.competition.coverImageUrl,
+//        game.competition.featuredImageUrl,
+//        game.competition.coverImageUrl
+//    ).firstOrNull { !it.isNullOrBlank() }
 
-    patternUrl?.let { backgroundState.load(url = it) }
+    game.coverImageUrl?.let { backgroundState.load(url = it) }
 }

@@ -30,7 +30,7 @@ data class SportType(
     val logoPath: String?,
     val priority: Int,
     val active: Boolean,
-    val logoUrl: String?,
+    val  logoUrl: String?,
     val coverImageUrl: String?,
     val featuredImageUrl: String?
 )

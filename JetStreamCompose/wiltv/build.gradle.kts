@@ -140,6 +140,7 @@ dependencies {
 
     implementation(libs.tv.foundation)
     implementation(libs.coil.compose)
+    implementation("io.coil-kt:coil-svg:2.5.0")
 
     // SplashScreen
     implementation(libs.androidx.core.splashscreen)

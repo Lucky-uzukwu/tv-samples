@@ -16,13 +16,14 @@ import androidx.compose.ui.platform.LocalContext
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
+import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import com.google.wiltv.data.network.AuthenticatedImageLoader
 import dagger.hilt.android.EntryPointAccessors
 
 @Composable
 fun AuthenticatedAsyncImage(
-    model: Any?,
+    model: String?,
     contentDescription: String?,
     modifier: Modifier = Modifier,
     placeholder: Painter? = null,
@@ -38,19 +39,26 @@ fun AuthenticatedAsyncImage(
     filterQuality: FilterQuality = FilterQuality.None,
 ) {
     val context = LocalContext.current
-    
+
     // Get the authenticated ImageLoader from Hilt
     val imageLoader = EntryPointAccessors
         .fromApplication(context, ImageLoaderEntryPoint::class.java)
         .getAuthenticatedImageLoader()
 
+    val imageRequestBuilder = ImageRequest.Builder(context)
+        .data(model)
+        .crossfade(300)
+        .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+        .diskCachePolicy(coil.request.CachePolicy.ENABLED)
+
+    model?.let {
+        if (it.endsWith(".svg")) {
+            imageRequestBuilder.decoderFactory(SvgDecoder.Factory())
+        }
+    }
+
     AsyncImage(
-        model = ImageRequest.Builder(context)
-            .data(model)
-            .crossfade(300)
-            .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
-            .diskCachePolicy(coil.request.CachePolicy.ENABLED)
-            .build(),
+        model = imageRequestBuilder.build(),
         contentDescription = contentDescription,
         imageLoader = imageLoader,
         modifier = modifier,

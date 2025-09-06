@@ -61,6 +61,7 @@ fun GameCarouselItemForeground(
             modifier = Modifier
                 .width(250.dp)
                 .height(200.dp)
+                .padding(top = 60.dp)
                 .scale(0.9f),
             showLiveBadge = false
         )
